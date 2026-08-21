@@ -62,10 +62,11 @@ export function StartRouteButton({ dayId }: { dayId: string }) {
   return (
     <button
       {...startTap}
-      className="pointer-events-auto flex h-12 touch-manipulation items-center gap-2 rounded-full bg-(--color-navigation) px-5 text-sm font-medium text-white shadow-(--shadow-card) transition-transform active:scale-95"
+      className="pointer-events-auto flex h-12 touch-manipulation items-center gap-2 whitespace-nowrap rounded-full bg-(--color-navigation) px-5 text-sm font-medium text-white shadow-(--shadow-card) transition-transform active:scale-95"
+      aria-label={`Navegar hasta ${target.name} con Google Maps`}
     >
       <Navigation size={16} aria-hidden="true" />
-      Ir a la siguiente
+      Navegar
     </button>
   );
 }

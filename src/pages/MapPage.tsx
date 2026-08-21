@@ -65,8 +65,9 @@ function FollowVehicleWhilePlaying() {
     if (!startedRef.current) {
       startedRef.current = true;
       // Al arrancar, acercamos para que se vea el coche; después solo seguimos.
-      // En modo en ruta hace falta detalle de calle, no una vista de región.
-      const minZoom = isLive ? 15 : 11;
+      // En modo en ruta hace falta detalle de calle, no una vista de región:
+      // 17 es el nivel al que se navega, con los nombres de calle legibles.
+      const minZoom = isLive ? 17 : 11;
       map.flyTo([position.latitude, position.longitude], Math.max(map.getZoom(), minZoom), { duration: 0.6 });
       return;
     }
@@ -131,15 +132,16 @@ function PlaybackControls({ dayId }: { dayId: string }) {
         {!isPlaying && !isLive && (
           <button
             {...nextTap}
-            className="pointer-events-auto flex h-12 touch-manipulation items-center gap-1.5 rounded-full bg-(--color-surface) px-4 text-sm font-medium text-(--color-text) shadow-(--shadow-card) transition-transform active:scale-95"
+            className="pointer-events-auto flex h-12 touch-manipulation items-center gap-1.5 whitespace-nowrap rounded-full bg-(--color-surface) px-4 text-sm font-medium text-(--color-text) shadow-(--shadow-card) transition-transform active:scale-95"
+            aria-label="Simular el recorrido hasta la siguiente parada"
           >
-            <SkipForward size={16} aria-hidden="true" /> Siguiente parada
+            <SkipForward size={16} aria-hidden="true" /> Simular
           </button>
         )}
         {isPlaying && (
           <button
             {...pauseTap}
-            className="pointer-events-auto flex h-12 touch-manipulation items-center gap-1.5 rounded-full bg-(--color-surface) px-4 text-sm font-medium text-(--color-text) shadow-(--shadow-card) transition-transform active:scale-95"
+            className="pointer-events-auto flex h-12 touch-manipulation items-center gap-1.5 whitespace-nowrap rounded-full bg-(--color-surface) px-4 text-sm font-medium text-(--color-text) shadow-(--shadow-card) transition-transform active:scale-95"
           >
             <Pause size={16} aria-hidden="true" /> Pausar
           </button>

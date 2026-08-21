@@ -145,7 +145,9 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
       </div>
 
       {panel === "layers" && (
-        <div className="pointer-events-auto absolute right-16 top-[68px] w-52 overflow-hidden rounded-2xl border bg-(--color-surface) py-1 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+        // top-[116px]: por debajo de la tira de días, que ocupa 68-108px. A
+        // 68px el panel caía justo encima y tapaba el selector de día.
+        <div className="pointer-events-auto absolute right-16 top-[116px] w-52 overflow-hidden rounded-2xl border bg-(--color-surface) py-1 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
           {MAP_LAYERS.map((layer) => (
             <button
               key={layer.id}
@@ -175,7 +177,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
       )}
 
       {panel === "legend" && (
-        <div className="pointer-events-auto absolute right-16 top-[68px] w-56 rounded-2xl border bg-(--color-surface) p-3 text-sm shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+        <div className="pointer-events-auto absolute right-16 top-[116px] w-56 rounded-2xl border bg-(--color-surface) p-3 text-sm shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
           <p className="mb-2 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">Leyenda</p>
           <LegendRow color="#9CA3AF" label="Ruta completa" />
           <LegendRow color="#16A34A" label="Tramo recorrido" />

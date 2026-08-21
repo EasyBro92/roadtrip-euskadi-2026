@@ -15,8 +15,11 @@ export function DaySelector() {
 
   return (
     // top-[68px] deja hueco al buscador (48px de alto + 12px de margen).
-    <div className="pointer-events-none absolute inset-x-0 top-[68px] z-[540]">
-      <div className="pointer-events-auto flex gap-2 overflow-x-auto px-3 pb-2 scrollbar-none">
+    // right-16 corta la tira antes de la columna de controles del mapa, que
+    // está a la misma altura y por encima (z-560): sin esto los chips de día
+    // se deslizaban por debajo de los botones y el último quedaba tapado.
+    <div className="pointer-events-none absolute left-0 right-16 top-[68px] z-[540]">
+      <div className="pointer-events-auto flex gap-2 overflow-x-auto pb-2 pl-3 pr-2 scrollbar-none">
         {days.map((day) => (
           <button
             key={day.id}
