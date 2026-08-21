@@ -58,7 +58,10 @@ export function WelcomePage() {
         </div>
       </div>
 
-      <div className="safe-x -mt-7 rounded-t-[28px] bg-(--color-bg) pt-6 pb-6">
+      {/* El panel sube 28px sobre la foto (-mt-7) con esquinas de 28px de
+          radio. Con pt-6 el botón caía dentro de esa curva y pisaba la foto:
+          hace falta separarlo más que el propio radio para que quede limpio. */}
+      <div className="safe-x -mt-7 rounded-t-[28px] bg-(--color-bg) pt-10 pb-6">
         {/* Acción principal arriba del todo, como el botón de indicaciones de Google. */}
         <button
           className="w-full rounded-full bg-(--color-navigation) py-3.5 text-center text-base font-medium text-white shadow-(--shadow-card) transition-transform active:scale-[0.98]"
