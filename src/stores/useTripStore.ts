@@ -4,6 +4,7 @@ import { ACHIEVEMENT_DEFS } from "../data/achievements.data";
 import { SEED_CHECKLIST } from "../data/checklist.data";
 import { SEED_OPTIONAL_PLACES } from "../data/optionalPlaces.data";
 import { createStop } from "../data/stopFactory";
+import { createEmptyTrip, type NewTripInput } from "../data/tripFactory";
 import { SEED_STOPS } from "../data/stops.data";
 import { SEED_TRIP } from "../data/trip.data";
 import { AchievementService } from "../services/achievements/AchievementService";
@@ -34,6 +35,40 @@ interface Snapshot {
   places: Place[];
 }
 
+/**
+ * Todo lo que pertenece a un viaje concreto. El viaje **activo** vive suelto
+ * en la raíz del store (`trip`, `stopsById`, `expenses`...) y los demás se
+ * archivan aquí dentro de `savedTrips`.
+ *
+ * Se hizo así a propósito: mover el viaje activo a un diccionario habría
+ * obligado a reescribir las decenas de acciones que ya existen, con el riesgo
+ * que eso trae. De esta forma ninguna acción cambia, y cambiar de viaje es
+ * simplemente archivar el actual y desempaquetar el otro.
+ */
+export interface TripWorkspace {
+  trip: Trip;
+  stopsById: Record<ID, Stop>;
+  places: Place[];
+  expenses: Expense[];
+  refuels: Refuel[];
+  favorites: Favorite[];
+  notes: Note[];
+  checklist: ChecklistItem[];
+  achievementsState: AchievementState[];
+}
+
+/** Ficha ligera para pintar la lista de viajes sin cargarlos enteros. */
+export interface TripSummary {
+  id: ID;
+  name: string;
+  startDate: string;
+  endDate: string;
+  dayCount: number;
+  stopCount: number;
+  budgetEUR: number;
+  isActive: boolean;
+}
+
 const MAX_HISTORY = 20;
 
 function stopsToRecord(stops: Stop[]): Record<ID, Stop> {
@@ -56,7 +91,16 @@ interface TripStoreState {
   achievementsState: AchievementState[];
   newlyUnlockedAchievementIds: string[];
 
+  /** Viajes que no son el activo, archivados por id. */
+  savedTrips: Record<ID, TripWorkspace>;
+
   history: { past: Snapshot[]; future: Snapshot[] };
+
+  // --- Varios viajes ---
+  listTrips: () => TripSummary[];
+  switchTrip: (tripId: ID) => void;
+  createTrip: (input: NewTripInput) => ID;
+  deleteTrip: (tripId: ID) => void;
 
   // --- Selectors auxiliares ---
   stopsOfDay: (dayId: ID) => Stop[];
@@ -142,6 +186,35 @@ function initialState() {
     notes: [] as Note[],
     checklist: SEED_CHECKLIST,
     achievementsState: ACHIEVEMENT_DEFS.map((d) => ({ id: d.id, unlockedAt: null, progress: 0 })),
+    savedTrips: {} as Record<ID, TripWorkspace>,
+  };
+}
+
+/** Empaqueta el viaje activo para archivarlo al cambiar a otro. */
+function packWorkspace(state: TripStoreState): TripWorkspace {
+  return {
+    trip: state.trip,
+    stopsById: state.stopsById,
+    places: state.places,
+    expenses: state.expenses,
+    refuels: state.refuels,
+    favorites: state.favorites,
+    notes: state.notes,
+    checklist: state.checklist,
+    achievementsState: state.achievementsState,
+  };
+}
+
+function summarise(workspace: TripWorkspace, isActive: boolean): TripSummary {
+  return {
+    id: workspace.trip.id,
+    name: workspace.trip.name,
+    startDate: workspace.trip.startDate,
+    endDate: workspace.trip.endDate,
+    dayCount: workspace.trip.days.length,
+    stopCount: workspace.trip.days.reduce((total, day) => total + day.stopIds.length, 0),
+    budgetEUR: workspace.trip.budgetEUR,
+    isActive,
   };
 }
 
@@ -459,6 +532,81 @@ export const useTripStore = create<TripStoreState>()(
         })),
 
       resetAllData: () => set(() => ({ ...initialState(), history: { past: [], future: [] }, newlyUnlockedAchievementIds: [] })),
+
+      // --- Varios viajes ---------------------------------------------------
+
+      listTrips: () => {
+        const state = get();
+        const activo = summarise(packWorkspace(state), true);
+        const archivados = Object.values(state.savedTrips).map((w) => summarise(w, false));
+        // Más recientes primero por fecha de inicio, con el activo siempre arriba.
+        archivados.sort((a, b) => b.startDate.localeCompare(a.startDate));
+        return [activo, ...archivados];
+      },
+
+      switchTrip: (tripId) =>
+        set((state) => {
+          if (tripId === state.trip.id) return {};
+          const destino = state.savedTrips[tripId];
+          if (!destino) return {};
+
+          // El actual se archiva y el destino sale del archivo: nunca hay dos
+          // copias del mismo viaje, ni se pierde lo que estuviera sin guardar.
+          const savedTrips = { ...state.savedTrips, [state.trip.id]: packWorkspace(state) };
+          delete savedTrips[tripId];
+
+          return {
+            ...destino,
+            savedTrips,
+            // El historial de deshacer es del viaje que dejamos atrás.
+            history: { past: [], future: [] },
+            newlyUnlockedAchievementIds: [],
+          };
+        }),
+
+      createTrip: (input) => {
+        const nuevo = createEmptyTrip(input);
+        set((state) => ({
+          savedTrips: { ...state.savedTrips, [state.trip.id]: packWorkspace(state) },
+          trip: nuevo,
+          stopsById: {},
+          places: [],
+          expenses: [],
+          refuels: [],
+          favorites: [],
+          notes: [],
+          checklist: SEED_CHECKLIST.map((item) => ({ ...item, checked: false })),
+          achievementsState: ACHIEVEMENT_DEFS.map((d) => ({ id: d.id, unlockedAt: null, progress: 0 })),
+          history: { past: [], future: [] },
+          newlyUnlockedAchievementIds: [],
+        }));
+        return nuevo.id;
+      },
+
+      deleteTrip: (tripId) =>
+        set((state) => {
+          // Borrar el viaje activo exige tener otro al que saltar: la app
+          // siempre trabaja sobre un viaje, nunca sobre ninguno.
+          if (tripId !== state.trip.id) {
+            const savedTrips = { ...state.savedTrips };
+            delete savedTrips[tripId];
+            return { savedTrips };
+          }
+
+          const [siguienteId] = Object.keys(state.savedTrips);
+          if (!siguienteId) return {};
+
+          const siguiente = state.savedTrips[siguienteId];
+          const savedTrips = { ...state.savedTrips };
+          delete savedTrips[siguienteId];
+
+          return {
+            ...siguiente,
+            savedTrips,
+            history: { past: [], future: [] },
+            newlyUnlockedAchievementIds: [],
+          };
+        }),
     }),
     {
       name: "trip",
@@ -470,11 +618,18 @@ export const useTripStore = create<TripStoreState>()(
        * `heroImage`) no aparecería nunca para quien ya tuviera el viaje
        * guardado en localStorage, que es justo lo que pasaba.
        */
-      version: 2,
+      version: 3,
       migrate: (persisted, fromVersion) => {
         const state = persisted as Partial<TripStoreState> | undefined;
         if (!state) return persisted as TripStoreState;
-        if (fromVersion >= 2) return state as TripStoreState;
+
+        /*
+         * v2 → v3: soporte de varios viajes. Lo que había guardado pasa a ser
+         * el viaje activo tal cual, y solo se añade el archivo vacío. No se
+         * mueve ni un dato: el viaje, los gastos, el diario y las fotos
+         * siguen exactamente donde estaban.
+         */
+        if (fromVersion >= 2) return { ...state, savedTrips: state.savedTrips ?? {} } as TripStoreState;
 
         // v1 → v2: incorporar `heroImage` (y nuevos lugares opcionales) sin
         // tocar nada de lo que el usuario haya editado.
@@ -495,7 +650,8 @@ export const useTripStore = create<TripStoreState>()(
         // Conservar lugares personalizados que el usuario haya creado.
         for (const p of existingPlaces) if (!places.some((sp) => sp.id === p.id)) places.push(p);
 
-        return { ...state, stopsById, places } as TripStoreState;
+        // Quien venga de v1 llega también a v3: un solo viaje, archivo vacío.
+        return { ...state, stopsById, places, savedTrips: state.savedTrips ?? {} } as TripStoreState;
       },
       partialize: (state) => ({
         trip: state.trip,
@@ -507,6 +663,8 @@ export const useTripStore = create<TripStoreState>()(
         notes: state.notes,
         checklist: state.checklist,
         achievementsState: state.achievementsState,
+        // Sin esto los demás viajes desaparecerían al recargar la app.
+        savedTrips: state.savedTrips,
       }),
     },
   ),
