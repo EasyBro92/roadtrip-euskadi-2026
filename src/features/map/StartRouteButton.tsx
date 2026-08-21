@@ -23,10 +23,16 @@ export function StartRouteButton({ dayId }: { dayId: string }) {
   // hay ninguna seleccionada, la primera pendiente del día.
   const currentIndex = currentStopId ? enabledStops.findIndex((s) => s.id === currentStopId) : -1;
   const from = currentIndex >= 0 ? enabledStops[currentIndex] : null;
-  const target =
+  const nextPending =
     currentIndex >= 0
       ? enabledStops.slice(currentIndex + 1).find((s) => !s.visited)
       : enabledStops.find((s) => !s.visited);
+
+  // Si ya no queda ninguna pendiente por delante (estás en la última, o las
+  // has marcado como visitadas) el botón desaparecía y parecía que la app lo
+  // hubiera perdido. Mejor seguir ofreciendo navegación al destino del día.
+  const lastStop = enabledStops.length > 0 ? enabledStops[enabledStops.length - 1] : null;
+  const target = nextPending ?? (lastStop && lastStop.id !== currentStopId ? lastStop : null);
 
   const startTap = useTap(() => handleStart());
 
