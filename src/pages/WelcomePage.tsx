@@ -87,12 +87,13 @@ export function WelcomePage() {
         )}
 
         <div className="mt-4 grid grid-cols-3 gap-2.5">
-          <StatCard icon={MapPinned} label="Días" value={String(stats.totalDays)} />
-          <StatCard icon={Gauge} label="Km estimados" value={`${stats.estimatedKm}`} />
-          <StatCard icon={BedDouble} label="Hoteles" value={String(stats.totalHotels)} />
-          <StatCard icon={Trophy} label="Estadios" value={String(stats.totalStadiums)} />
-          <StatCard icon={Wallet} label="Presupuesto" value={formatEUR(stats.budgetEUR)} />
-          <StatCard icon={Settings} label="Preparado" value={`${stats.checklistPercentage}%`} />
+          {/* Cada tarjeta lleva a la pantalla de la que sale el dato. */}
+          <StatCard icon={MapPinned} label="Días" value={String(stats.totalDays)} to="/itinerario" />
+          <StatCard icon={Gauge} label="Km estimados" value={`${stats.estimatedKm}`} to="/mapa" />
+          <StatCard icon={BedDouble} label="Hoteles" value={String(stats.totalHotels)} to="/itinerario" />
+          <StatCard icon={Trophy} label="Estadios" value={String(stats.totalStadiums)} to="/itinerario" />
+          <StatCard icon={Wallet} label="Presupuesto" value={formatEUR(stats.budgetEUR)} to="/gastos" />
+          <StatCard icon={Settings} label="Preparado" value={`${stats.checklistPercentage}%`} to="/mas/checklist" />
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2.5">
