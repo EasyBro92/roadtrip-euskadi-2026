@@ -18,6 +18,18 @@ export interface MapLayerDefinition {
  */
 export const MAP_LAYERS: MapLayerDefinition[] = [
   {
+    // CARTO Voyager: el estilo libre más cercano al de Google Maps —
+    // jerarquía de carreteras en blanco y amarillo, parques verdes e iconos
+    // de puntos de interés. Es la capa por defecto por eso.
+    id: "roads",
+    label: "Carreteras",
+    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    maxZoom: 20,
+    requiresApiKey: false,
+    available: true,
+  },
+  {
     id: "classic",
     label: "Mapa clásico",
     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",

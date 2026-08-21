@@ -1,6 +1,6 @@
 export type ThemeMode = "light" | "dark" | "auto";
 
-export type MapLayerId = "classic" | "light" | "dark" | "relief" | "cycling" | "satellite";
+export type MapLayerId = "roads" | "classic" | "light" | "dark" | "relief" | "cycling" | "satellite";
 
 export interface AppSettings {
   theme: ThemeMode;
@@ -20,7 +20,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   // "light" (CARTO Positron): base limpia blanco/gris, visualmente la más
   // cercana a Google Maps de las capas keyless disponibles. "classic" (OSM
   // estándar) sigue disponible en el selector de capas para quien lo prefiera.
-  mapLayer: "light",
+  mapLayer: "roads",
   categoryVisibility: {},
   arrivalRadiusMeters: 150,
   locationTrackingEnabled: false,
