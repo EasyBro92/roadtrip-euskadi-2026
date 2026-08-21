@@ -11,11 +11,14 @@ import { openExternalUrl } from "../../utils/openExternal";
  * ruta completa del día (preferencia explícita del usuario: ir tramo a
  * tramo). La navegación real se delega en Google Maps; la de esta app es
  * orientativa (sección 27).
+ *
+ * Va directo, sin diálogo de confirmación: se pulsa al volante y preguntar
+ * "¿seguro que quieres navegar?" era un toque de más. Un toast avisa de a
+ * dónde se va, que es información sin coste de interacción.
  */
 export function StartRouteButton({ dayId }: { dayId: string }) {
   const stops = useStopsOfDay(dayId);
   const currentStopId = useTripStore((s) => s.trip.currentStopId);
-  const openModal = useUIStore((s) => s.openModal);
   const pushToast = useUIStore((s) => s.pushToast);
 
   const enabledStops = stops.filter((s) => s.enabled);
@@ -42,23 +45,17 @@ export function StartRouteButton({ dayId }: { dayId: string }) {
 
   function handleStart() {
     if (!target) return;
-    openModal({
-      type: "confirm",
-      title: "Ir a la siguiente parada",
-      message: `Se abrirá Google Maps para navegar hasta ${target.name}${from ? `, saliendo de ${from.name}` : ""}. ¿Continuar?`,
-      onConfirm: () => {
-        // Sin origen explícito, Google Maps usa la ubicación real del móvil,
-        // que es lo correcto cuando ya estás en carretera.
-        const url = from
-          ? buildGoogleMapsDirectionsUrl([from.coordinates, target.coordinates])
-          : `https://www.google.com/maps/dir/?api=1&destination=${target.coordinates.latitude},${target.coordinates.longitude}&travelmode=driving`;
-        if (!url) {
-          pushToast("No se pudo construir la ruta.", "error");
-          return;
-        }
-        openExternalUrl(url);
-      },
-    });
+    // Sin origen explícito, Google Maps usa la ubicación real del móvil, que
+    // es lo correcto cuando ya estás en carretera.
+    const url = from
+      ? buildGoogleMapsDirectionsUrl([from.coordinates, target.coordinates])
+      : `https://www.google.com/maps/dir/?api=1&destination=${target.coordinates.latitude},${target.coordinates.longitude}&travelmode=driving`;
+    if (!url) {
+      pushToast("No se pudo construir la ruta.", "error");
+      return;
+    }
+    pushToast(`Abriendo Google Maps hacia ${target.name}…`, "info");
+    openExternalUrl(url);
   }
 
   return (
