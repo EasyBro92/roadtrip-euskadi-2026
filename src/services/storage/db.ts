@@ -17,6 +17,9 @@ export class RoadtripDatabase extends Dexie {
   historySnapshots!: EntityTable<HistorySnapshot, "id">;
 
   constructor() {
+    // NO renombrar aunque la app se llame ahora Easy Travel: es el nombre de
+    // la base de datos IndexedDB ya creada. Cambiarlo abriría una base vacía
+    // y las fotos guardadas dejarían de aparecer.
     super("roadtrip-euskadi-2026");
     this.version(1).stores({
       photos: "id, stopId, dayId, isFavorite, isHero, takenAt",

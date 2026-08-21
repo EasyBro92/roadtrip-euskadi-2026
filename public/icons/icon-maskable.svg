@@ -1,5 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#0F6FFF" />
-  <path d="M100 380 L220 200 L290 300 L340 230 L430 380 Z" fill="#16A34A" opacity="0.85" />
-  <path d="M110 430 h292" stroke="#FAFAF7" stroke-width="16" stroke-dasharray="34 24" stroke-linecap="round" />
+  <defs>
+    <linearGradient id="skyMask" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3D93FF" />
+      <stop offset="100%" stop-color="#0B4FCC" />
+    </linearGradient>
+  </defs>
+  <!-- Fondo a sangre: Android recorta esta imagen con la forma que quiera
+       (círculo, cuadrado redondeado, gota), así que no lleva esquinas propias. -->
+  <rect width="512" height="512" fill="url(#skyMask)" />
+
+  <!-- El mismo dibujo que icon.svg, reducido al 72% y centrado para que quepa
+       entero dentro de la zona segura (el círculo central del 80%) pase lo que
+       pase con el recorte. -->
+  <g transform="translate(256 256) scale(0.72) translate(-257 -286.5)">
+    <path d="M148 470 C148 398 366 400 366 330 C366 284 300 276 262 272"
+          fill="none" stroke="#FAFAF7" stroke-width="58" stroke-linecap="round" />
+    <path d="M148 470 C148 398 366 400 366 330 C366 284 300 276 262 272"
+          fill="none" stroke="#0B4FCC" stroke-width="9" stroke-linecap="round"
+          stroke-dasharray="24 28" opacity="0.4" />
+    <path d="M244 74 C196 74 157 113 157 161 C157 209 244 274 244 274 C244 274 331 209 331 161 C331 113 292 74 244 74 Z"
+          fill="#EF4444" />
+    <circle cx="244" cy="159" r="33" fill="#FAFAF7" />
+  </g>
 </svg>

@@ -1,3 +1,8 @@
+/**
+ * NO renombrar aunque la app se llame ahora Easy Travel: es el prefijo de las
+ * claves ya guardadas en localStorage. Cambiarlo dejaría huérfanos el viaje,
+ * los gastos, el diario y los ajustes de quien ya tenga la app instalada.
+ */
 const NAMESPACE = "roadtrip-euskadi-2026";
 const SCHEMA_VERSION = 1;
 

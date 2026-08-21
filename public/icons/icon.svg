@@ -1,15 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0F6FFF" />
+      <stop offset="0%" stop-color="#3D93FF" />
       <stop offset="100%" stop-color="#0B4FCC" />
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="96" fill="url(#sky)" />
-  <path d="M40 360 L180 160 L260 280 L320 190 L472 360 Z" fill="#0B4FCC" opacity="0.55" />
-  <path d="M80 360 L220 190 L300 300 L360 220 L472 360 Z" fill="#16A34A" opacity="0.85" />
-  <rect x="0" y="380" width="512" height="132" fill="#FAFAF7" opacity="0.08" />
-  <path d="M60 420 h392" stroke="#FAFAF7" stroke-width="14" stroke-dasharray="30 22" stroke-linecap="round" />
-  <circle cx="180" cy="420" r="10" fill="#FAFAF7" />
-  <circle cx="332" cy="420" r="10" fill="#FAFAF7" />
+
+  <!-- Carretera serpenteante: la idea principal del icono, en trazo grueso
+       para que siga leyéndose a 48px. -->
+  <path d="M148 470 C148 398 366 400 366 330 C366 284 300 276 262 272"
+        fill="none" stroke="#FAFAF7" stroke-width="58" stroke-linecap="round" />
+  <path d="M148 470 C148 398 366 400 366 330 C366 284 300 276 262 272"
+        fill="none" stroke="#0B4FCC" stroke-width="9" stroke-linecap="round"
+        stroke-dasharray="24 28" opacity="0.4" />
+
+  <!-- Chincheta de destino al final del recorrido. -->
+  <path d="M244 74 C196 74 157 113 157 161 C157 209 244 274 244 274 C244 274 331 209 331 161 C331 113 292 74 244 74 Z"
+        fill="#EF4444" />
+  <circle cx="244" cy="159" r="33" fill="#FAFAF7" />
 </svg>

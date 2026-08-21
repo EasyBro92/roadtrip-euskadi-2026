@@ -1,8 +1,14 @@
-# Roadtrip Euskadi 2026
+# Easy Travel
 
-Planificador de roadtrip, diario de viaje, copiloto y gestor de gastos para
-el viaje **Roadtrip Euskadi 2026** (Girona → Aragón → Navarra → País Vasco →
-Cantabria) en un Volkswagen Golf 1.9 TDI negro.
+Planificador de viajes por carretera: mapa, itinerario, diario de viaje,
+copiloto y gestor de gastos.
+
+El viaje incluido de serie es **Roadtrip Euskadi 2026** (Girona → Aragón →
+Navarra → País Vasco → Cantabria) en un Volkswagen Golf 1.9 TDI negro.
+
+> El repositorio, la URL de GitHub Pages y las claves de almacenamiento
+> conservan el nombre `roadtrip-euskadi-2026`: renombrarlas dejaría huérfanos
+> los datos ya guardados en los dispositivos que tienen la app instalada.
 
 React 19 + TypeScript + Vite + Leaflet/OpenStreetMap. PWA instalable,
 funciona sin conexión para todo lo que no sea el mapa en zonas nuevas.

@@ -25,9 +25,9 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "icons/*.svg"],
       manifest: {
-        name: "Roadtrip Euskadi 2026",
-        short_name: "Euskadi 2026",
-        description: "Planificador, diario y copiloto del roadtrip Euskadi 2026 en un Golf 1.9 TDI.",
+        name: "Easy Travel",
+        short_name: "Easy Travel",
+        description: "Planificador de viajes por carretera: mapa, itinerario, diario, copiloto y gastos, también sin conexión.",
         theme_color: "#1A73E8",
         background_color: "#FAFAF7",
         display: "standalone",
