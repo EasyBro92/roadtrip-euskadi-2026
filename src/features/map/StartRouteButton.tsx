@@ -20,14 +20,15 @@ export function StartRouteButton({ dayId }: { dayId: string }) {
 
   const enabledStops = stops.filter((s) => s.enabled);
 
-  // Siguiente parada = la primera no visitada a partir de la actual; si no
-  // hay ninguna seleccionada, la primera pendiente del día.
   const currentIndex = currentStopId ? enabledStops.findIndex((s) => s.id === currentStopId) : -1;
   const from = currentIndex >= 0 ? enabledStops[currentIndex] : null;
-  const nextPending =
-    currentIndex >= 0
-      ? enabledStops.slice(currentIndex + 1).find((s) => !s.visited)
-      : enabledStops.find((s) => !s.visited);
+
+  // Sin parada seleccionada todavía (recién abierta la app) empezamos a
+  // buscar en la segunda: la primera del día es el punto de partida, no un
+  // destino. Antes se ofrecía "navegar hasta Girona" saliendo de Girona, y
+  // Google Maps no arrancaba ninguna ruta porque origen y destino coincidían.
+  const searchFrom = currentIndex >= 0 ? currentIndex + 1 : 1;
+  const nextPending = enabledStops.slice(searchFrom).find((s) => !s.visited);
 
   // Si ya no queda ninguna pendiente por delante (estás en la última, o las
   // has marcado como visitadas) el botón desaparecía y parecía que la app lo
