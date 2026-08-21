@@ -1,10 +1,13 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppShell } from "./layout/AppShell";
+import { EntryRedirect } from "./EntryRedirect";
 
 // Code splitting por ruta (sección 48: "lazy loading, code splitting"). Cada
 // pantalla es su propio chunk; solo se descarga cuando el usuario navega a ella.
 const WelcomePage = lazy(() => import("../pages/WelcomePage").then((m) => ({ default: m.WelcomePage })));
+const TripsPage = lazy(() => import("../pages/TripsPage").then((m) => ({ default: m.TripsPage })));
+const ExplorePage = lazy(() => import("../pages/ExplorePage").then((m) => ({ default: m.ExplorePage })));
 const MapPage = lazy(() => import("../pages/MapPage").then((m) => ({ default: m.MapPage })));
 const ItineraryPage = lazy(() => import("../pages/ItineraryPage").then((m) => ({ default: m.ItineraryPage })));
 const JournalPage = lazy(() => import("../pages/JournalPage").then((m) => ({ default: m.JournalPage })));
@@ -38,7 +41,13 @@ function withSuspense(node: ReactNode) {
 }
 
 export const router = createBrowserRouter([
-  { path: "/", element: withSuspense(<WelcomePage />) },
+  // Nivel 1 — la app: varios viajes y el catálogo.
+  { path: "/", element: <EntryRedirect /> },
+  { path: "/viajes", element: withSuspense(<TripsPage />) },
+  { path: "/explorar", element: withSuspense(<ExplorePage />) },
+
+  // Nivel 2 — dentro de un viaje. El Resumen es la antigua portada.
+  { path: "/viaje", element: withSuspense(<WelcomePage />) },
   {
     element: <AppShell />,
     children: [

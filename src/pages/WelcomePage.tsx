@@ -1,10 +1,9 @@
-import { BedDouble, Car, Download, Gauge, MapPinned, Pencil, Settings, Share2, Trophy, Users, Wallet } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { ArrowLeft, BedDouble, Car, Download, Gauge, MapPinned, Pencil, Settings, Share2, Trophy, Users, Wallet } from "lucide-react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { StatCard } from "../components/StatCard";
 import { useTripStats } from "../hooks/useTripStats";
 import { useTripStore } from "../stores/useTripStore";
-import { useUIStore } from "../stores/useUIStore";
 import { formatDateLong, formatEUR } from "../utils/format";
 
 export function WelcomePage() {
@@ -13,7 +12,8 @@ export function WelcomePage() {
   const updateTripSettings = useTripStore((s) => s.updateTripSettings);
   const stats = useTripStats();
   const stopsById = useTripStore((s) => s.stopsById);
-  const welcomeScreenVisible = useUIStore((s) => s.welcomeScreenVisible);
+
+  const vehiculo = [trip.vehicle.model, trip.vehicle.engine].filter(Boolean).join(" ").trim();
 
   /** Foto de portada: la parada con mejor valor fotográfico que tenga imagen. */
   const heroImage = useMemo(() => {
@@ -23,9 +23,9 @@ export function WelcomePage() {
     return best?.heroImage;
   }, [stopsById]);
 
-  useEffect(() => {
-    if (trip.settings.skipWelcomeScreen && !welcomeScreenVisible) navigate("/mapa", { replace: true });
-  }, [trip.settings.skipWelcomeScreen, welcomeScreenVisible, navigate]);
+  // El salto directo al mapa lo decide ahora la raíz de la app (EntryRedirect).
+  // Si siguiera aquí, entrar a propósito en el Resumen desde Mis viajes te
+  // expulsaría al mapa sin dejarte verlo.
 
   return (
     <div className="app-shell safe-top overflow-y-auto bg-(--color-bg)">
@@ -42,6 +42,17 @@ export function WelcomePage() {
           aria-hidden="true"
         />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.1) 100%)" }} aria-hidden="true" />
+
+        {/* Salida al nivel de la app. Sin esto, entrar en un viaje sería un
+            callejón sin salida: no habría forma de volver a Mis viajes. */}
+        <button
+          onClick={() => navigate("/viajes")}
+          aria-label="Volver a mis viajes"
+          className="safe-top absolute left-3 top-3 flex h-10 w-10 touch-manipulation items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm transition-transform active:scale-95"
+        >
+          <ArrowLeft size={20} aria-hidden="true" />
+        </button>
+
         <div className="safe-x relative pb-7 text-white">
           <p className="text-sm font-medium opacity-90">
             {formatDateLong(trip.startDate)} — {formatDateLong(trip.endDate)}
@@ -51,9 +62,13 @@ export function WelcomePage() {
             <span className="flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 backdrop-blur-sm">
               <Users size={13} aria-hidden="true" /> {trip.travelers.length} viajeros
             </span>
-            <span className="flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 backdrop-blur-sm">
-              <Car size={13} aria-hidden="true" /> {trip.vehicle.model} {trip.vehicle.engine}
-            </span>
+            {/* Un viaje recién creado no trae coche: sin esto salía una
+                etiqueta con el icono y ningún texto. */}
+            {vehiculo && (
+              <span className="flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 backdrop-blur-sm">
+                <Car size={13} aria-hidden="true" /> {vehiculo}
+              </span>
+            )}
           </div>
         </div>
       </div>
