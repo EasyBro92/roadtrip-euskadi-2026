@@ -14,6 +14,12 @@ const BASE_SPEED_KMH = 400; // Velocidad de reproducción "1x" (viaje simbólico
  * Reproduce el movimiento del coche siguiendo la geometría real de la ruta
  * (sección 13). Usa requestAnimationFrame con interpolación de posición y
  * bearing; respeta `prefers-reduced-motion` saltando directamente al final.
+ *
+ * ⚠️ SIN USAR ahora mismo: el botón que la lanzaba pasó a ser "Siguiente
+ * parada", que salta por el itinerario en vez de animar el recorrido. El
+ * código se conserva porque la animación funciona y puede colgarse de otro
+ * control (por ejemplo "Ver recorrido" en el menú del mapa). Si se decide
+ * que no se quiere, hay que borrar este archivo entero.
  */
 export function useVehiclePlayback(dayId: string) {
   const rafRef = useRef<number | null>(null);

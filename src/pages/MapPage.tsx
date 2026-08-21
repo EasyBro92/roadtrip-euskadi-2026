@@ -1,5 +1,5 @@
 import type L from "leaflet";
-import { Pause, Play, SkipForward, Square } from "lucide-react";
+import { Play, SkipForward, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { BottomSheet } from "../features/map/BottomSheet";
@@ -10,7 +10,7 @@ import { RoutePolylines } from "../features/map/RoutePolylines";
 import { StartRouteButton } from "../features/map/StartRouteButton";
 import { StopMarkers } from "../features/map/StopMarkers";
 import { useLiveNavigation } from "../features/map/useLiveNavigation";
-import { useVehiclePlayback } from "../features/map/useVehiclePlayback";
+import { useSkipToNextStop } from "../features/map/useSkipToNextStop";
 import { VehicleMarker } from "../features/map/VehicleMarker";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
 import { useTap } from "../hooks/useTap";
@@ -77,6 +77,33 @@ function FollowVehicleWhilePlaying() {
   return null;
 }
 
+/**
+ * Lleva el mapa a la parada actual cuando cambia. Sin esto, "Siguiente
+ * parada" cambiaría la selección sin que se viese nada moverse.
+ *
+ * No vuela en el primer render: el encuadre inicial del día lo decide
+ * AutoFitOnDayChange, y pelearse con él dejaría el mapa dando saltos al abrir.
+ */
+function FlyToCurrentStop() {
+  const map = useMap();
+  const currentStopId = useTripStore((s) => s.trip.currentStopId);
+  const stopsById = useTripStore((s) => s.stopsById);
+  const anterior = useRef<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    const primeraVez = anterior.current === undefined;
+    const cambio = anterior.current !== currentStopId;
+    anterior.current = currentStopId;
+    if (primeraVez || !cambio || !currentStopId) return;
+
+    const parada = stopsById[currentStopId];
+    if (!parada) return;
+    map.flyTo([parada.coordinates.latitude, parada.coordinates.longitude], Math.max(map.getZoom(), 13), { duration: 0.7 });
+  }, [currentStopId, stopsById, map]);
+
+  return null;
+}
+
 /** Zoom inteligente / centrado automático al cambiar de día (sección 11). */
 function AutoFitOnDayChange({ dayId }: { dayId: string }) {
   const map = useMap();
@@ -100,19 +127,13 @@ function AutoFitOnDayChange({ dayId }: { dayId: string }) {
 }
 
 function PlaybackControls({ dayId }: { dayId: string }) {
-  const { playToNextStop, pause } = useVehiclePlayback(dayId);
+  const skipToNextStop = useSkipToNextStop(dayId);
   const { isLive, toggle: toggleLive } = useLiveNavigation();
-  const isPlaying = useVehicleAnimationStore((s) => s.isPlaying);
   const bottomSheetState = useUIStore((s) => s.bottomSheetState);
 
-  // Play inicia el modo en ruta (sigue el GPS real). La simulación del
-  // recorrido vive en el botón de al lado; antes ambos hacían lo mismo.
-  const liveTap = useTap(() => {
-    if (isPlaying) pause();
-    toggleLive();
-  });
-  const nextTap = useTap(playToNextStop);
-  const pauseTap = useTap(pause);
+  // Dos acciones bien distintas: seguir tu GPS, o avanzar por el itinerario.
+  const liveTap = useTap(toggleLive);
+  const nextTap = useTap(skipToNextStop);
 
   if (bottomSheetState === "expanded") return null;
 
@@ -129,23 +150,13 @@ function PlaybackControls({ dayId }: { dayId: string }) {
         >
           {isLive ? <Square size={18} aria-hidden="true" /> : <Play size={20} aria-hidden="true" />}
         </button>
-        {!isPlaying && !isLive && (
-          <button
-            {...nextTap}
-            className="pointer-events-auto flex h-12 touch-manipulation items-center gap-1.5 whitespace-nowrap rounded-full bg-(--color-surface) px-4 text-sm font-medium text-(--color-text) shadow-(--shadow-card) transition-transform active:scale-95"
-            aria-label="Simular el recorrido hasta la siguiente parada"
-          >
-            <SkipForward size={16} aria-hidden="true" /> Simular
-          </button>
-        )}
-        {isPlaying && (
-          <button
-            {...pauseTap}
-            className="pointer-events-auto flex h-12 touch-manipulation items-center gap-1.5 whitespace-nowrap rounded-full bg-(--color-surface) px-4 text-sm font-medium text-(--color-text) shadow-(--shadow-card) transition-transform active:scale-95"
-          >
-            <Pause size={16} aria-hidden="true" /> Pausar
-          </button>
-        )}
+        <button
+          {...nextTap}
+          className="pointer-events-auto flex h-12 touch-manipulation items-center gap-1.5 whitespace-nowrap rounded-full bg-(--color-surface) px-4 text-sm font-medium text-(--color-text) shadow-(--shadow-card) transition-transform active:scale-95"
+          aria-label="Saltar a la siguiente parada del itinerario"
+        >
+          <SkipForward size={16} aria-hidden="true" /> Siguiente parada
+        </button>
       </div>
       <StartRouteButton dayId={dayId} />
     </div>
@@ -183,6 +194,7 @@ export function MapPage() {
         <InvalidateSizeOnSheetChange />
         <AutoFitOnDayChange dayId={dayId} />
         <FollowVehicleWhilePlaying />
+        <FlyToCurrentStop />
         <MapInstanceBridge onReady={setMap} />
       </MapContainer>
 
