@@ -64,4 +64,9 @@ export const router = createBrowserRouter([
     ],
   },
   { path: "*", element: <Navigate to="/mapa" replace /> },
-]);
+], {
+  // En GitHub Pages la app se sirve desde /<repo>/, no desde la raíz. Sin esto
+  // el router no reconoce esa ruta, cae en el comodín y redirige a /mapa en la
+  // raíz del dominio: la app parece funcionar, pero recargar da 404.
+  basename: import.meta.env.BASE_URL,
+});
