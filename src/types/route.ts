@@ -1,0 +1,56 @@
+import type { Coordinates, ID, ISODate } from "./common";
+
+export type RoutingProviderId = "osrm" | "valhalla" | "graphhopper" | "openrouteservice" | "straight-line";
+
+export type RouteStrategy = "fastest" | "no-tolls" | "scenic" | "balanced";
+
+/** Un tramo geométrico calculado por un RoutingProvider entre dos paradas. */
+export interface RouteSegment {
+  id: ID;
+  fromStopId: ID;
+  toStopId: ID;
+  provider: RoutingProviderId;
+  strategy: RouteStrategy;
+  geometry: Coordinates[];
+  distanceMeters: number | null;
+  durationSeconds: number | null;
+  hasTolls: boolean | null;
+  isFallback: boolean;
+  fetchedAt: string;
+}
+
+/** Alternativa comparable de ruta (usada en el editor de regreso). */
+export interface RouteAlternative {
+  id: ID;
+  label: string;
+  strategy: RouteStrategy;
+  distanceMeters: number | null;
+  durationSeconds: number | null;
+  tollsInfo: "unknown" | "none" | "some";
+  estimatedFuelLiters: number | null;
+  estimatedCostEUR: number | null;
+  recommendationReason?: string;
+  segments: RouteSegment[];
+}
+
+/** Día del viaje: agrupa paradas ordenadas y metadatos propios del día. */
+export interface TripDay {
+  id: ID;
+  index: number;
+  date: ISODate;
+  title: string;
+  stopIds: ID[];
+  isOverloaded: boolean;
+  rainModeActive: boolean;
+  notes: string;
+}
+
+export interface ReturnTripOption {
+  id: ID;
+  label: "zaragoza" | "logrono" | "huesca" | "balanced" | "no-stop" | "custom";
+  customPlaceName?: string;
+  date: ISODate;
+  intermediateStopIds: ID[];
+  chosenAlternativeId?: ID;
+  alternatives: RouteAlternative[];
+}

@@ -1,0 +1,6 @@
+services:
+  roadtrip-euskadi-2026:
+    build: .
+    ports:
+      - "8085:80"
+    restart: unless-stopped

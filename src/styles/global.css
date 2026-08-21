@@ -1,0 +1,103 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+@import "./theme.css";
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/* Altura dinámica real en móviles (barra de navegador Android/iOS), sección 3. */
+.app-shell {
+  height: 100dvh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/*
+ * Márgenes laterales seguros.
+ *
+ * Ojo: estas reglas viven fuera de las capas de Tailwind, así que ganan a
+ * utilidades como `px-4` sobre el mismo elemento. Antes esto dejaba el
+ * padding horizontal en 0 en Android (donde `safe-area-inset-*` vale 0) y
+ * el texto se pegaba a los bordes de la pantalla. Con `max()` garantizamos
+ * un margen mínimo cómodo y respetamos el recorte del dispositivo cuando
+ * es mayor (notch en horizontal, bordes curvos...).
+ */
+.safe-x {
+  --safe-x-min: 1.25rem;
+  padding-left: max(env(safe-area-inset-left), var(--safe-x-min));
+  padding-right: max(env(safe-area-inset-right), var(--safe-x-min));
+}
+
+button,
+a,
+[role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-navigation);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: var(--color-surface-muted);
+  font-family: var(--font-sans);
+}
+
+/*
+ * El CSS de Leaflet fuerza `.leaflet-container a { color: #0078A8; }` (para
+ * su propio enlace de atribución). Nuestros botones/enlaces (p.ej. "Abrir en
+ * Google Maps") viven dentro del contenedor del mapa y heredan ese azul por
+ * encima de `text-white`/`text-(--color-navigation)` porque esa regla tiene
+ * más especificidad que una sola clase de utilidad. La anulamos aquí.
+ */
+.leaflet-container a {
+  color: inherit;
+}
+
+.vehicle-marker {
+  transition: transform 0.15s linear;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35));
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

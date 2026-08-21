@@ -1,0 +1,106 @@
+/*
+ * Tokens de diseño (sección 14 del encargo): 50% Google Maps, 25% Apple Maps,
+ * 25% Canva Premium. Modo claro por defecto; oscuro y automático vía [data-theme].
+ *
+ * 2026-08-20: pasada de estilo pidiendo copiar lo más posible el lenguaje
+ * visual de Google Maps (a petición explícita del usuario) — azul de acento
+ * y de ruta iguales a los que usa Google, tipografía Roboto (la misma
+ * familia que usa Google en Maps), esquinas más redondeadas, modo oscuro
+ * tipo "mapa nocturno" de Google (azul marino casi negro en vez de gris
+ * neutro). Los colores por categoría en los pines se mantienen: es
+ * literalmente así como el propio Google Maps diferencia categorías de
+ * lugares en su vista "Explorar".
+ */
+@theme {
+  --font-sans: "Roboto", "Google Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-bg: #fafaf7;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f3f4;
+  --color-text: #202124;
+  --color-text-muted: #5f6368;
+  --color-border: #e8eaed;
+
+  --color-navigation: #1a73e8;
+  --color-progress: #16a34a;
+  --color-nature: #14b8a6;
+  --color-gastronomy: #f97316;
+  --color-stadium: #15803d;
+  --color-hotel: #ec4899;
+  --color-culture: #7c3aed;
+  --color-optional: #9ca3af;
+
+  --color-pending: #1a73e8;
+  --color-completed: #16a34a;
+  --color-skipped: #eab308;
+  --color-cancelled: #ef4444;
+
+  --radius-card: 1.375rem;
+  --radius-control: 0.875rem;
+  --radius-sheet: 2rem;
+  --shadow-card: 0 1px 2px rgba(32, 33, 36, 0.05), 0 6px 20px rgba(32, 33, 36, 0.1);
+  --shadow-sheet: 0 -4px 24px rgba(32, 33, 36, 0.14);
+}
+
+:root[data-theme="dark"] {
+  /*
+   * Tonos de "Mapa nocturno" de Google: azul marino muy oscuro, no gris
+   * neutro. --color-navigation NO se sobreescribe aquí a propósito: se usa
+   * tanto de fondo sólido con texto blanco encima (botones) como de color
+   * de texto suelto sobre superficies oscuras, y un azul más claro (el que
+   * usa Google para texto/iconos en modo oscuro) revienta el contraste del
+   * primer caso — el texto blanco queda casi invisible sobre un azul claro.
+   * Mismo azul en los dos temas, ya probado con buen contraste en ambos.
+   */
+  --color-bg: #0f1419;
+  --color-surface: #17212b;
+  --color-surface-muted: #1e2a35;
+  --color-text: #e8eaed;
+  --color-text-muted: #9aa5b1;
+  --color-border: #2c3a47;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-sheet: 0 -4px 24px rgba(0, 0, 0, 0.55);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] {
+    --color-bg: #0f1419;
+    --color-surface: #17212b;
+    --color-surface-muted: #1e2a35;
+    --color-text: #e8eaed;
+    --color-text-muted: #9aa5b1;
+    --color-border: #2c3a47;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.45);
+    --shadow-sheet: 0 -4px 24px rgba(0, 0, 0, 0.55);
+  }
+}
+
+.category-naturaleza,
+.category-paisaje {
+  --category-color: var(--color-nature);
+}
+.category-fotografia,
+.category-mirador {
+  --category-color: var(--color-navigation);
+}
+.category-gastronomia {
+  --category-color: var(--color-gastronomy);
+}
+.category-hotel {
+  --category-color: var(--color-hotel);
+}
+.category-estadio {
+  --category-color: var(--color-stadium);
+}
+.category-cultura,
+.category-castillo,
+.category-historia {
+  --category-color: var(--color-culture);
+}
+.category-pueblo,
+.category-playa {
+  --category-color: var(--color-nature);
+}
+.category-aparcamiento {
+  --category-color: var(--color-optional);
+}
