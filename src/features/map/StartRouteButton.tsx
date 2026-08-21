@@ -4,6 +4,7 @@ import { useTap } from "../../hooks/useTap";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import { buildGoogleMapsDirectionsUrl } from "../../utils/geo";
+import { openExternalUrl } from "../../utils/openExternal";
 
 /**
  * Abre Google Maps para navegar **solo hasta la siguiente parada**, no la
@@ -54,7 +55,7 @@ export function StartRouteButton({ dayId }: { dayId: string }) {
           pushToast("No se pudo construir la ruta.", "error");
           return;
         }
-        window.open(url, "_blank", "noopener,noreferrer");
+        openExternalUrl(url);
       },
     });
   }

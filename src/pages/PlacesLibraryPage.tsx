@@ -5,6 +5,7 @@ import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
 import type { Place, StopCategory } from "../types";
 import { thumbStyle } from "../utils/categoryGradient";
+import { openExternalUrl } from "../utils/openExternal";
 
 const FILTERS: { id: StopCategory | "todos" | "imprescindibles" | "sin-desvio"; label: string }[] = [
   { id: "todos", label: "Todos" },
@@ -116,10 +117,8 @@ export function PlacesLibraryPage() {
               <div className="mt-3 flex gap-2">
                 <button
                   onClick={() =>
-                    window.open(
+                    openExternalUrl(
                       `https://www.google.com/maps/dir/?api=1&destination=${place.coordinates.latitude},${place.coordinates.longitude}&travelmode=driving`,
-                      "_blank",
-                      "noopener,noreferrer",
                     )
                   }
                   className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-(--color-navigation) py-2 text-xs font-medium text-white"
