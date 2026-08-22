@@ -1,3 +1,4 @@
+import { StorageService } from "../storage/StorageService";
 import type { Coordinates } from "../../types";
 
 export interface GeocodingResult {
@@ -6,9 +7,34 @@ export interface GeocodingResult {
   type: string;
 }
 
-const cache = new Map<string, GeocodingResult[]>();
 const MIN_INTERVAL_MS = 1100; // Política de uso de Nominatim: máx. 1 petición/segundo.
 let lastRequestAt = 0;
+
+/**
+ * La política de Nominatim pide guardar los resultados. En memoria se perdían
+ * al recargar, así que buscar "Pamplona" hoy y mañana eran dos peticiones por
+ * lo mismo. Persistirla también hace que una búsqueda ya hecha funcione sin
+ * conexión.
+ *
+ * OJO: esto reduce las peticiones **de un usuario**. El límite de 1/segundo es
+ * del servicio, no del navegador: con muchos usuarios a la vez se supera igual,
+ * y eso solo se arregla con una caché compartida en servidor propio.
+ */
+const CACHE_KEY = "geocoding-cache";
+const MAX_ENTRADAS = 300;
+
+function cargarCache(): Map<string, GeocodingResult[]> {
+  const guardado = StorageService.get<Record<string, GeocodingResult[]>>(CACHE_KEY, {});
+  return new Map(Object.entries(guardado));
+}
+
+const cache = cargarCache();
+
+function guardarCache(): void {
+  // Se recorta por los más antiguos: un Map conserva el orden de inserción.
+  const entradas = [...cache.entries()].slice(-MAX_ENTRADAS);
+  StorageService.set(CACHE_KEY, Object.fromEntries(entradas));
+}
 
 async function throttle(): Promise<void> {
   const elapsed = Date.now() - lastRequestAt;
@@ -49,11 +75,13 @@ export const GeocodingService = {
     }));
 
     cache.set(cacheKey, results);
+    guardarCache();
     return results;
   },
 
   clearCache(): void {
     cache.clear();
+    StorageService.remove(CACHE_KEY);
   },
 };
 
