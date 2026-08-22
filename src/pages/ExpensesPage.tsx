@@ -111,32 +111,41 @@ export function ExpensesPage() {
       </div>
 
       {pieData.length > 0 && (
-        <div className="mt-4 h-56 rounded-(--radius-card) border bg-(--color-surface) p-3 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
-          <p className="mb-2 text-xs font-semibold uppercase text-(--color-text-muted)">Distribución por categoría</p>
-          <ResponsiveContainer width="100%" height="85%">
-            <PieChart>
-              <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={40} outerRadius={70}>
-                {pieData.map((entry) => (
-                  <Cell key={entry.name} fill={CATEGORY_COLORS[entry.name as ExpenseCategory]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => formatEUR(Number(value))} />
-            </PieChart>
-          </ResponsiveContainer>
+        // shrink-0: la página es flex-col, y sin esto flexbox aplastaba la
+        // tarjeta hasta 50px en cuanto había gastos en la lista — la altura
+        // fija era solo una sugerencia porque la gráfica no aporta altura
+        // propia. El contenedor interior toma el espacio que sobra tras el
+        // título, en vez de un porcentaje de la tarjeta que no lo descontaba.
+        <div className="mt-4 flex h-64 shrink-0 flex-col rounded-(--radius-card) border bg-(--color-surface) p-3 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+          <p className="mb-2 shrink-0 text-xs font-semibold uppercase text-(--color-text-muted)">Distribución por categoría</p>
+          <div className="min-h-0 flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={45} outerRadius={80}>
+                  {pieData.map((entry) => (
+                    <Cell key={entry.name} fill={CATEGORY_COLORS[entry.name as ExpenseCategory]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => formatEUR(Number(value))} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
 
-      <div className="mt-4 h-48 rounded-(--radius-card) border bg-(--color-surface) p-3 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
-        <p className="mb-2 text-xs font-semibold uppercase text-(--color-text-muted)">Evolución diaria</p>
-        <ResponsiveContainer width="100%" height="85%">
-          <BarChart data={dailyData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-            <XAxis dataKey="name" fontSize={11} />
-            <YAxis fontSize={11} />
-            <Tooltip formatter={(value) => formatEUR(Number(value))} />
-            <Bar dataKey="gasto" fill="#0F6FFF" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+      <div className="mt-4 flex h-56 shrink-0 flex-col rounded-(--radius-card) border bg-(--color-surface) p-3 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+        <p className="mb-2 shrink-0 text-xs font-semibold uppercase text-(--color-text-muted)">Evolución diaria</p>
+        <div className="min-h-0 flex-1">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={dailyData} margin={{ top: 4, right: 4, bottom: 0, left: -18 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+              <XAxis dataKey="name" fontSize={11} />
+              <YAxis fontSize={11} />
+              <Tooltip formatter={(value) => formatEUR(Number(value))} />
+              <Bar dataKey="gasto" fill="#0F6FFF" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <div className="mt-4 rounded-(--radius-card) border bg-(--color-surface) p-3 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
