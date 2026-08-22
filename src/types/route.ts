@@ -39,6 +39,8 @@ export interface TripDay {
   index: number;
   date: ISODate;
   title: string;
+  /** Localidad base del día ("Pamplona", "San Sebastián"), encabezando sus paradas. */
+  city?: string;
   stopIds: ID[];
   isOverloaded: boolean;
   rainModeActive: boolean;

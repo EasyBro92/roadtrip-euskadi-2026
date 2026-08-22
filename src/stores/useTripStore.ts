@@ -24,6 +24,7 @@ import type {
   RouteTemplate,
   Stop,
   Trip,
+  TripDay,
 } from "../types";
 import { shiftISODate, daysBetween } from "../utils/dates";
 import { generateId } from "../utils/id";
@@ -145,6 +146,8 @@ interface TripStoreState {
   // --- Días ---
   addDay: () => void;
   removeDay: (dayId: ID) => void;
+  updateDay: (dayId: ID, patch: Partial<Pick<TripDay, "title" | "city" | "notes">>) => void;
+  reorderDays: (orderedDayIds: ID[]) => void;
 
   // --- Lugares opcionales ---
   addPlaceToRoute: (placeId: ID, dayId: ID) => void;
@@ -413,6 +416,40 @@ export const useTripStore = create<TripStoreState>()(
           day.stopIds.forEach((id) => delete stopsById[id]);
           const days = state.trip.days.filter((d) => d.id !== dayId).map((d, index) => ({ ...d, index }));
           return { stopsById, trip: { ...state.trip, days, currentDayId: state.trip.currentDayId === dayId ? (days[0]?.id ?? null) : state.trip.currentDayId } };
+        }),
+
+      updateDay: (dayId, patch) =>
+        set((state) => ({
+          trip: { ...state.trip, days: state.trip.days.map((d) => (d.id === dayId ? { ...d, ...patch } : d)) },
+        })),
+
+      /**
+       * Reordena los días llevándose cada uno su itinerario entero.
+       *
+       * Las fechas NO viajan con el día: se quedan como huecos fijos en orden
+       * ascendente. Mover el día 3 delante del 2 significa "esto lo hago un
+       * día antes", no "cambio el calendario del viaje". Las paradas heredan
+       * la fecha de su nuevo hueco, o quedarían fechadas en otro día.
+       */
+      reorderDays: (orderedDayIds) =>
+        set((state) => {
+          const porId = new Map(state.trip.days.map((d) => [d.id, d]));
+          const reordenados = orderedDayIds.map((id) => porId.get(id)).filter((d): d is TripDay => d != null);
+          if (reordenados.length !== state.trip.days.length) return state;
+
+          const fechas = state.trip.days.map((d) => d.date);
+          const stopsById = { ...state.stopsById };
+
+          const days = reordenados.map((dia, posicion) => {
+            const fecha = fechas[posicion];
+            dia.stopIds.forEach((stopId) => {
+              const parada = stopsById[stopId];
+              if (parada) stopsById[stopId] = { ...parada, date: fecha };
+            });
+            return { ...dia, index: posicion, date: fecha };
+          });
+
+          return { stopsById, trip: { ...state.trip, days } };
         }),
 
       addPlaceToRoute: (placeId, dayId) => {

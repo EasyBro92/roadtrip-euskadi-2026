@@ -2,12 +2,12 @@ import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type D
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { AlertTriangle, MapPinned, Plus, RotateCcw } from "lucide-react";
 import { useState } from "react";
+import { DayHeader } from "../features/itinerary/DayHeader";
 import { LocationBreak } from "../features/itinerary/LocationBreak";
 import { SortableStopCard } from "../features/itinerary/SortableStopCard";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
-import { formatDateLong } from "../utils/format";
 import { haversineDistanceMeters } from "../utils/geo";
 
 /**
@@ -78,7 +78,7 @@ export function ItineraryPage() {
       </div>
 
       <div className="safe-x px-4">
-        <p className="text-sm text-(--color-text-muted)">{activeDay.title} — {formatDateLong(activeDay.date)}</p>
+        <DayHeader day={activeDay} totalDays={days.length} />
         {activeDay.isOverloaded && (
           <div className="mt-2 flex items-start gap-2 rounded-xl bg-(--color-skipped)/15 p-2.5 text-xs text-(--color-text)">
             <AlertTriangle size={15} className="mt-0.5 shrink-0 text-(--color-skipped)" aria-hidden="true" />
