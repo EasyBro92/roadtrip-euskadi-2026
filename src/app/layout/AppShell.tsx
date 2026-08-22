@@ -1,14 +1,15 @@
 import { Outlet } from "react-router-dom";
-import { ModalHost } from "../../components/ModalHost";
-import { ToastStack } from "../../components/ToastStack";
 import { BottomNav } from "./BottomNav";
 
-/** Contenedor raíz: altura dinámica real (100dvh), zonas seguras, navegación fija abajo. */
+/**
+ * Contenedor de las pantallas de dentro de un viaje: altura dinámica real
+ * (100dvh), zonas seguras, navegación fija abajo. Los modales y avisos ya no
+ * viven aquí sino en RootLayout, para que también funcionen en las pantallas
+ * de nivel de app (Mis viajes, Explorar).
+ */
 export function AppShell() {
   return (
     <div className="app-shell safe-top">
-      <ToastStack />
-      <ModalHost />
       <main className="min-h-0 flex-1 overflow-hidden">
         <Outlet />
       </main>

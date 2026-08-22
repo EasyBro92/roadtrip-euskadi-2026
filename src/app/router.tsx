@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactNode } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppShell } from "./layout/AppShell";
 import { EntryRedirect } from "./EntryRedirect";
+import { RootLayout } from "./layout/RootLayout";
 
 // Code splitting por ruta (sección 48: "lazy loading, code splitting"). Cada
 // pantalla es su propio chunk; solo se descarga cuando el usuario navega a ella.
@@ -41,6 +42,11 @@ function withSuspense(node: ReactNode) {
 }
 
 export const router = createBrowserRouter([
+  {
+    // RootLayout envuelve los dos niveles: es quien dibuja modales y avisos,
+    // que antes solo existían dentro de un viaje.
+    element: <RootLayout />,
+    children: [
   // Nivel 1 — la app: varios viajes y el catálogo.
   { path: "/", element: <EntryRedirect /> },
   { path: "/viajes", element: withSuspense(<TripsPage />) },
@@ -72,7 +78,9 @@ export const router = createBrowserRouter([
       { path: "/resumen", element: withSuspense(<SummaryPage />) },
     ],
   },
-  { path: "*", element: <Navigate to="/mapa" replace /> },
+      { path: "*", element: <Navigate to="/mapa" replace /> },
+    ],
+  },
 ], {
   // En GitHub Pages la app se sirve desde /<repo>/, no desde la raíz. Sin esto
   // el router no reconoce esa ruta, cae en el comodín y redirige a /mapa en la

@@ -4,12 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { ROUTE_TEMPLATES } from "../data/routeTemplates.data";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
-import type { RouteTemplate } from "../types";
+import type { RouteTemplate, RouteTemplateStop } from "../types";
 import { toISODate } from "../utils/dates";
 
 /** Ficha desplegable de una ruta: sus paradas día a día y el botón de copiar. */
 function FichaRuta({ ruta }: { ruta: RouteTemplate }) {
   const createTripFromTemplate = useTripStore((s) => s.createTripFromTemplate);
+  const addStop = useTripStore((s) => s.addStop);
+  const viajeActivo = useTripStore((s) => s.trip.name);
+  const openModal = useUIStore((s) => s.openModal);
   const pushToast = useUIStore((s) => s.pushToast);
   const navigate = useNavigate();
 
@@ -17,6 +20,29 @@ function FichaRuta({ ruta }: { ruta: RouteTemplate }) {
   const [startDate, setStartDate] = useState(toISODate(new Date()));
 
   const dias = Array.from({ length: ruta.dayCount }, (_, i) => i + 1);
+
+  /**
+   * Añade una parada suelta al viaje que tengas abierto, sin copiar la ruta
+   * entera. El día lo eliges tú: la ruta del catálogo y tu viaje casi nunca
+   * tienen los mismos días.
+   */
+  function anadirSuelta(parada: RouteTemplateStop) {
+    openModal({
+      type: "day-picker",
+      title: `Añadir ${parada.name}`,
+      message: `Se añadirá a "${viajeActivo}". ¿A qué día?`,
+      onPick: (dayId) => {
+        addStop(dayId, {
+          name: parada.name,
+          category: parada.category,
+          coordinates: parada.coordinates,
+          shortDescription: parada.shortDescription,
+          recommendedDurationMinutes: parada.recommendedDurationMinutes,
+        });
+        pushToast(`${parada.name} añadida a tu itinerario.`, "success");
+      },
+    });
+  }
 
   function copiar() {
     createTripFromTemplate(ruta, startDate);
@@ -49,9 +75,19 @@ function FichaRuta({ ruta }: { ruta: RouteTemplate }) {
                 {ruta.stops
                   .filter((s) => s.dayIndex === dia)
                   .map((s) => (
-                    <li key={s.name} className="py-1 text-sm text-(--color-text)">
-                      {s.name}
-                      <span className="text-(--color-text-muted)"> · {s.recommendedDurationMinutes} min</span>
+                    <li key={s.name} className="flex items-center justify-between gap-2 py-1">
+                      <span className="min-w-0 flex-1 truncate text-sm text-(--color-text)">
+                        {s.name}
+                        <span className="text-(--color-text-muted)"> · {s.recommendedDurationMinutes} min</span>
+                      </span>
+                      <button
+                        onClick={() => anadirSuelta(s)}
+                        aria-label={`Añadir ${s.name} a ${viajeActivo}`}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-(--color-navigation)"
+                        style={{ borderColor: "var(--color-border)" }}
+                      >
+                        <Plus size={16} aria-hidden="true" />
+                      </button>
                     </li>
                   ))}
               </ul>

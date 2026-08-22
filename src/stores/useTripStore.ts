@@ -122,7 +122,17 @@ interface TripStoreState {
 
   // --- Paradas ---
   updateStop: (id: ID, patch: Partial<Stop>) => void;
-  addStop: (dayId: ID, input: { name: string; category: Stop["category"]; coordinates: Stop["coordinates"] }) => ID;
+  addStop: (
+    dayId: ID,
+    input: {
+      name: string;
+      category: Stop["category"];
+      coordinates: Stop["coordinates"];
+      /** Opcionales: los trae una parada del catálogo, no una creada a mano. */
+      shortDescription?: string;
+      recommendedDurationMinutes?: number;
+    },
+  ) => ID;
   deleteStop: (id: ID) => void;
   duplicateStop: (id: ID) => void;
   reorderStopsInDay: (dayId: ID, orderedStopIds: ID[]) => void;
@@ -293,8 +303,11 @@ export const useTripStore = create<TripStoreState>()(
           category: input.category,
           coordinates: input.coordinates,
           date: day.date,
-          shortDescription: "",
-          fullDescription: "",
+          shortDescription: input.shortDescription ?? "",
+          fullDescription: input.shortDescription ?? "",
+          ...(input.recommendedDurationMinutes != null
+            ? { recommendedDurationMinutes: input.recommendedDurationMinutes }
+            : {}),
         });
 
         set((s) => {
