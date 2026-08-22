@@ -1,6 +1,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { Camera, CheckCircle2, Circle, Clock, Gauge, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useDaySwipe } from "../hooks/useDaySwipe";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
 import { db } from "../services/storage/db";
 import { useTripStore } from "../stores/useTripStore";
@@ -16,6 +17,13 @@ export function JournalPage() {
   const trip = useTripStore((s) => s.trip);
   const [activeDayId, setActiveDayId] = useState(trip.currentDayId ?? trip.days[0].id);
   const day = trip.days.find((d) => d.id === activeDayId) ?? trip.days[0];
+
+  const irA = (salto: -1 | 1) => {
+    const posicion = trip.days.findIndex((d) => d.id === day.id);
+    const destino = trip.days[posicion + salto];
+    if (destino) setActiveDayId(destino.id);
+  };
+  const swipe = useDaySwipe({ onPrev: () => irA(-1), onNext: () => irA(1) });
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-(--color-bg)">
@@ -38,7 +46,9 @@ export function JournalPage() {
         ))}
       </div>
 
-      <div className="safe-x min-h-0 flex-1 overflow-y-auto px-4 pb-8">
+      {/* touchAction pan-y: el navegador sigue haciendo el scroll vertical y
+          nosotros solo interpretamos el movimiento horizontal. */}
+      <div className="safe-x min-h-0 flex-1 overflow-y-auto px-4 pb-8" style={{ touchAction: "pan-y" }} {...swipe}>
         <DayEntry key={day.id} dayId={day.id} />
       </div>
     </div>

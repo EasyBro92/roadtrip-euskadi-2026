@@ -2,6 +2,7 @@ import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type D
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { AlertTriangle, MapPinned, Plus, RotateCcw } from "lucide-react";
 import { useState } from "react";
+import { useDaySwipe } from "../hooks/useDaySwipe";
 import { DayHeader } from "../features/itinerary/DayHeader";
 import { LocationBreak } from "../features/itinerary/LocationBreak";
 import { SortableStopCard } from "../features/itinerary/SortableStopCard";
@@ -30,6 +31,13 @@ export function ItineraryPage() {
 
   const activeDay = days.find((d) => d.id === activeDayId)!;
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  const irA = (salto: -1 | 1) => {
+    const posicion = days.findIndex((d) => d.id === activeDayId);
+    const destino = days[posicion + salto];
+    if (destino) setActiveDayId(destino.id);
+  };
+  const swipe = useDaySwipe({ onPrev: () => irA(-1), onNext: () => irA(1) });
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -87,7 +95,9 @@ export function ItineraryPage() {
         )}
       </div>
 
-      <div className="safe-x mt-3 flex-1 space-y-2 overflow-y-auto px-4 pb-24">
+      {/* El gesto ignora lo que empiece sobre un botón o el asa de arrastrar,
+          para no competir con el reordenado de paradas. */}
+      <div className="safe-x mt-3 flex-1 space-y-2 overflow-y-auto px-4 pb-24" style={{ touchAction: "pan-y" }} {...swipe}>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={stops.map((s) => s.id)} strategy={verticalListSortingStrategy}>
             {stops.map((stop, indice) => {
