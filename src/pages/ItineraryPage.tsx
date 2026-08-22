@@ -2,11 +2,20 @@ import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type D
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { AlertTriangle, MapPinned, Plus, RotateCcw } from "lucide-react";
 import { useState } from "react";
+import { LocationBreak } from "../features/itinerary/LocationBreak";
 import { SortableStopCard } from "../features/itinerary/SortableStopCard";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
 import { formatDateLong } from "../utils/format";
+import { haversineDistanceMeters } from "../utils/geo";
+
+/**
+ * A partir de este salto entre paradas se considera que has cambiado de
+ * localidad. 2 km deja juntas las paradas de un mismo casco urbano —
+ * catedral, plaza, mirador— y separa pueblos y ciudades distintas.
+ */
+const DISTANCIA_OTRA_LOCALIDAD_M = 2000;
 
 export function ItineraryPage() {
   const days = useTripStore((s) => s.trip.days);
@@ -81,9 +90,20 @@ export function ItineraryPage() {
       <div className="safe-x mt-3 flex-1 space-y-2 overflow-y-auto px-4 pb-24">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={stops.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-            {stops.map((stop) => (
-              <SortableStopCard key={stop.id} stop={stop} />
-            ))}
+            {stops.map((stop, indice) => {
+              // Un salto grande respecto a la parada anterior significa que
+              // cambias de localidad: se marca para que no parezca todo el
+              // mismo sitio. Por debajo del umbral son paradas del mismo
+              // pueblo o ciudad y no interesa cortar la lista.
+              const anterior = indice > 0 ? stops[indice - 1] : null;
+              const salto = anterior ? haversineDistanceMeters(anterior.coordinates, stop.coordinates) : 0;
+              return (
+                <div key={stop.id}>
+                  {salto >= DISTANCIA_OTRA_LOCALIDAD_M && <LocationBreak metros={salto} />}
+                  <SortableStopCard stop={stop} />
+                </div>
+              );
+            })}
           </SortableContext>
         </DndContext>
 

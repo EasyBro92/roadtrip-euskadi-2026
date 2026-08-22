@@ -13,6 +13,7 @@ const FILTERS: { id: StopCategory | "todos" | "imprescindibles" | "sin-desvio"; 
   { id: "sin-desvio", label: "Sin desvío" },
   { id: "paisaje", label: "Paisajes" },
   { id: "gastronomia", label: "Gastronomía" },
+  { id: "ciudad", label: "Ciudades" },
   { id: "pueblo", label: "Pueblos" },
   { id: "cultura", label: "Cultura" },
 ];

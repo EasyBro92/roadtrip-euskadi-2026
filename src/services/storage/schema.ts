@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { STOP_CATEGORIES } from "../../types";
 
 /**
  * Esquemas de validación para todo lo que entra desde fuera de la app
@@ -8,25 +9,9 @@ import { z } from "zod";
 
 const coordinatesSchema = z.object({ latitude: z.number(), longitude: z.number() });
 
-const stopCategorySchema = z.enum([
-  "naturaleza",
-  "fotografia",
-  "paisaje",
-  "mirador",
-  "gastronomia",
-  "hotel",
-  "estadio",
-  "cultura",
-  // Ojo: esta lista debe seguir a StopCategory en types/common.ts. TypeScript
-  // no las vincula, así que si añades una categoría y no la pones aquí, la
-  // exportación deja de validar (lo detecta schema.test.ts).
-  "ciudad",
-  "pueblo",
-  "historia",
-  "aparcamiento",
-  "playa",
-  "castillo",
-]);
+// Toma la lista única en vez de repetirla: antes había que acordarse de
+// actualizarla aquí también, y olvidarlo rompía la validación de la exportación.
+const stopCategorySchema = z.enum(STOP_CATEGORIES);
 
 const visitStatusSchema = z.enum(["pending", "completed", "optional", "skipped", "cancelled"]);
 

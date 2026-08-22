@@ -3,10 +3,11 @@ import { useState } from "react";
 import { GeocodingService, debounce, type GeocodingResult } from "../../services/geocoding/GeocodingService";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
-import type { StopCategory } from "../../types";
+import { STOP_CATEGORIES, type StopCategory } from "../../types";
 import { PhotoPicker } from "./PhotoPicker";
 
-const CATEGORIES: StopCategory[] = ["naturaleza", "fotografia", "paisaje", "mirador", "gastronomia", "hotel", "estadio", "cultura", "pueblo", "historia", "aparcamiento", "playa", "castillo"];
+/** Recorre la lista única: así ninguna categoría nueva se queda fuera. */
+const CATEGORIES = STOP_CATEGORIES;
 
 /** Editor de parada (sección 25): añadir buscando por nombre (Nominatim) o editando una existente. */
 export function StopEditorModal({ stopId, dayId }: { stopId: string | null; dayId: string }) {

@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Check, Copy, EyeOff, GripVertical, MoreVertical, Pencil, Star, Trash2 } from "lucide-react";
+import { CalendarArrowDown, Check, Copy, EyeOff, GripVertical, MoreVertical, Pencil, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
@@ -18,6 +18,7 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
   const updateStop = useTripStore((s) => s.updateStop);
   const deleteStop = useTripStore((s) => s.deleteStop);
   const duplicateStop = useTripStore((s) => s.duplicateStop);
+  const moveStopToDay = useTripStore((s) => s.moveStopToDay);
   const setStopVisited = useTripStore((s) => s.setStopVisited);
   const toggleFavorite = useTripStore((s) => s.toggleFavorite);
   const isFavorite = useTripStore((s) => s.isFavorite);
@@ -91,6 +92,26 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
               onClick={() => {
                 openModal({ type: "stop-editor", stopId: stop.id, dayId: stop.dayId });
                 setMenuOpen(false);
+              }}
+            />
+            <MenuItem
+              icon={CalendarArrowDown}
+              label="Mover a otro día"
+              onClick={() => {
+                setMenuOpen(false);
+                openModal({
+                  type: "day-picker",
+                  title: `Mover ${stop.name}`,
+                  message: "¿A qué día del viaje?",
+                  onPick: (dayId) => {
+                    if (dayId === stop.dayId) return;
+                    // Al final del día destino: es donde se espera que caiga
+                    // algo que llega nuevo, y desde ahí ya se reordena.
+                    const destino = useTripStore.getState().trip.days.find((d) => d.id === dayId);
+                    moveStopToDay(stop.id, dayId, destino?.stopIds.length ?? 0);
+                    pushToast(`${stop.name} movida al día ${destino?.index ?? ""}.`, "success");
+                  },
+                });
               }}
             />
             <MenuItem
