@@ -676,10 +676,27 @@ export const useTripStore = create<TripStoreState>()(
        * `heroImage`) no aparecería nunca para quien ya tuviera el viaje
        * guardado en localStorage, que es justo lo que pasaba.
        */
-      version: 3,
+      version: 4,
       migrate: (persisted, fromVersion) => {
         const state = persisted as Partial<TripStoreState> | undefined;
         if (!state) return persisted as TripStoreState;
+
+        /*
+         * v3 → v4: la categoría "ciudad". Girona, Pamplona y Bilbao estaban
+         * guardadas como "pueblo" y cambiar la semilla no toca lo que ya está
+         * en el dispositivo, así que se reclasifican aquí por id. Solo se
+         * corrige lo que siga tal cual salió de la semilla: si tú cambiaste la
+         * categoría a mano, se respeta.
+         */
+        const conCategorias = (s: Partial<TripStoreState>): Partial<TripStoreState> => {
+          const semilla = new Map(SEED_STOPS.filter((p) => p.category === "ciudad").map((p) => [p.id, p.category]));
+          if (semilla.size === 0 || !s.stopsById) return s;
+          const stopsById = { ...s.stopsById };
+          for (const [id, parada] of Object.entries(stopsById)) {
+            if (parada.category === "pueblo" && semilla.has(id)) stopsById[id] = { ...parada, category: "ciudad" };
+          }
+          return { ...s, stopsById };
+        };
 
         /*
          * v2 → v3: soporte de varios viajes. Lo que había guardado pasa a ser
@@ -687,7 +704,7 @@ export const useTripStore = create<TripStoreState>()(
          * mueve ni un dato: el viaje, los gastos, el diario y las fotos
          * siguen exactamente donde estaban.
          */
-        if (fromVersion >= 2) return { ...state, savedTrips: state.savedTrips ?? {} } as TripStoreState;
+        if (fromVersion >= 2) return conCategorias({ ...state, savedTrips: state.savedTrips ?? {} }) as TripStoreState;
 
         // v1 → v2: incorporar `heroImage` (y nuevos lugares opcionales) sin
         // tocar nada de lo que el usuario haya editado.
@@ -709,7 +726,7 @@ export const useTripStore = create<TripStoreState>()(
         for (const p of existingPlaces) if (!places.some((sp) => sp.id === p.id)) places.push(p);
 
         // Quien venga de v1 llega también a v3: un solo viaje, archivo vacío.
-        return { ...state, stopsById, places, savedTrips: state.savedTrips ?? {} } as TripStoreState;
+        return conCategorias({ ...state, stopsById, places, savedTrips: state.savedTrips ?? {} }) as TripStoreState;
       },
       partialize: (state) => ({
         trip: state.trip,

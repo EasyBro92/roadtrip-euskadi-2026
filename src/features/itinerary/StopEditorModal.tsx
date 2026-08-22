@@ -4,6 +4,7 @@ import { GeocodingService, debounce, type GeocodingResult } from "../../services
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { StopCategory } from "../../types";
+import { PhotoPicker } from "./PhotoPicker";
 
 const CATEGORIES: StopCategory[] = ["naturaleza", "fotografia", "paisaje", "mirador", "gastronomia", "hotel", "estadio", "cultura", "pueblo", "historia", "aparcamiento", "playa", "castillo"];
 
@@ -19,6 +20,7 @@ export function StopEditorModal({ stopId, dayId }: { stopId: string | null; dayI
   const [category, setCategory] = useState<StopCategory>(existing?.category ?? "pueblo");
   const [coordinates, setCoordinates] = useState(existing?.coordinates ?? null);
   const [shortDescription, setShortDescription] = useState(existing?.shortDescription ?? "");
+  const [heroImage, setHeroImage] = useState(existing?.heroImage);
   const [searchResults, setSearchResults] = useState<GeocodingResult[]>([]);
   const [searching, setSearching] = useState(false);
 
@@ -44,13 +46,15 @@ export function StopEditorModal({ stopId, dayId }: { stopId: string | null; dayI
       return;
     }
     if (existing) {
-      updateStop(existing.id, { name, category, shortDescription, ...(coordinates ? { coordinates } : {}) });
+      updateStop(existing.id, { name, category, shortDescription, heroImage, ...(coordinates ? { coordinates } : {}) });
     } else {
       if (!coordinates) {
         pushToast("Busca el lugar o indica coordenadas antes de guardar.", "error");
         return;
       }
-      addStop(dayId, { name, category, coordinates });
+      const nuevoId = addStop(dayId, { name, category, coordinates, shortDescription });
+      // addStop no acepta foto: se aplica justo después sobre la parada creada.
+      if (heroImage && nuevoId) updateStop(nuevoId, { heroImage });
     }
     closeModal();
   }
@@ -117,6 +121,8 @@ export function StopEditorModal({ stopId, dayId }: { stopId: string | null; dayI
 
         <label className="mb-1 block text-xs font-medium text-(--color-text-muted)">Descripción corta</label>
         <textarea value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} rows={2} className="mb-4 w-full rounded-lg border px-3 py-2.5 text-sm" style={{ borderColor: "var(--color-border)" }} />
+
+        <PhotoPicker coordinates={coordinates ?? undefined} name={name} value={heroImage} onChange={setHeroImage} />
 
         <button onClick={handleSave} className="w-full rounded-(--radius-control) bg-(--color-navigation) py-3 text-sm font-semibold text-white">
           Guardar
