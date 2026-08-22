@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { ACHIEVEMENT_DEFS } from "../data/achievements.data";
 import { SEED_CHECKLIST } from "../data/checklist.data";
 import { SEED_OPTIONAL_PLACES } from "../data/optionalPlaces.data";
+import { CIUDADES_POR_DIA, PLAN_POR_CIUDADES } from "../data/reorganizacion.data";
 import { createStop } from "../data/stopFactory";
 import { createEmptyTrip, type NewTripInput } from "../data/tripFactory";
 import { SEED_STOPS } from "../data/stops.data";
@@ -713,10 +714,58 @@ export const useTripStore = create<TripStoreState>()(
        * `heroImage`) no aparecería nunca para quien ya tuviera el viaje
        * guardado en localStorage, que es justo lo que pasaba.
        */
-      version: 4,
+      version: 5,
       migrate: (persisted, fromVersion) => {
         const state = persisted as Partial<TripStoreState> | undefined;
         if (!state) return persisted as TripStoreState;
+
+        /*
+         * v4 → v5: reorganización del viaje por ciudades.
+         *
+         * Solo toca las paradas que reconoce del plan. Las que hayas creado tú
+         * se quedan en su día, al final; su contenido —nombre, fotos, notas,
+         * visitada— no se toca en ningún caso, solo cambian de día y fecha.
+         */
+        const reorganizarPorCiudades = (s: Partial<TripStoreState>): Partial<TripStoreState> => {
+          if (!s.trip || !s.stopsById) return s;
+          // Es el viaje de Euskadi: no reorganizamos viajes ajenos al plan.
+          if (s.trip.id !== SEED_TRIP.id) return s;
+
+          const dias = s.trip.days;
+          if (dias.length < 5) return s;
+
+          const stopsById = { ...s.stopsById };
+          const planificadas = new Map<number, { id: ID; orden: number }[]>();
+          const conocidas = new Set<string>();
+
+          for (const [stopId, destino] of Object.entries(PLAN_POR_CIUDADES)) {
+            if (!stopsById[stopId]) continue;
+            conocidas.add(stopId);
+            const lista = planificadas.get(destino.dia) ?? [];
+            lista.push({ id: stopId, orden: destino.orden });
+            planificadas.set(destino.dia, lista);
+          }
+          if (conocidas.size === 0) return s;
+
+          const days = dias.map((dia, posicion) => {
+            const numero = posicion + 1;
+            const delPlan = (planificadas.get(numero) ?? []).sort((a, b) => a.orden - b.orden).map((p) => p.id);
+            // Lo que ya estaba en este día y el plan no menciona: paradas
+            // tuyas. Se conservan, detrás de las planificadas.
+            const propias = dia.stopIds.filter((id) => !conocidas.has(id));
+            const stopIds = [...delPlan, ...propias];
+
+            stopIds.forEach((id, orden) => {
+              const parada = stopsById[id];
+              if (parada) stopsById[id] = { ...parada, dayId: dia.id, date: dia.date, order: orden };
+            });
+
+            const etiquetas = CIUDADES_POR_DIA[numero];
+            return { ...dia, stopIds, ...(etiquetas ?? {}) };
+          });
+
+          return { ...s, stopsById, trip: recomputeOverloaded({ ...s.trip, days }) };
+        };
 
         /*
          * v3 → v4: la categoría "ciudad". Girona, Pamplona y Bilbao estaban
@@ -741,7 +790,7 @@ export const useTripStore = create<TripStoreState>()(
          * mueve ni un dato: el viaje, los gastos, el diario y las fotos
          * siguen exactamente donde estaban.
          */
-        if (fromVersion >= 2) return conCategorias({ ...state, savedTrips: state.savedTrips ?? {} }) as TripStoreState;
+        if (fromVersion >= 2) return reorganizarPorCiudades(conCategorias({ ...state, savedTrips: state.savedTrips ?? {} })) as TripStoreState;
 
         // v1 → v2: incorporar `heroImage` (y nuevos lugares opcionales) sin
         // tocar nada de lo que el usuario haya editado.
@@ -763,7 +812,7 @@ export const useTripStore = create<TripStoreState>()(
         for (const p of existingPlaces) if (!places.some((sp) => sp.id === p.id)) places.push(p);
 
         // Quien venga de v1 llega también a v3: un solo viaje, archivo vacío.
-        return conCategorias({ ...state, stopsById, places, savedTrips: state.savedTrips ?? {} }) as TripStoreState;
+        return reorganizarPorCiudades(conCategorias({ ...state, stopsById, places, savedTrips: state.savedTrips ?? {} })) as TripStoreState;
       },
       partialize: (state) => ({
         trip: state.trip,
