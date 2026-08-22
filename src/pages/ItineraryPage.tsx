@@ -32,12 +32,26 @@ export function ItineraryPage() {
   const activeDay = days.find((d) => d.id === activeDayId)!;
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
+  // La dirección del último cambio decide por qué lado entra el día nuevo.
+  // Vale igual deslizando que tocando un chip: saltar del día 1 al 4 entra
+  // por la derecha, como si hubieras avanzado.
+  const [direccion, setDireccion] = useState<"izquierda" | "derecha">("derecha");
+
+  const cambiarDia = (id: string) => {
+    if (id === activeDayId) return;
+    const antes = days.findIndex((d) => d.id === activeDayId);
+    const despues = days.findIndex((d) => d.id === id);
+    setDireccion(despues > antes ? "derecha" : "izquierda");
+    setActiveDayId(id);
+  };
+
   const irA = (salto: -1 | 1) => {
     const posicion = days.findIndex((d) => d.id === activeDayId);
     const destino = days[posicion + salto];
-    if (destino) setActiveDayId(destino.id);
+    if (destino) cambiarDia(destino.id);
   };
   const swipe = useDaySwipe({ onPrev: () => irA(-1), onNext: () => irA(1) });
+  const claseEntrada = direccion === "derecha" ? "dia-entra-derecha" : "dia-entra-izquierda";
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -76,7 +90,7 @@ export function ItineraryPage() {
         {days.map((day) => (
           <button
             key={day.id}
-            onClick={() => setActiveDayId(day.id)}
+            onClick={() => cambiarDia(day.id)}
             className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium whitespace-nowrap ${day.id === activeDayId ? "bg-(--color-navigation) text-white border-(--color-navigation)" : "bg-(--color-surface)"}`}
             style={day.id !== activeDayId ? { borderColor: "var(--color-border)" } : undefined}
           >
@@ -85,7 +99,9 @@ export function ItineraryPage() {
         ))}
       </div>
 
-      <div className="safe-x px-4">
+      {/* key: al cambiar de día React monta esto de nuevo y la animación se
+          reproduce; sin la key el contenido cambiaría sin animarse. */}
+      <div key={activeDay.id} className={`safe-x px-4 ${claseEntrada}`}>
         <DayHeader day={activeDay} totalDays={days.length} />
         {activeDay.isOverloaded && (
           <div className="mt-2 flex items-start gap-2 rounded-xl bg-(--color-skipped)/15 p-2.5 text-xs text-(--color-text)">
@@ -97,7 +113,7 @@ export function ItineraryPage() {
 
       {/* El gesto ignora lo que empiece sobre un botón o el asa de arrastrar,
           para no competir con el reordenado de paradas. */}
-      <div className="safe-x mt-3 flex-1 space-y-2 overflow-y-auto px-4 pb-24" style={{ touchAction: "pan-y" }} {...swipe}>
+      <div key={`lista-${activeDay.id}`} className={`safe-x mt-3 flex-1 space-y-2 overflow-y-auto px-4 pb-24 ${claseEntrada}`} style={{ touchAction: "pan-y" }} {...swipe}>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={stops.map((s) => s.id)} strategy={verticalListSortingStrategy}>
             {stops.map((stop, indice) => {

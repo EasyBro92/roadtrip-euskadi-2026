@@ -8,6 +8,7 @@ import { RootLayout } from "./layout/RootLayout";
 // pantalla es su propio chunk; solo se descarga cuando el usuario navega a ella.
 const WelcomePage = lazy(() => import("../pages/WelcomePage").then((m) => ({ default: m.WelcomePage })));
 const TripsPage = lazy(() => import("../pages/TripsPage").then((m) => ({ default: m.TripsPage })));
+const GeneratePage = lazy(() => import("../pages/GeneratePage").then((m) => ({ default: m.GeneratePage })));
 const ExplorePage = lazy(() => import("../pages/ExplorePage").then((m) => ({ default: m.ExplorePage })));
 const MapPage = lazy(() => import("../pages/MapPage").then((m) => ({ default: m.MapPage })));
 const ItineraryPage = lazy(() => import("../pages/ItineraryPage").then((m) => ({ default: m.ItineraryPage })));
@@ -51,6 +52,7 @@ export const router = createBrowserRouter([
   { path: "/", element: <EntryRedirect /> },
   { path: "/viajes", element: withSuspense(<TripsPage />) },
   { path: "/explorar", element: withSuspense(<ExplorePage />) },
+  { path: "/crear", element: withSuspense(<GeneratePage />) },
 
   // Nivel 2 — dentro de un viaje. El Resumen es la antigua portada.
   { path: "/viaje", element: withSuspense(<WelcomePage />) },

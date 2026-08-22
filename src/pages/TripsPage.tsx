@@ -1,4 +1,4 @@
-import { CalendarDays, Compass, MapPin, Plus, Trash2, Wallet } from "lucide-react";
+import { CalendarDays, Compass, MapPin, Plus, Trash2, Wallet, Wand2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTripStore } from "../stores/useTripStore";
@@ -143,12 +143,22 @@ export function TripsPage() {
       {creando ? (
         <NuevoViaje onCerrar={() => setCreando(false)} />
       ) : (
-        <button
-          onClick={() => setCreando(true)}
-          className="mb-4 flex w-full items-center justify-center gap-2 rounded-full bg-(--color-navigation) py-3.5 text-sm font-medium text-white shadow-(--shadow-card) transition-transform active:scale-[0.98]"
-        >
-          <Plus size={18} aria-hidden="true" /> Nuevo viaje
-        </button>
+        <div className="mb-4 flex gap-2">
+          <button
+            onClick={() => navigate("/crear")}
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-(--color-navigation) py-3.5 text-sm font-medium text-white shadow-(--shadow-card) transition-transform active:scale-[0.98]"
+          >
+            <Wand2 size={17} aria-hidden="true" /> Proponme un viaje
+          </button>
+          <button
+            onClick={() => setCreando(true)}
+            aria-label="Crear un viaje vacío"
+            className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full border bg-(--color-surface) text-(--color-text)"
+            style={{ borderColor: "var(--color-border)" }}
+          >
+            <Plus size={20} aria-hidden="true" />
+          </button>
+        </div>
       )}
 
       <ul className="mt-4 flex flex-col gap-3">

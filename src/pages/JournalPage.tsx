@@ -18,12 +18,23 @@ export function JournalPage() {
   const [activeDayId, setActiveDayId] = useState(trip.currentDayId ?? trip.days[0].id);
   const day = trip.days.find((d) => d.id === activeDayId) ?? trip.days[0];
 
+  const [direccion, setDireccion] = useState<"izquierda" | "derecha">("derecha");
+
+  const cambiarDia = (id: string) => {
+    if (id === day.id) return;
+    const antes = trip.days.findIndex((d) => d.id === day.id);
+    const despues = trip.days.findIndex((d) => d.id === id);
+    setDireccion(despues > antes ? "derecha" : "izquierda");
+    setActiveDayId(id);
+  };
+
   const irA = (salto: -1 | 1) => {
     const posicion = trip.days.findIndex((d) => d.id === day.id);
     const destino = trip.days[posicion + salto];
-    if (destino) setActiveDayId(destino.id);
+    if (destino) cambiarDia(destino.id);
   };
   const swipe = useDaySwipe({ onPrev: () => irA(-1), onNext: () => irA(1) });
+  const claseEntrada = direccion === "derecha" ? "dia-entra-derecha" : "dia-entra-izquierda";
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-(--color-bg)">
@@ -35,7 +46,7 @@ export function JournalPage() {
         {trip.days.map((d) => (
           <button
             key={d.id}
-            onClick={() => setActiveDayId(d.id)}
+            onClick={() => cambiarDia(d.id)}
             className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm transition-colors ${
               d.id === activeDayId ? "border-(--color-navigation) bg-(--color-navigation) font-medium text-white" : "bg-(--color-surface) text-(--color-text)"
             }`}
@@ -49,7 +60,11 @@ export function JournalPage() {
       {/* touchAction pan-y: el navegador sigue haciendo el scroll vertical y
           nosotros solo interpretamos el movimiento horizontal. */}
       <div className="safe-x min-h-0 flex-1 overflow-y-auto px-4 pb-8" style={{ touchAction: "pan-y" }} {...swipe}>
-        <DayEntry key={day.id} dayId={day.id} />
+        {/* La key ya estaba para reiniciar el borrador al cambiar de día;
+            ahora además hace que se reproduzca la animación de entrada. */}
+        <div key={day.id} className={claseEntrada}>
+          <DayEntry dayId={day.id} />
+        </div>
       </div>
     </div>
   );

@@ -60,6 +60,33 @@ a,
   border-radius: 6px;
 }
 
+/*
+ * Entrada del contenido al cambiar de día deslizando. Sin esto el día nuevo
+ * aparecía de golpe y no se entendía hacia dónde te habías movido.
+ * El bloque de prefers-reduced-motion de más abajo las anula solas.
+ */
+@keyframes entra-desde-derecha {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes entra-desde-izquierda {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+.dia-entra-derecha {
+  animation: entra-desde-derecha 0.22s ease-out;
+}
+
+.dia-entra-izquierda {
+  animation: entra-desde-izquierda 0.22s ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
