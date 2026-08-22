@@ -97,6 +97,7 @@
 .category-historia {
   --category-color: var(--color-culture);
 }
+.category-ciudad,
 .category-pueblo,
 .category-playa {
   --category-color: var(--color-nature);

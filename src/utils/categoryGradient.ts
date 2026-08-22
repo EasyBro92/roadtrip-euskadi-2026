@@ -15,6 +15,7 @@ const GRADIENTS: Record<StopCategory, string> = {
   hotel: "linear-gradient(135deg,#ec4899,#db2777)",
   estadio: "linear-gradient(135deg,#15803d,#166534)",
   cultura: "linear-gradient(135deg,#7c3aed,#6d28d9)",
+  ciudad: "linear-gradient(135deg,#0f766e,#115e59)",
   pueblo: "linear-gradient(135deg,#14b8a6,#0d9488)",
   historia: "linear-gradient(135deg,#7c3aed,#a855f7)",
   aparcamiento: "linear-gradient(135deg,#6b7280,#9ca3af)",

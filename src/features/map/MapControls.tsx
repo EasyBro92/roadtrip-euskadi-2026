@@ -35,6 +35,7 @@ const CATEGORY_LABELS: Record<StopCategory, string> = {
   hotel: "Hotel",
   estadio: "Estadio",
   cultura: "Cultura",
+  ciudad: "Ciudad",
   pueblo: "Pueblo",
   historia: "Historia",
   aparcamiento: "Aparcamiento",
@@ -131,7 +132,9 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
 
   return (
     <div className="pointer-events-none absolute inset-0 z-[560]">
-      <div className="pointer-events-auto absolute right-3 top-[68px] flex flex-col gap-3">
+      {/* top-[124px]: por debajo de la tira de días (68px + su altura). A la
+          misma altura que ella, la columna tapaba los últimos chips. */}
+      <div className="pointer-events-auto absolute right-3 top-[124px] flex flex-col gap-3">
         <ControlGroup>
           <ControlButton grouped icon={Layers} label="Selector de mapa" active={panel === "layers"} onClick={() => setPanel(panel === "layers" ? "none" : "layers")} />
           <ControlButton grouped icon={ListFilter} label="Mostrar u ocultar categorías" active={panel === "categories"} onClick={() => setPanel(panel === "categories" ? "none" : "categories")} />
@@ -145,9 +148,9 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
       </div>
 
       {panel === "layers" && (
-        // top-[116px]: por debajo de la tira de días, que ocupa 68-108px. A
-        // 68px el panel caía justo encima y tapaba el selector de día.
-        <div className="pointer-events-auto absolute right-16 top-[116px] w-52 overflow-hidden rounded-2xl border bg-(--color-surface) py-1 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+        // Alineado con la columna de controles, que ya está por debajo de la
+        // tira de días.
+        <div className="pointer-events-auto absolute right-16 top-[124px] w-52 overflow-hidden rounded-2xl border bg-(--color-surface) py-1 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
           {MAP_LAYERS.map((layer) => (
             <button
               key={layer.id}
@@ -164,7 +167,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
       )}
 
       {panel === "categories" && (
-        <div className="pointer-events-auto absolute right-16 top-[120px] max-h-72 w-56 overflow-y-auto rounded-2xl border bg-(--color-surface) p-3 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+        <div className="pointer-events-auto absolute right-16 top-[124px] max-h-72 w-56 overflow-y-auto rounded-2xl border bg-(--color-surface) p-3 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
           <p className="mb-2 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">Categorías visibles</p>
           {usedCategories.map((category) => (
             <label key={category} className="flex items-center gap-2 py-1.5 text-sm">
@@ -177,7 +180,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
       )}
 
       {panel === "legend" && (
-        <div className="pointer-events-auto absolute right-16 top-[116px] w-56 rounded-2xl border bg-(--color-surface) p-3 text-sm shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+        <div className="pointer-events-auto absolute right-16 top-[124px] w-56 rounded-2xl border bg-(--color-surface) p-3 text-sm shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
           <p className="mb-2 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">Leyenda</p>
           <LegendRow color="#9CA3AF" label="Ruta completa" />
           <LegendRow color="#16A34A" label="Tramo recorrido" />

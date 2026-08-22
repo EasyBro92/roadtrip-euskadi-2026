@@ -1,5 +1,5 @@
 import L from "leaflet";
-import { BedDouble, Binoculars, Camera, Home, Landmark, Mountain, ParkingCircle, ScrollText, Trophy, TreePine, UtensilsCrossed, Waves, type LucideIcon } from "lucide-react";
+import { BedDouble, Binoculars, Building2, Camera, Home, Landmark, Mountain, ParkingCircle, ScrollText, Trophy, TreePine, UtensilsCrossed, Waves, type LucideIcon } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { StopCategory } from "../../types";
 
@@ -12,6 +12,7 @@ const CATEGORY_ICON: Record<StopCategory, LucideIcon> = {
   hotel: BedDouble,
   estadio: Trophy,
   cultura: Landmark,
+  ciudad: Building2,
   pueblo: Home,
   historia: ScrollText,
   aparcamiento: ParkingCircle,
@@ -22,6 +23,7 @@ const CATEGORY_ICON: Record<StopCategory, LucideIcon> = {
 const CATEGORY_HEX: Record<StopCategory, string> = {
   naturaleza: "#14b8a6",
   paisaje: "#14b8a6",
+  ciudad: "#0f766e",
   pueblo: "#14b8a6",
   playa: "#0ea5e9",
   fotografia: "#1a73e8",

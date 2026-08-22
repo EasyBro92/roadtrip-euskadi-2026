@@ -22,6 +22,7 @@ export type StopCategory =
   | "hotel"
   | "estadio"
   | "cultura"
+  | "ciudad"
   | "pueblo"
   | "historia"
   | "aparcamiento"

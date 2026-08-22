@@ -19,7 +19,7 @@ export const ROUTE_TEMPLATES: RouteTemplate[] = [
     stops: [
       {
         name: "Girona",
-        category: "pueblo",
+        category: "ciudad",
         coordinates: { latitude: 41.9793, longitude: 2.8199 },
         shortDescription: "Casco antiguo, murallas y las casas de colores del río Onyar.",
         recommendedDurationMinutes: 150,

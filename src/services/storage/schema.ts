@@ -17,6 +17,10 @@ const stopCategorySchema = z.enum([
   "hotel",
   "estadio",
   "cultura",
+  // Ojo: esta lista debe seguir a StopCategory en types/common.ts. TypeScript
+  // no las vincula, así que si añades una categoría y no la pones aquí, la
+  // exportación deja de validar (lo detecta schema.test.ts).
+  "ciudad",
   "pueblo",
   "historia",
   "aparcamiento",

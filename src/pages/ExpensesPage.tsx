@@ -1,9 +1,11 @@
 import { Download, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { SwipeToDelete } from "../components/SwipeToDelete";
 import { ExportService } from "../services/export/ExportService";
 import { ExpenseService } from "../services/expenses/ExpenseService";
 import { useTripStore } from "../stores/useTripStore";
+import { useUIStore } from "../stores/useUIStore";
 import type { ExpenseCategory } from "../types";
 import { formatEUR } from "../utils/format";
 
@@ -26,6 +28,9 @@ export function ExpensesPage() {
   const stops = useTripStore((s) => s.stopsById);
   const refuels = useTripStore((s) => s.refuels);
   const addExpense = useTripStore((s) => s.addExpense);
+  const deleteExpense = useTripStore((s) => s.deleteExpense);
+  const openModal = useUIStore((s) => s.openModal);
+  const pushToast = useUIStore((s) => s.pushToast);
 
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<ExpenseCategory>("otros");
@@ -38,6 +43,23 @@ export function ExpensesPage() {
 
   const pieData = CATEGORIES.map((c) => ({ name: c, value: stats.byCategory[c] })).filter((d) => d.value > 0);
   const dailyData = trip.days.map((day) => ({ name: `D${day.index + 1}`, gasto: stats.byDay[day.id] ?? 0 }));
+
+  /**
+   * Pide confirmación aunque haya hecho falta deslizar y pulsar: un gasto
+   * borrado no se puede recuperar y descuadra el presupuesto del viaje.
+   */
+  function borrarGasto(id: string, descripcion: string, importe: number) {
+    openModal({
+      type: "confirm",
+      title: "Borrar gasto",
+      message: `Se borrará ${formatEUR(importe)} de ${descripcion}.`,
+      confirmLabel: "Borrar",
+      onConfirm: () => {
+        deleteExpense(id);
+        pushToast("Gasto borrado.", "success");
+      },
+    });
+  }
 
   function handleAdd() {
     const value = Number.parseFloat(amount);
@@ -168,17 +190,23 @@ export function ExpensesPage() {
 
       <div className="mt-4 space-y-2">
         {[...expenses].reverse().map((e) => (
-          <div key={e.id} className="flex items-center justify-between gap-2 rounded-xl border bg-(--color-surface) p-2.5 text-sm" style={{ borderColor: "var(--color-border)" }}>
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-medium">{e.place}</p>
-              <p className="truncate text-xs text-(--color-text-muted)">
-                {e.category} · {e.date} {stops[e.stopId ?? ""] ? `· ${stops[e.stopId ?? ""].name}` : ""}
-              </p>
+          <SwipeToDelete
+            key={e.id}
+            deleteLabel={`Borrar el gasto de ${formatEUR(e.amountEUR)} en ${e.place || e.category}`}
+            onDelete={() => borrarGasto(e.id, e.place || e.category, e.amountEUR)}
+          >
+            <div className="flex items-center justify-between gap-2 rounded-xl border bg-(--color-surface) p-2.5 text-sm" style={{ borderColor: "var(--color-border)" }}>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium">{e.place}</p>
+                <p className="truncate text-xs text-(--color-text-muted)">
+                  {e.category} · {e.date} {stops[e.stopId ?? ""] ? `· ${stops[e.stopId ?? ""].name}` : ""}
+                </p>
+              </div>
+              <span className="shrink-0 font-semibold" style={{ color: CATEGORY_COLORS[e.category] }}>
+                {formatEUR(e.amountEUR)}
+              </span>
             </div>
-            <span className="shrink-0 font-semibold" style={{ color: CATEGORY_COLORS[e.category] }}>
-              {formatEUR(e.amountEUR)}
-            </span>
-          </div>
+          </SwipeToDelete>
         ))}
       </div>
     </div>
