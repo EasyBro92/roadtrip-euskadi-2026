@@ -3,6 +3,7 @@ export * from "./vehicle";
 export * from "./place";
 export * from "./stop";
 export * from "./route";
+export * from "./routeTemplate";
 export * from "./trip";
 export * from "./expense";
 export * from "./photo";

@@ -21,6 +21,7 @@ import type {
   Note,
   Place,
   Refuel,
+  RouteTemplate,
   Stop,
   Trip,
 } from "../types";
@@ -100,6 +101,7 @@ interface TripStoreState {
   listTrips: () => TripSummary[];
   switchTrip: (tripId: ID) => void;
   createTrip: (input: NewTripInput) => ID;
+  createTripFromTemplate: (template: RouteTemplate, startDate: string) => ID;
   deleteTrip: (tripId: ID) => void;
 
   // --- Selectors auxiliares ---
@@ -581,6 +583,49 @@ export const useTripStore = create<TripStoreState>()(
           newlyUnlockedAchievementIds: [],
         }));
         return nuevo.id;
+      },
+
+      createTripFromTemplate: (template, startDate) => {
+        const nuevoId = get().createTrip({ name: template.name, startDate, dayCount: template.dayCount });
+        const dias = get().trip.days;
+
+        // Las paradas de la plantilla se materializan como paradas propias del
+        // viaje nuevo, con ids nuevos: la ruta del catálogo nunca se toca, y
+        // editar la copia no afecta a nadie más.
+        const paradas: Stop[] = [];
+        const porDia = new Map<ID, ID[]>();
+
+        for (const dia of dias) {
+          const delDia = template.stops.filter((s) => s.dayIndex === dia.index);
+          const ids: ID[] = [];
+          delDia.forEach((plantilla, orden) => {
+            const parada = createStop({
+              id: generateId("stop"),
+              dayId: dia.id,
+              order: orden,
+              name: plantilla.name,
+              category: plantilla.category,
+              coordinates: plantilla.coordinates,
+              date: dia.date,
+              shortDescription: plantilla.shortDescription,
+              fullDescription: plantilla.shortDescription,
+              recommendedDurationMinutes: plantilla.recommendedDurationMinutes,
+            });
+            paradas.push(parada);
+            ids.push(parada.id);
+          });
+          porDia.set(dia.id, ids);
+        }
+
+        set((state) => ({
+          stopsById: stopsToRecord(paradas),
+          trip: recomputeOverloaded({
+            ...state.trip,
+            days: state.trip.days.map((d) => ({ ...d, stopIds: porDia.get(d.id) ?? [] })),
+          }),
+        }));
+
+        return nuevoId;
       },
 
       deleteTrip: (tripId) =>
