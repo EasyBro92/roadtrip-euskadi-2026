@@ -294,6 +294,24 @@ const day2Stops: Stop[] = [
       createHotel({ name: "Hotel con parking (demo)", role: "alternativa-aparcamiento", priceEstimateEUR: 80, breakfastIncluded: true, hasParking: true }),
     ],
   }),
+  createStop({
+    id: "stop-pension-bretxa",
+    dayId: "day-5",
+    order: 12,
+    name: "Pensión Bretxa",
+    category: "hotel",
+    // La pensión no está en OpenStreetMap; estas son las de la plaza de la
+    // Bretxa, que le da nombre y está a unos metros, en la Parte Vieja.
+    coordinates: { latitude: 43.32351, longitude: -1.98252 },
+    date: "2026-09-02",
+    shortDescription: "Alojamiento de la última noche, en la Parte Vieja de San Sebastián.",
+    fullDescription:
+      "Pensión Bretxa, junto a la plaza y el mercado de la Bretxa, en pleno casco viejo donostiarra. Coordenadas de la plaza: ajustar el portal exacto desde el editor de ruta.",
+    priority: "high",
+    recommendedDurationMinutes: 0,
+    tags: ["hotel", "descanso", "parte-vieja"],
+    hotelOptions: [createHotel({ name: "Pensión Bretxa", role: "propuesto", priceEstimateEUR: 90, breakfastIncluded: false, hasParking: false })],
+  }),
 ];
 
 // ---------------------------------------------------------------------------

@@ -714,13 +714,15 @@ export const useTripStore = create<TripStoreState>()(
        * `heroImage`) no aparecería nunca para quien ya tuviera el viaje
        * guardado en localStorage, que es justo lo que pasaba.
        */
-      version: 5,
+      version: 6,
       migrate: (persisted, fromVersion) => {
         const state = persisted as Partial<TripStoreState> | undefined;
         if (!state) return persisted as TripStoreState;
 
         /*
-         * v4 → v5: reorganización del viaje por ciudades.
+         * v4 → v6: reorganización del viaje por ciudades. Se subió a 6 al añadir la
+         * pensión de la última noche: la 5 ya se había desplegado y no habría
+         * vuelto a ejecutarse en un móvil que ya la hubiera aplicado.
          *
          * Solo toca las paradas que reconoce del plan. Las que hayas creado tú
          * se quedan en su día, al final; su contenido —nombre, fotos, notas,
@@ -738,8 +740,17 @@ export const useTripStore = create<TripStoreState>()(
           const planificadas = new Map<number, { id: ID; orden: number }[]>();
           const conocidas = new Set<string>();
 
+          const semillaPorId = new Map(SEED_STOPS.map((p) => [p.id, p]));
+
           for (const [stopId, destino] of Object.entries(PLAN_POR_CIUDADES)) {
-            if (!stopsById[stopId]) continue;
+            if (!stopsById[stopId]) {
+              // Parada del plan que aún no tienes: se crea desde la semilla.
+              // Así una parada nueva (la pensión de la última noche) llega a
+              // quien ya tenía el viaje guardado, sin tocar nada más.
+              const desdeSemilla = semillaPorId.get(stopId);
+              if (!desdeSemilla) continue;
+              stopsById[stopId] = { ...desdeSemilla };
+            }
             conocidas.add(stopId);
             const lista = planificadas.get(destino.dia) ?? [];
             lista.push({ id: stopId, orden: destino.orden });

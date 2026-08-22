@@ -56,6 +56,7 @@ export const PLAN_POR_CIUDADES: Record<string, { dia: number; orden: number }> =
   "stop-peine-viento": { dia: 5, orden: 9 },
   "stop-parte-vieja-ss": { dia: 5, orden: 10 },
   "stop-hondarribia": { dia: 5, orden: 11 },
+  "stop-pension-bretxa": { dia: 5, orden: 12 },
 };
 
 /** Título y localidad de cada día, por posición (empezando en 1). */
