@@ -2,6 +2,7 @@ import { PlaceLibraryModal } from "../features/itinerary/PlaceLibraryModal";
 import { StopEditorModal } from "../features/itinerary/StopEditorModal";
 import { useUIStore } from "../stores/useUIStore";
 import { DayPickerModal } from "./DayPickerModal";
+import { TripSwitcherModal } from "./TripSwitcherModal";
 
 /** Punto único de renderizado de modales (sección 17/25), controlado por useUIStore.modal. */
 export function ModalHost() {
@@ -15,6 +16,8 @@ export function ModalHost() {
   if (modal.type === "day-picker") return <DayPickerModal title={modal.title} message={modal.message} onPick={modal.onPick} />;
 
   if (modal.type === "place-library") return <PlaceLibraryModal dayId={modal.dayId} />;
+
+  if (modal.type === "trip-switcher") return <TripSwitcherModal />;
 
   if (modal.type === "confirm") {
     return (

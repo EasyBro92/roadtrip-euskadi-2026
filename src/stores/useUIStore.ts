@@ -16,6 +16,7 @@ export type ModalState =
   /** Selector de día reutilizable: "¿a qué día lo añado?" */
   | { type: "day-picker"; title: string; message?: string; onPick: (dayId: string) => void }
   /** Biblioteca de lugares opcionales embebida, para añadir desde el itinerario. */
+  | { type: "trip-switcher" }
   | { type: "place-library"; dayId: string }
   | { type: "add-place-search" }
   | { type: "share" }

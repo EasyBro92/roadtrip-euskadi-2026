@@ -1,7 +1,8 @@
-import { Car, CircleHelp, CloudDownload, Compass, CornerUpLeft, Flag, ListChecks, MapPinned, NotebookPen, Radar, Settings, Share2, Sparkles, Star, Trophy, type LucideIcon } from "lucide-react";
+import { Car, ChevronsUpDown, CircleHelp, CloudDownload, Compass, CornerUpLeft, Flag, ListChecks, MapPinned, NotebookPen, Radar, Settings, Share2, Sparkles, Star, Trophy, type LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTripStats } from "../hooks/useTripStats";
 import { useTripStore } from "../stores/useTripStore";
+import { useUIStore } from "../stores/useUIStore";
 import { formatEUR } from "../utils/format";
 
 interface MoreItem {
@@ -52,6 +53,7 @@ export function MorePage() {
   const navigate = useNavigate();
   const stats = useTripStats();
   const trip = useTripStore((s) => s.trip);
+  const openModal = useUIStore((s) => s.openModal);
 
   return (
     <div className="safe-x h-full overflow-y-auto bg-(--color-bg) px-4 pt-4 pb-8">
@@ -59,10 +61,17 @@ export function MorePage() {
 
       {/* Tarjeta de progreso, para que "Más" no sea solo un menú. */}
       <div className="mb-5 rounded-(--radius-card) border bg-(--color-surface) p-4 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
-        <div className="flex items-center gap-2">
-          <Compass size={18} className="text-(--color-navigation)" aria-hidden="true" />
-          <p className="text-sm font-medium">{trip.name}</p>
-        </div>
+        {/* El nombre del viaje abre el selector: "Más" está a un toque desde
+            cualquier pantalla, así que cambiar de viaje queda en dos. */}
+        <button
+          onClick={() => openModal({ type: "trip-switcher" })}
+          aria-label={`Viaje actual: ${trip.name}. Cambiar de viaje`}
+          className="flex w-full items-center gap-2 text-left"
+        >
+          <Compass size={18} className="shrink-0 text-(--color-navigation)" aria-hidden="true" />
+          <p className="min-w-0 flex-1 truncate text-sm font-medium">{trip.name}</p>
+          <ChevronsUpDown size={16} className="shrink-0 text-(--color-text-muted)" aria-hidden="true" />
+        </button>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-(--color-surface-muted)">
           <div className="h-full rounded-full bg-(--color-progress) transition-all" style={{ width: `${stats.progressPercentage}%` }} />
         </div>
