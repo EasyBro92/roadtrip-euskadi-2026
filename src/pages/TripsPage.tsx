@@ -1,7 +1,8 @@
-import { CalendarDays, Compass, MapPin, Plus, Wallet, Wand2 } from "lucide-react";
+import { CalendarDays, Compass, MapPin, Plus, Search, Wallet, Wand2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SwipeToDelete } from "../components/SwipeToDelete";
+import { WorldMapBackdrop } from "../components/WorldMapBackdrop";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
 import { formatEUR } from "../utils/format";
@@ -126,7 +127,8 @@ export function TripsPage() {
   }
 
   return (
-    <div className="safe-x min-h-dvh bg-(--color-bg) pb-10 pt-[calc(env(safe-area-inset-top)+20px)]">
+    <div className="safe-x relative isolate min-h-dvh bg-(--color-bg) pb-10 pt-[calc(env(safe-area-inset-top)+20px)]">
+      <WorldMapBackdrop />
       <header className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-(--color-text)">Mis viajes</h1>
@@ -145,11 +147,17 @@ export function TripsPage() {
         <NuevoViaje onCerrar={() => setCreando(false)} />
       ) : (
         <div className="mb-4 flex gap-2">
+          {/* Con forma de buscador y no de botón: lo que se espera aquí es
+              escribir un destino, y un campo lo invita mejor que una píldora.
+              Al tocarlo se abre la pantalla del generador con el foco puesto. */}
           <button
             onClick={() => navigate("/crear")}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-(--color-navigation) py-3.5 text-sm font-medium text-white shadow-(--shadow-card) transition-transform active:scale-[0.98]"
+            className="flex flex-1 items-center gap-2.5 rounded-full border bg-(--color-surface) px-4 py-3.5 text-left shadow-(--shadow-card) transition-transform active:scale-[0.99]"
+            style={{ borderColor: "var(--color-border)" }}
           >
-            <Wand2 size={17} aria-hidden="true" /> Proponme un viaje
+            <Search size={18} className="shrink-0 text-(--color-text-muted)" aria-hidden="true" />
+            <span className="min-w-0 flex-1 truncate text-sm text-(--color-text-muted)">¿A dónde quieres ir?</span>
+            <Wand2 size={16} className="shrink-0 text-(--color-navigation)" aria-hidden="true" />
           </button>
           <button
             onClick={() => setCreando(true)}
