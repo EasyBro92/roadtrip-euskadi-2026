@@ -1,7 +1,9 @@
-import { ArrowLeft, CalendarDays, MapPin, Plus } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Plus, Star } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TODAS_LAS_RUTAS } from "../data/routeTemplates.data";
+import { StarRatingInput } from "../components/StarRatingInput";
+import { useRatingsStore } from "../stores/useRatingsStore";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
 import type { RouteTemplate, RouteTemplateStop } from "../types";
@@ -15,6 +17,8 @@ function FichaRuta({ ruta }: { ruta: RouteTemplate }) {
   const openModal = useUIStore((s) => s.openModal);
   const pushToast = useUIStore((s) => s.pushToast);
   const navigate = useNavigate();
+
+  const miNota = useRatingsStore((s) => s.valoraciones[`route:${ruta.id}`]);
 
   const [abierta, setAbierta] = useState(false);
   const [startDate, setStartDate] = useState(toISODate(new Date()));
@@ -63,11 +67,21 @@ function FichaRuta({ ruta }: { ruta: RouteTemplate }) {
           <span className="flex items-center gap-1.5">
             <MapPin size={14} aria-hidden="true" /> {ruta.stops.length} paradas
           </span>
+          {miNota && (
+            <span className="flex items-center gap-1 font-medium text-(--color-gastronomy)">
+              <Star size={13} fill="currentColor" aria-hidden="true" /> {miNota.estrellas}
+            </span>
+          )}
         </div>
       </button>
 
       {abierta && (
         <div className="mt-4 border-t pt-3" style={{ borderColor: "var(--color-border)" }}>
+          <div className="mb-3 flex items-center gap-3">
+            <span className="text-xs font-medium text-(--color-text-muted)">Tu nota:</span>
+            <StarRatingInput tipo="route" targetId={ruta.id} nombre={ruta.name} size={20} />
+          </div>
+
           {dias.map((dia) => (
             <div key={dia} className="mb-3">
               <p className="text-xs font-semibold uppercase text-(--color-text-muted)">Día {dia}</p>

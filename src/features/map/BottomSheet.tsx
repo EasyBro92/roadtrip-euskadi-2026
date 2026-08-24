@@ -1,5 +1,6 @@
 import { Camera, Check, ChevronDown, ChevronUp, Heart, Navigation, Star } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import { StarRatingInput } from "../../components/StarRatingInput";
 import { useStopsOfDay } from "../../hooks/useStopsOfDay";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore, type BottomSheetState } from "../../stores/useUIStore";
@@ -151,6 +152,13 @@ export function BottomSheet({ dayId }: { dayId: string }) {
         {sheetState !== "minimized" && (
           <div className="px-4">
             <p className="mt-3 text-sm leading-relaxed text-(--color-text)">{stop.shortDescription}</p>
+
+            {/* Tu puntuación, separada de la valoración fotográfica de arriba:
+                aquella viene con los datos y esta la pones tú. */}
+            <div className="mt-3 flex items-center gap-3 rounded-xl border p-2.5" style={{ borderColor: "var(--color-border)" }}>
+              <span className="text-xs font-medium text-(--color-text-muted)">¿Qué te ha parecido?</span>
+              <StarRatingInput tipo="stop" targetId={stop.id} nombre={stop.name} size={20} />
+            </div>
 
             {/* Fila de acciones al estilo de la ficha de lugar de Google Maps:
                 acción principal en píldora azul + acciones secundarias como
