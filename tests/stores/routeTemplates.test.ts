@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { ROUTE_TEMPLATES, getRouteTemplate } from "../../src/data/routeTemplates.data";
+import { TODAS_LAS_RUTAS as ROUTE_TEMPLATES, getRouteTemplate } from "../../src/data/routeTemplates.data";
 import { useTripStore } from "../../src/stores/useTripStore";
 
 beforeEach(() => {
@@ -16,15 +16,30 @@ describe("catálogo de rutas", () => {
     }
   });
 
-  it("has plausible coordinates for Spain, so a bad paste is caught", () => {
+  it("has plausible coordinates for Europe, so a bad paste is caught", () => {
+    // El catálogo pasó de ser solo español a incluir Roma, Praga o Edimburgo,
+    // así que el margen es europeo. Sigue sirviendo para lo que importa:
+    // detectar un cero, unas coordenadas intercambiadas o un pegado torcido.
     for (const ruta of ROUTE_TEMPLATES) {
       for (const { name, coordinates } of ruta.stops) {
         expect(coordinates.latitude, `${name} latitud`).toBeGreaterThan(35);
-        expect(coordinates.latitude, `${name} latitud`).toBeLessThan(44);
+        expect(coordinates.latitude, `${name} latitud`).toBeLessThan(60);
         expect(coordinates.longitude, `${name} longitud`).toBeGreaterThan(-10);
-        expect(coordinates.longitude, `${name} longitud`).toBeLessThan(5);
+        expect(coordinates.longitude, `${name} longitud`).toBeLessThan(25);
       }
     }
+  });
+
+  it("has no duplicated stop names within a route", () => {
+    for (const ruta of ROUTE_TEMPLATES) {
+      const nombres = ruta.stops.map((s) => s.name);
+      expect(new Set(nombres).size, `${ruta.name} repite paradas`).toBe(nombres.length);
+    }
+  });
+
+  it("gives every route a unique id", () => {
+    const ids = ROUTE_TEMPLATES.map((r) => r.id);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
   it("leaves no day of a route empty", () => {

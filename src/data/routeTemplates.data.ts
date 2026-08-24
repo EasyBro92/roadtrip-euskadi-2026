@@ -1,4 +1,5 @@
 import type { RouteTemplate } from "../types";
+import { CATALOGO_CIUDADES } from "./routeCatalog.data";
 
 /**
  * Catálogo de rutas prehechas (Explorar).
@@ -127,6 +128,12 @@ export const ROUTE_TEMPLATES: RouteTemplate[] = [
   },
 ];
 
+/**
+ * Todo lo que ve Explorar: primero las rutas por carretera escritas a mano
+ * —que llevan resumen y descripciones— y después las 32 ciudades generadas.
+ */
+export const TODAS_LAS_RUTAS: RouteTemplate[] = [...ROUTE_TEMPLATES, ...CATALOGO_CIUDADES];
+
 export function getRouteTemplate(id: string): RouteTemplate | undefined {
-  return ROUTE_TEMPLATES.find((t) => t.id === id);
+  return TODAS_LAS_RUTAS.find((t) => t.id === id);
 }

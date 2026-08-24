@@ -1,7 +1,7 @@
 import { ArrowLeft, CalendarDays, MapPin, Plus } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ROUTE_TEMPLATES } from "../data/routeTemplates.data";
+import { TODAS_LAS_RUTAS } from "../data/routeTemplates.data";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
 import type { RouteTemplate, RouteTemplateStop } from "../types";
@@ -137,7 +137,7 @@ export function ExplorePage() {
       </p>
 
       <ul className="flex flex-col gap-3">
-        {ROUTE_TEMPLATES.map((ruta) => (
+        {TODAS_LAS_RUTAS.map((ruta) => (
           <FichaRuta key={ruta.id} ruta={ruta} />
         ))}
       </ul>
