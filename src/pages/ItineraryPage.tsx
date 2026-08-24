@@ -2,12 +2,15 @@ import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type D
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { AlertTriangle, MapPinned, Plus, RotateCcw } from "lucide-react";
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useDaySwipe } from "../hooks/useDaySwipe";
 import { DayHeader } from "../features/itinerary/DayHeader";
+import { FilteredStopList } from "../features/itinerary/FilteredStopList";
 import { LocationBreak } from "../features/itinerary/LocationBreak";
 import { SortableStopCard } from "../features/itinerary/SortableStopCard";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
 import { useTripStore } from "../stores/useTripStore";
+import type { StopCategory } from "../types";
 import { useUIStore } from "../stores/useUIStore";
 import { haversineDistanceMeters } from "../utils/geo";
 
@@ -20,6 +23,7 @@ const DISTANCIA_OTRA_LOCALIDAD_M = 2000;
 
 export function ItineraryPage() {
   const days = useTripStore((s) => s.trip.days);
+  const [params] = useSearchParams();
   const [activeDayId, setActiveDayId] = useState(days[0].id);
   const stops = useStopsOfDay(activeDayId);
   const reorderStopsInDay = useTripStore((s) => s.reorderStopsInDay);
@@ -28,6 +32,11 @@ export function ItineraryPage() {
   const canUndo = useTripStore((s) => s.canUndo());
   const pushSnapshot = useTripStore((s) => s.pushSnapshot);
   const openModal = useUIStore((s) => s.openModal);
+
+  // Las tarjetas del Resumen ("4 estadios") enlazan aquí con ?categoria=, y
+  // entonces esto deja de ser la vista por días: enseña esas paradas
+  // concretas, que están repartidas por todo el viaje.
+  const categoria = params.get("categoria");
 
   const activeDay = days.find((d) => d.id === activeDayId)!;
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
@@ -65,6 +74,8 @@ export function ItineraryPage() {
     pushSnapshot("Antes de reordenar paradas");
     reorderStopsInDay(activeDayId, reordered);
   }
+
+  if (categoria) return <FilteredStopList categoria={categoria as StopCategory} />;
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-(--color-bg)">
