@@ -70,6 +70,8 @@ export interface TripSummary {
   stopCount: number;
   budgetEUR: number;
   isActive: boolean;
+  /** Foto de portada del viaje, para la tarjeta de Mis viajes. */
+  heroImage?: string;
 }
 
 const MAX_HISTORY = 20;
@@ -221,6 +223,18 @@ function packWorkspace(state: TripStoreState): TripWorkspace {
   };
 }
 
+/**
+ * Portada del viaje: la parada activa con mejor valor fotográfico que tenga
+ * imagen. Es el mismo criterio que usa el Resumen, así que la tarjeta y la
+ * pantalla del viaje enseñan la misma foto y se reconocen entre sí.
+ */
+function portadaDe(workspace: TripWorkspace): string | undefined {
+  const mejor = Object.values(workspace.stopsById)
+    .filter((s) => s.heroImage && s.enabled)
+    .sort((a, b) => b.photographyRating - a.photographyRating)[0];
+  return mejor?.heroImage;
+}
+
 function summarise(workspace: TripWorkspace, isActive: boolean): TripSummary {
   return {
     id: workspace.trip.id,
@@ -231,6 +245,7 @@ function summarise(workspace: TripWorkspace, isActive: boolean): TripSummary {
     stopCount: workspace.trip.days.reduce((total, day) => total + day.stopIds.length, 0),
     budgetEUR: workspace.trip.budgetEUR,
     isActive,
+    heroImage: portadaDe(workspace),
   };
 }
 
