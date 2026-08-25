@@ -1,4 +1,5 @@
 import type { Coordinates } from "../../types";
+import { haversineDistanceMeters } from "../../utils/geo";
 import { esperarTurnoNominatim } from "../geocoding/nominatimGate";
 import { db } from "../storage/db";
 
@@ -13,6 +14,8 @@ import { db } from "../storage/db";
  */
 export interface PlaceDetails {
   id: string;
+  /** Cómo se buscó. Ver `VERSION_CONSULTA`. */
+  version?: number;
   encontrado: boolean;
   horario?: string;
   telefono?: string;
@@ -39,8 +42,25 @@ const NOMINATIM_ENDPOINT = "https://nominatim.openstreetmap.org/search";
 /** Un dato de horario o teléfono no cambia a menudo; un mes es de sobra. */
 const CADUCIDAD_MS = 30 * 24 * 60 * 60 * 1000;
 
-/** ~0,005 grados son unos 500 m: el edificio y su entorno, no el barrio entero. */
-const RADIO_GRADOS = 0.005;
+/**
+ * Se sube cuando cambia la forma de buscar, para tirar lo guardado con la
+ * anterior. La versión 1 buscaba en 500 m y devolvía "aquí no hay nada" para
+ * sitios que sí existían: esos noes hay que olvidarlos, no conservarlos.
+ */
+const VERSION_CONSULTA = 2;
+
+/**
+ * ~0,03 grados son unos 3 km alrededor del punto.
+ *
+ * Empecé con 500 m y no encontraba nada: las coordenadas de una parada son las
+ * que pusiste tú o las que dio el geocodificador, y pueden estar lejos del
+ * edificio. El Castillo de Loarre estaba a 1,9 km de su parada. Quien decide
+ * de verdad es el parecido del nombre, no el recuadro.
+ */
+const RADIO_GRADOS = 0.03;
+
+/** Aun encontrándolo, más lejos de esto no es el mismo sitio. */
+const DISTANCIA_MAXIMA_M = 5000;
 
 /** Consultas en vuelo, para que abrir dos veces la misma ficha no pida dos veces. */
 const enVuelo = new Map<string, Promise<PlaceDetails>>();
@@ -79,6 +99,8 @@ export function parecido(buscado: string, candidato: string): number {
 interface ResultadoNominatim {
   name?: string;
   display_name?: string;
+  lat?: string;
+  lon?: string;
   extratags?: Record<string, string> | null;
 }
 
@@ -94,6 +116,7 @@ function extraer(tags: Record<string, string>, consultadoEn: string, id: string)
   const fee = primero("fee");
   return {
     id,
+    version: VERSION_CONSULTA,
     encontrado: true,
     horario: primero("opening_hours"),
     telefono: primero("phone", "contact:phone", "contact:mobile"),
@@ -108,7 +131,7 @@ function extraer(tags: Record<string, string>, consultadoEn: string, id: string)
 
 async function consultar(coordenadas: Coordinates, nombre: string, id: string): Promise<PlaceDetails> {
   const consultadoEn = new Date().toISOString();
-  const vacio: PlaceDetails = { id, encontrado: false, consultadoEn };
+  const vacio: PlaceDetails = { id, version: VERSION_CONSULTA, encontrado: false, consultadoEn };
 
   const { latitude: lat, longitude: lon } = coordenadas;
   // El recuadro va de izquierda-arriba a derecha-abajo, que es el orden que
@@ -124,22 +147,29 @@ async function consultar(coordenadas: Coordinates, nombre: string, id: string): 
 
   const resultados: ResultadoNominatim[] = await respuesta.json();
 
+  // Por debajo de la mitad de las palabras en común preferimos no dar nada:
+  // enseñar el horario del bar de enfrente sería peor que no enseñar nada.
+  // Entre los que pasan el corte gana el más cercano, no el mejor colocado.
   let mejor: Record<string, string> | null = null;
-  let mejorNota = 0;
+  let mejorDistancia = Infinity;
   for (const r of resultados) {
-    const etiquetas = r.extratags;
-    if (!etiquetas) continue;
+    if (!r.extratags) continue;
     const suNombre = r.name || r.display_name?.split(",")[0] || "";
-    const nota = parecido(nombre, suNombre);
-    if (nota > mejorNota) {
-      mejorNota = nota;
-      mejor = etiquetas;
+    if (parecido(nombre, suNombre) < 0.5) continue;
+
+    const distancia =
+      r.lat && r.lon
+        ? haversineDistanceMeters(coordenadas, { latitude: Number(r.lat), longitude: Number(r.lon) })
+        : 0;
+    if (distancia > DISTANCIA_MAXIMA_M) continue;
+
+    if (distancia < mejorDistancia) {
+      mejorDistancia = distancia;
+      mejor = r.extratags;
     }
   }
 
-  // Por debajo de la mitad de las palabras en común preferimos no dar nada:
-  // enseñar el horario del bar de enfrente sería peor que no enseñar nada.
-  if (!mejor || mejorNota < 0.5) return vacio;
+  if (!mejor) return vacio;
 
   const detalles = extraer(mejor, consultadoEn, id);
   const tieneAlgo =
@@ -153,6 +183,7 @@ export const PlaceDetailsService = {
     const id = claveDe(coordenadas, nombre);
     const guardado = await db.placeDetails.get(id);
     if (!guardado) return undefined;
+    if (guardado.version !== VERSION_CONSULTA) return undefined;
     if (Date.now() - new Date(guardado.consultadoEn).getTime() > CADUCIDAD_MS) return undefined;
     return guardado;
   },

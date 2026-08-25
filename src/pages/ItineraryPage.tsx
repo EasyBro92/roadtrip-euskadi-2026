@@ -1,6 +1,6 @@
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { AlertTriangle, MapPinned, Plus, RotateCcw } from "lucide-react";
+import { AlertTriangle, Clock, MapPinned, Plus, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useDaySwipe } from "../hooks/useDaySwipe";
@@ -8,9 +8,10 @@ import { DayHeader } from "../features/itinerary/DayHeader";
 import { FilteredStopList } from "../features/itinerary/FilteredStopList";
 import { LocationBreak } from "../features/itinerary/LocationBreak";
 import { SortableStopCard } from "../features/itinerary/SortableStopCard";
+import { useDayClosures } from "../hooks/useDayClosures";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
 import { useTripStore } from "../stores/useTripStore";
-import type { StopCategory } from "../types";
+import type { ISODate, Stop, StopCategory } from "../types";
 import { useUIStore } from "../stores/useUIStore";
 import { haversineDistanceMeters } from "../utils/geo";
 
@@ -120,6 +121,7 @@ export function ItineraryPage() {
             <p>Este día tiene {stops.length} paradas, por encima de las 3-5 recomendadas. Considera desactivar o convertir en opcionales las de prioridad media/baja.</p>
           </div>
         )}
+        <AvisoCierres stops={stops} fecha={activeDay.date} />
       </div>
 
       {/* El gesto ignora lo que empiece sobre un botón o el asa de arrastrar,
@@ -161,6 +163,53 @@ export function ItineraryPage() {
             <Plus size={16} aria-hidden="true" /> Buscar lugar
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Aviso de paradas que estarían cerradas el día que las tienes puestas.
+ *
+ * Sólo avisa de lo que se sabe con certeza. Comprobar los horarios que faltan
+ * es un botón aparte: son tantas peticiones a OpenStreetMap como paradas tenga
+ * el día, y eso no se lanza sin que lo pidas.
+ */
+function AvisoCierres({ stops, fecha }: { stops: Stop[]; fecha: ISODate }) {
+  const { cerradas, sinComprobar, sinHorario, comprobando, progreso, comprobar } = useDayClosures(stops, fecha);
+
+  if (cerradas.length === 0 && sinComprobar === 0 && sinHorario === 0) return null;
+
+  return (
+    <div className="mt-2 rounded-xl bg-(--color-surface-muted) p-2.5 text-xs text-(--color-text)">
+      {cerradas.length > 0 && (
+        <div className="flex items-start gap-2">
+          <Clock size={15} className="mt-0.5 shrink-0 text-(--color-cancelled)" aria-hidden="true" />
+          <p>
+            <span className="font-medium">Llegarías cerrado a</span> {cerradas.map((c) => c.nombre).join(", ")}.{" "}
+            {cerradas.length === 1 ? "Ese día no abre." : "Ese día no abren."}
+          </p>
+        </div>
+      )}
+
+      <div className={cerradas.length > 0 ? "mt-2" : ""}>
+        {comprobando ? (
+          <p className="text-(--color-text-muted)">
+            Comprobando horarios… {progreso ? `${progreso.hechas} de ${progreso.total}` : ""}
+          </p>
+        ) : sinComprobar > 0 ? (
+          <button onClick={comprobar} className="font-medium text-(--color-navigation)">
+            Comprobar el horario de {sinComprobar} {sinComprobar === 1 ? "parada" : "paradas"}
+          </button>
+        ) : (
+          sinHorario > 0 && (
+            // Ya se preguntó y no había nada. Se dice para que no parezca que
+            // la comprobación no llegó a hacerse.
+            <p className="text-(--color-text-muted)">
+              Sin horario en OpenStreetMap: {sinHorario} {sinHorario === 1 ? "parada" : "paradas"}. Puedes escribirlo tú al editarlas.
+            </p>
+          )
+        )}
       </div>
     </div>
   );
