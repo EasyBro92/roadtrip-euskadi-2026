@@ -10,6 +10,8 @@ interface StarRatingInputProps {
   /** Para el aviso y la lectura en voz alta: "Has puntuado el Prado". */
   nombre: string;
   size?: number;
+  /** "Tu nota" al lado de las estrellas. Se apaga donde no cabe, como el panel minimizado. */
+  etiqueta?: boolean;
 }
 
 /**
@@ -18,7 +20,7 @@ interface StarRatingInputProps {
  * Volver a tocar la estrella ya marcada quita la puntuación, que es la forma
  * de arrepentirse sin buscar un botón aparte.
  */
-export function StarRatingInput({ tipo, targetId, nombre, size = 22 }: StarRatingInputProps) {
+export function StarRatingInput({ tipo, targetId, nombre, size = 22, etiqueta = true }: StarRatingInputProps) {
   const valoracion = useRatingsStore((s) => s.valoraciones[`${tipo}:${targetId}`]);
   const valorar = useRatingsStore((s) => s.valorar);
   const quitar = useRatingsStore((s) => s.quitarValoracion);
@@ -57,7 +59,7 @@ export function StarRatingInput({ tipo, targetId, nombre, size = 22 }: StarRatin
           </button>
         );
       })}
-      {actual > 0 && <span className="ml-1.5 text-xs text-(--color-text-muted)">Tu nota</span>}
+      {etiqueta && actual > 0 && <span className="ml-1.5 text-xs text-(--color-text-muted)">Tu nota</span>}
     </div>
   );
 }

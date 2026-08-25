@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { Stop } from "../../types";
+import { StarRatingInput } from "../../components/StarRatingInput";
 import { thumbStyle } from "../../utils/categoryGradient";
 
 /**
@@ -53,6 +54,9 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
           {stop.optional && <> · opcional</>}
           {!stop.enabled && <> · desactivada</>}
         </p>
+        <div className="mt-1 -ml-0.5">
+          <StarRatingInput tipo="stop" targetId={stop.id} nombre={stop.name} size={15} etiqueta={false} />
+        </div>
       </div>
 
       <button
