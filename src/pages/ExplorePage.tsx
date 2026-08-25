@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TODAS_LAS_RUTAS } from "../data/routeTemplates.data";
 import { StarRatingInput } from "../components/StarRatingInput";
+import { BotonResena } from "../features/reviews/BotonResena";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
 import type { RouteTemplate, RouteTemplateStop } from "../types";
@@ -76,6 +77,12 @@ function FichaRuta({ ruta }: { ruta: RouteTemplate }) {
 
       {abierta && (
         <div className="mt-4 border-t pt-3" style={{ borderColor: "var(--color-border)" }}>
+          {/* La reseña va dentro del desplegable, no en la tarjeta cerrada:
+              puntuar es un toque y escribir es sentarse. */}
+          <div className="mb-3">
+            <BotonResena tipo="route" targetId={ruta.id} nombre={ruta.name} />
+          </div>
+
           {dias.map((dia) => (
             <div key={dia} className="mb-3">
               <p className="text-xs font-semibold uppercase text-(--color-text-muted)">Día {dia}</p>

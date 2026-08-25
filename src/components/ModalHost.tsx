@@ -1,5 +1,6 @@
 import { PlaceLibraryModal } from "../features/itinerary/PlaceLibraryModal";
 import { StopEditorModal } from "../features/itinerary/StopEditorModal";
+import { ReviewModal } from "../features/reviews/ReviewModal";
 import { useUIStore } from "../stores/useUIStore";
 import { DayPickerModal } from "./DayPickerModal";
 import { TripSwitcherModal } from "./TripSwitcherModal";
@@ -18,6 +19,7 @@ export function ModalHost() {
   if (modal.type === "place-library") return <PlaceLibraryModal dayId={modal.dayId} />;
 
   if (modal.type === "trip-switcher") return <TripSwitcherModal />;
+  if (modal.type === "review") return <ReviewModal tipo={modal.tipo} targetId={modal.targetId} nombre={modal.nombre} />;
 
   if (modal.type === "confirm") {
     return (

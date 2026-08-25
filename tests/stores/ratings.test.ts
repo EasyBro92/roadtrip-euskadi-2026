@@ -51,6 +51,18 @@ describe("valoraciones", () => {
     expect(store().valoracionDe("stop", "stop-girona")?.comentario).toBeUndefined();
   });
 
+  it("keeps the written review when you only change the stars", () => {
+    // Tocar una estrella en la ficha no puede llevarse por delante lo escrito.
+    store().guardarResena("stop", "prado", 5, { comentario: "Enorme", consejo: "Ve temprano", compania: "pareja" });
+    store().valorar("stop", "prado", 4);
+
+    const v = store().valoracionDe("stop", "prado")!;
+    expect(v.estrellas).toBe(4);
+    expect(v.comentario).toBe("Enorme");
+    expect(v.consejo).toBe("Ve temprano");
+    expect(v.compania).toBe("pareja");
+  });
+
   it("lists only the type asked for", () => {
     store().valorar("stop", "a", 5);
     store().valorar("stop", "b", 4);
@@ -58,5 +70,55 @@ describe("valoraciones", () => {
 
     expect(store().listarPorTipo("stop")).toHaveLength(2);
     expect(store().listarPorTipo("route")).toHaveLength(1);
+  });
+});
+
+describe("reseñas completas", () => {
+  it("guarda todos los campos de una reseña", () => {
+    store().guardarResena("stop", "prado", 5, {
+      comentario: "Impresionante",
+      fechaVisita: "2026-04-12",
+      compania: "familia",
+      consejo: "Entra por la puerta de Goya",
+      fotos: ["f1", "f2"],
+    });
+
+    expect(store().valoracionDe("stop", "prado")).toMatchObject({
+      estrellas: 5,
+      comentario: "Impresionante",
+      fechaVisita: "2026-04-12",
+      compania: "familia",
+      consejo: "Entra por la puerta de Goya",
+      fotos: ["f1", "f2"],
+    });
+  });
+
+  it("al editar, borrar el texto lo borra de verdad", () => {
+    // Aquí sí manda lo que mandes: si vacías el comentario es que lo quitas.
+    store().guardarResena("stop", "prado", 4, { comentario: "Primera versión" });
+    store().guardarResena("stop", "prado", 4, { comentario: "  " });
+
+    expect(store().valoracionDe("stop", "prado")?.comentario).toBeUndefined();
+  });
+
+  it("no guarda una lista de fotos vacía", () => {
+    store().guardarResena("route", "ruta-madrid", 3, { fotos: [] });
+    expect(store().valoracionDe("route", "ruta-madrid")?.fotos).toBeUndefined();
+  });
+
+  it("conserva la fecha de creación al editar la reseña", () => {
+    store().guardarResena("stop", "prado", 3, { comentario: "A" });
+    const creada = store().valoracionDe("stop", "prado")!.createdAt;
+
+    store().guardarResena("stop", "prado", 5, { comentario: "B" });
+    expect(store().valoracionDe("stop", "prado")!.createdAt).toBe(creada);
+  });
+
+  it("una reseña de ruta y otra de sitio con el mismo id no se pisan", () => {
+    store().guardarResena("stop", "madrid", 5, { comentario: "La ciudad" });
+    store().guardarResena("route", "madrid", 2, { comentario: "La ruta" });
+
+    expect(store().valoracionDe("stop", "madrid")?.comentario).toBe("La ciudad");
+    expect(store().valoracionDe("route", "madrid")?.comentario).toBe("La ruta");
   });
 });

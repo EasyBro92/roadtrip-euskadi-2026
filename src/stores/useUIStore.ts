@@ -17,6 +17,7 @@ export type ModalState =
   | { type: "day-picker"; title: string; message?: string; onPick: (dayId: string) => void }
   /** Biblioteca de lugares opcionales embebida, para añadir desde el itinerario. */
   | { type: "trip-switcher" }
+  | { type: "review"; tipo: "stop" | "route"; targetId: string; nombre: string }
   | { type: "place-library"; dayId: string }
   | { type: "add-place-search" }
   | { type: "share" }
