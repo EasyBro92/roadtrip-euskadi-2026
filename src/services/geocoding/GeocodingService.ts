@@ -1,14 +1,12 @@
 import { StorageService } from "../storage/StorageService";
 import type { Coordinates } from "../../types";
+import { esperarTurnoNominatim } from "./nominatimGate";
 
 export interface GeocodingResult {
   displayName: string;
   coordinates: Coordinates;
   type: string;
 }
-
-const MIN_INTERVAL_MS = 1100; // Política de uso de Nominatim: máx. 1 petición/segundo.
-let lastRequestAt = 0;
 
 /**
  * La política de Nominatim pide guardar los resultados. En memoria se perdían
@@ -36,13 +34,12 @@ function guardarCache(): void {
   StorageService.set(CACHE_KEY, Object.fromEntries(entradas));
 }
 
-async function throttle(): Promise<void> {
-  const elapsed = Date.now() - lastRequestAt;
-  if (elapsed < MIN_INTERVAL_MS) {
-    await new Promise((resolve) => setTimeout(resolve, MIN_INTERVAL_MS - elapsed));
-  }
-  lastRequestAt = Date.now();
-}
+/**
+ * El turno es compartido con el resto de servicios que llaman a Nominatim
+ * (ver `nominatimGate`): el límite de una petición por segundo es de toda la
+ * aplicación, no de cada servicio por su cuenta.
+ */
+const throttle = esperarTurnoNominatim;
 
 /**
  * Búsqueda de lugares vía Nominatim (OpenStreetMap), sin clave. Los

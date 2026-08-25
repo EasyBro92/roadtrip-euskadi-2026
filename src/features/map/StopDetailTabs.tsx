@@ -1,12 +1,15 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { BedDouble, CloudRain, Info, ParkingCircle, Plus, UtensilsCrossed } from "lucide-react";
+import { BedDouble, CloudRain, Globe, Info, ParkingCircle, Phone, Plus, UtensilsCrossed } from "lucide-react";
 import { useRef, useState } from "react";
+import { usePlaceDetails } from "../../hooks/usePlaceDetails";
 import { PhotoService } from "../../services/photos/PhotoService";
 import { db } from "../../services/storage/db";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore, type StopDetailTab } from "../../stores/useUIStore";
 import type { Stop } from "../../types";
 import { formatEUR } from "../../utils/format";
+import { openExternalUrl } from "../../utils/openExternal";
+import { estadoDeApertura } from "../../utils/openingHours";
 
 const TABS: { id: StopDetailTab; label: string }[] = [
   { id: "resumen", label: "Resumen" },
@@ -318,27 +321,102 @@ function LluviaTab({ stop }: { stop: Stop }) {
 }
 
 function PracticaTab({ stop }: { stop: Stop }) {
+  // Al abrir esta pestaña sí se sale a la red: es donde esos datos se leen.
+  const { datos, cargando, error } = usePlaceDetails(stop.coordinates, stop.name, true);
+
+  // Lo que ya venía escrito en la parada manda sobre lo de OpenStreetMap:
+  // si lo escribiste tú, sabes más que el mapa.
+  const horario = stop.openingHours ?? datos?.horario;
+
   return (
-    <dl className="space-y-2">
-      <Row label="Horario" value={stop.openingHours ?? "Pendiente de comprobar"} />
-      <Row label="Reserva necesaria" value={stop.bookingRequired ? "Sí" : "No"} />
-      <Row label="Dificultad" value={stop.walkingDifficulty} />
-      <Row label="Accesibilidad" value={stop.accessibility.wheelchairAccessible === "unknown" ? "Sin verificar" : stop.accessibility.wheelchairAccessible ? "Accesible" : "No accesible"} />
-      {stop.stadiumInfo && (
-        <>
-          <Row label="Equipo" value={stop.stadiumInfo.team} />
-          <Row label="Visita guiada" value={stop.stadiumInfo.infoPendingVerification ? "Pendiente de comprobar" : stop.stadiumInfo.hasGuidedTour ? "Sí" : "No"} />
-        </>
+    <div className="space-y-3">
+      {horario && <EstadoApertura horario={horario} />}
+
+      <dl className="space-y-2">
+        {/* El horario va apilado y no en dos columnas: las cadenas de
+            OpenStreetMap son largas y aplastaban la etiqueta. */}
+        <div className="border-b pb-1.5" style={{ borderColor: "var(--color-border)" }}>
+          <dt className="text-sm text-(--color-text-muted)">Horario</dt>
+          <dd className="mt-0.5 break-words text-sm font-medium">{horario ?? (cargando ? "Consultando…" : "Sin datos")}</dd>
+        </div>
+        <Row label="Reserva necesaria" value={stop.bookingRequired ? "Sí" : "No"} />
+        {datos?.precio && <Row label="Precio" value={datos.precio} />}
+        {!datos?.precio && datos?.entradaDePago && <Row label="Entrada" value={datos.entradaDePago === "si" ? "De pago" : "Gratuita"} />}
+        {datos?.cocina && <Row label="Cocina" value={datos.cocina} />}
+        <Row label="Dificultad" value={stop.walkingDifficulty} />
+        <Row label="Accesibilidad" value={stop.accessibility.wheelchairAccessible === "unknown" ? "Sin verificar" : stop.accessibility.wheelchairAccessible ? "Accesible" : "No accesible"} />
+        {stop.stadiumInfo && (
+          <>
+            <Row label="Equipo" value={stop.stadiumInfo.team} />
+            <Row label="Visita guiada" value={stop.stadiumInfo.infoPendingVerification ? "Pendiente de comprobar" : stop.stadiumInfo.hasGuidedTour ? "Sí" : "No"} />
+          </>
+        )}
+      </dl>
+
+      {(datos?.telefono || datos?.web || stop.officialUrl) && (
+        <div className="flex flex-wrap gap-2">
+          {datos?.telefono && (
+            <a
+              href={`tel:${datos.telefono.replace(/\s/g, "")}`}
+              className="flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm text-(--color-navigation)"
+              style={{ borderColor: "var(--color-border)" }}
+            >
+              <Phone size={15} aria-hidden="true" /> Llamar
+            </a>
+          )}
+          {(datos?.web ?? stop.officialUrl) && (
+            <button
+              onClick={() => openExternalUrl((datos?.web ?? stop.officialUrl)!)}
+              className="flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm text-(--color-navigation)"
+              style={{ borderColor: "var(--color-border)" }}
+            >
+              <Globe size={15} aria-hidden="true" /> Web oficial
+            </button>
+          )}
+        </div>
       )}
-    </dl>
+
+      {error && <p className="text-xs text-(--color-text-muted)">{error}</p>}
+      {datos && !datos.encontrado && !horario && (
+        <p className="text-xs text-(--color-text-muted)">
+          OpenStreetMap no tiene datos de este sitio. Puedes escribirlos tú desde el editor de la parada.
+        </p>
+      )}
+      {datos?.encontrado && <p className="text-[11px] text-(--color-text-muted)">Datos de OpenStreetMap, mantenidos por voluntarios.</p>}
+    </div>
+  );
+}
+
+/** Aviso de abierto o cerrado. Si el horario no se entiende, no dice nada. */
+function EstadoApertura({ horario }: { horario: string }) {
+  const estado = estadoDeApertura(horario);
+  if (estado.estado === "desconocido") return null;
+
+  const abierto = estado.estado === "abierto";
+  const cierraPronto = abierto && estado.minutosParaCerrar <= 60;
+  const color = !abierto ? "var(--color-cancelled)" : cierraPronto ? "var(--color-gastronomy)" : "var(--color-completed)";
+
+  const texto = abierto
+    ? cierraPronto
+      ? `Cierra en ${estado.minutosParaCerrar} min`
+      : `Abierto ahora · cierra a las ${estado.cierraA}`
+    : estado.abreA
+      ? `Cerrado · abre ${estado.abreDia} a las ${estado.abreA}`
+      : "Cerrado";
+
+  return (
+    <p className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium" style={{ background: `color-mix(in srgb, ${color} 12%, transparent)`, color }}>
+      <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: color }} aria-hidden="true" />
+      {texto}
+    </p>
   );
 }
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between border-b pb-1.5 text-sm" style={{ borderColor: "var(--color-border)" }}>
-      <dt className="text-(--color-text-muted)">{label}</dt>
-      <dd className="font-medium">{value}</dd>
+    <div className="flex justify-between gap-4 border-b pb-1.5 text-sm" style={{ borderColor: "var(--color-border)" }}>
+      <dt className="shrink-0 text-(--color-text-muted)">{label}</dt>
+      <dd className="min-w-0 break-words text-right font-medium">{value}</dd>
     </div>
   );
 }
