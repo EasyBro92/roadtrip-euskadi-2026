@@ -8,6 +8,7 @@ import { DayHeader } from "../features/itinerary/DayHeader";
 import { FilteredStopList } from "../features/itinerary/FilteredStopList";
 import { LocationBreak } from "../features/itinerary/LocationBreak";
 import { SortableStopCard } from "../features/itinerary/SortableStopCard";
+import { AvisoTiempo } from "../features/itinerary/AvisoTiempo";
 import { nochesPorDia, nochesSinAlojamiento } from "../features/itinerary/alojamiento";
 import { useDayClosures } from "../hooks/useDayClosures";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
@@ -122,6 +123,7 @@ export function ItineraryPage() {
             <p>Este día tiene {stops.length} paradas, por encima de las 3-5 recomendadas. Considera desactivar o convertir en opcionales las de prioridad media/baja.</p>
           </div>
         )}
+        <AvisoTiempo fecha={activeDay.date} stops={stops} />
         <AvisoAlojamiento activeDayId={activeDayId} />
         <AvisoCierres stops={stops} fecha={activeDay.date} />
       </div>
