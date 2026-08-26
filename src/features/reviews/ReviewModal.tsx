@@ -9,6 +9,7 @@ import {
   type Compania,
   type TipoValorado,
 } from "../../stores/useRatingsStore";
+import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import { toISODate } from "../../utils/dates";
 
@@ -28,6 +29,7 @@ export function ReviewModal({ tipo, targetId, nombre }: { tipo: TipoValorado; ta
   const pushToast = useUIStore((s) => s.pushToast);
   const existente = useRatingsStore((s) => s.valoraciones[`${tipo}:${targetId}`]);
   const guardarResena = useRatingsStore((s) => s.guardarResena);
+  const dayIdDeLaParada = useTripStore((s) => (tipo === "stop" ? s.stopsById[targetId]?.dayId : undefined));
   const estrellas = existente?.estrellas;
 
   const [comentario, setComentario] = useState(existente?.comentario ?? "");
@@ -73,8 +75,13 @@ export function ReviewModal({ tipo, targetId, nombre }: { tipo: TipoValorado; ta
     try {
       const nuevas: string[] = [];
       for (const fichero of [...ficheros].slice(0, hueco)) {
-        // Las fotos de una reseña de ruta no cuelgan de ninguna parada.
-        const foto = await PhotoService.addUserPhoto(fichero, { stopId: tipo === "stop" ? targetId : null, dayId: null });
+        // Una reseña de ruta no cuelga de ninguna parada ni de ningún día. Si
+        // es de una parada se guarda también su día: así la foto aparece en el
+        // Diario sin tener que volver a elegirla.
+        const foto = await PhotoService.addUserPhoto(fichero, {
+          stopId: tipo === "stop" ? targetId : null,
+          dayId: tipo === "stop" ? (dayIdDeLaParada ?? null) : null,
+        });
         nuevas.push(foto.id);
       }
       setFotos((previas) => [...previas, ...nuevas]);

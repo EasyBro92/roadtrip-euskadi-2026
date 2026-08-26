@@ -2,6 +2,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { Camera, CheckCircle2, Circle, Clock, Gauge, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useDaySwipe } from "../hooks/useDaySwipe";
+import { useAnadirFotos } from "../hooks/useAnadirFotos";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
 import { db } from "../services/storage/db";
 import { useTripStore } from "../stores/useTripStore";
@@ -82,6 +83,8 @@ function DayEntry({ dayId }: { dayId: string }) {
   const day = trip.days.find((d) => d.id === dayId)!;
   const dayStops = useStopsOfDay(dayId).filter((s) => s.enabled);
   const photos = useLiveQuery(() => db.photos.where("dayId").equals(dayId).toArray(), [dayId]);
+  // Sin parada concreta: son fotos del día, no de un sitio.
+  const { abrir: abrirFotos, input: inputFotos, subiendo: subiendoFotos } = useAnadirFotos({ stopId: null, dayId });
 
   const note = notes.find((n) => n.targetType === "day" && n.targetId === dayId) ?? null;
   const [draft, setDraft] = useState(note?.text ?? "");
@@ -104,6 +107,8 @@ function DayEntry({ dayId }: { dayId: string }) {
 
   return (
     <article className="pb-2">
+      {inputFotos}
+
       <header className="pt-1">
         <h2 className="text-lg font-medium text-(--color-text)">{day.title}</h2>
         <p className="text-sm capitalize text-(--color-text-muted)">{formatDateLong(day.date)}</p>
@@ -160,13 +165,30 @@ function DayEntry({ dayId }: { dayId: string }) {
             {photos.map((p) => (
               <img key={p.id} src={p.thumbnailDataUrl} alt={p.description || "Foto del viaje"} className="aspect-square w-full rounded-lg object-cover" />
             ))}
+            <button
+              onClick={abrirFotos}
+              disabled={subiendoFotos}
+              aria-label="Hacer o añadir foto"
+              className="flex aspect-square w-full items-center justify-center rounded-lg border border-dashed text-(--color-text-muted)"
+              style={{ borderColor: "var(--color-border)" }}
+            >
+              <Camera size={18} aria-hidden="true" />
+            </button>
           </div>
         </div>
       ) : (
-        <div className="mt-2 flex flex-col items-center gap-1.5 rounded-2xl bg-(--color-surface-muted) py-6 text-center">
+        <div className="mt-2 flex flex-col items-center gap-2 rounded-2xl bg-(--color-surface-muted) py-6 text-center">
           <Camera size={20} className="text-(--color-text-muted)" aria-hidden="true" />
           <p className="text-xs text-(--color-text-muted)">Aún no hay fotos de este día.</p>
-          <p className="max-w-[220px] text-[11px] text-(--color-text-muted)">Añádelas desde la pestaña Fotografías de cada parada.</p>
+          {/* Antes esto sólo explicaba dónde ir a buscarlas. Explicar un camino
+              no es lo mismo que llevarte: el botón las añade aquí mismo. */}
+          <button
+            onClick={abrirFotos}
+            disabled={subiendoFotos}
+            className="rounded-full bg-(--color-navigation) px-4 py-2 text-sm font-medium text-white"
+          >
+            {subiendoFotos ? "Añadiendo…" : "Hacer o añadir foto"}
+          </button>
         </div>
       )}
 

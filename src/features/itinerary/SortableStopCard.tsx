@@ -1,11 +1,12 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CalendarArrowDown, Check, Copy, EyeOff, GripVertical, MoreVertical, Pencil, Star, Trash2 } from "lucide-react";
+import { CalendarArrowDown, Camera, Check, Copy, EyeOff, GripVertical, MoreVertical, Pencil, PenLine, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { Stop } from "../../types";
 import { StarRatingInput } from "../../components/StarRatingInput";
+import { useAnadirFotos } from "../../hooks/useAnadirFotos";
 import { thumbStyle } from "../../utils/categoryGradient";
 
 /**
@@ -27,6 +28,9 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
   const pushToast = useUIStore((s) => s.pushToast);
 
   const [menuOpen, setMenuOpen] = useState(false);
+  // Las fotos se cuelgan de la parada y de su día, para que salgan también
+  // en el Diario sin tener que volver a elegirlas.
+  const { abrir: abrirFotos, input: inputFotos } = useAnadirFotos({ stopId: stop.id, dayId: stop.dayId });
 
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : stop.enabled ? 1 : 0.55 };
   const favorite = isFavorite("stop", stop.id);
@@ -65,15 +69,17 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
           setStopVisited(stop.id, !stop.visited);
           pushToast(stop.visited ? `${stop.name} marcada como pendiente` : `${stop.name} marcada como visitada`, "success");
         }}
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${stop.visited ? "bg-(--color-completed) text-white" : "border text-(--color-text-muted)"}`}
+        className={`flex h-9 w-9 shrink-0 self-start items-center justify-center rounded-full ${stop.visited ? "bg-(--color-completed) text-white" : "border text-(--color-text-muted)"}`}
         style={!stop.visited ? { borderColor: "var(--color-border)" } : undefined}
       >
         <Check size={16} aria-hidden="true" />
       </button>
 
-      <button aria-label="Más opciones" onClick={() => setMenuOpen((v) => !v)} className="-mr-1 flex h-9 w-9 shrink-0 items-center justify-center text-(--color-text-muted)">
+      <button aria-label="Más opciones" onClick={() => setMenuOpen((v) => !v)} className="-mr-1 flex h-9 w-9 shrink-0 self-start items-center justify-center text-(--color-text-muted)">
         <MoreVertical size={18} aria-hidden="true" />
       </button>
+
+      {inputFotos}
 
       {menuOpen && (
         <>
@@ -88,6 +94,22 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
               onClick={() => {
                 toggleFavorite("stop", stop.id);
                 setMenuOpen(false);
+              }}
+            />
+            <MenuItem
+              icon={Camera}
+              label="Hacer o añadir foto"
+              onClick={() => {
+                setMenuOpen(false);
+                abrirFotos();
+              }}
+            />
+            <MenuItem
+              icon={PenLine}
+              label="Escribir reseña"
+              onClick={() => {
+                setMenuOpen(false);
+                openModal({ type: "review", tipo: "stop", targetId: stop.id, nombre: stop.name });
               }}
             />
             <MenuItem
