@@ -16,6 +16,7 @@ import type {
   ChecklistItem,
   EditLockMode,
   Expense,
+  ExpenseCategory,
   Favorite,
   FavoriteTargetType,
   ID,
@@ -116,6 +117,8 @@ interface TripStoreState {
   updateVehicle: (patch: Partial<Trip["vehicle"]>) => void;
   setEditLockMode: (mode: EditLockMode, pinHash?: string) => void;
   updateTripSettings: (patch: Partial<Trip["settings"]>) => void;
+  setBudget: (totalEUR: number) => void;
+  setCategoryBudget: (category: ExpenseCategory, amountEUR: number | null) => void;
   setReturnTrip: (patch: Partial<Trip["returnTrip"]>) => void;
   recalculateDatesFromStart: (newStartDate: string) => void;
 
@@ -274,6 +277,18 @@ export const useTripStore = create<TripStoreState>()(
       setReturnTrip: (patch) => set((state) => ({ trip: { ...state.trip, returnTrip: { ...state.trip.returnTrip, ...patch } } })),
 
       updateTripSettings: (patch) => set((state) => ({ trip: { ...state.trip, settings: { ...state.trip.settings, ...patch } } })),
+
+      setBudget: (totalEUR) => set((state) => ({ trip: { ...state.trip, budgetEUR: Math.max(0, totalEUR) } })),
+
+      setCategoryBudget: (category, amountEUR) =>
+        set((state) => {
+          const actuales: Partial<Record<ExpenseCategory, number>> = { ...(state.trip.budgetByCategoryEUR ?? {}) };
+          // null o cero significa "sin tope": se quita en vez de guardar un 0,
+          // que se leería como "no puedes gastar nada aquí".
+          if (amountEUR == null || amountEUR <= 0) delete actuales[category];
+          else actuales[category] = amountEUR;
+          return { trip: { ...state.trip, budgetByCategoryEUR: actuales } };
+        }),
 
       recalculateDatesFromStart: (newStartDate) =>
         set((state) => {

@@ -1,6 +1,7 @@
 import { Download, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { PanelPresupuesto } from "../features/expenses/PanelPresupuesto";
 import { SwipeToDelete } from "../components/SwipeToDelete";
 import { ExportService } from "../services/export/ExportService";
 import { ExpenseService } from "../services/expenses/ExpenseService";
@@ -118,6 +119,8 @@ export function ExpensesPage() {
           </span>
         </div>
       </div>
+
+      <PanelPresupuesto gastadoPorCategoria={stats.byCategory} />
 
       <div className="mt-3 grid grid-cols-2 gap-2.5">
         <div className="rounded-(--radius-card) border bg-(--color-surface) p-3 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
