@@ -1,6 +1,6 @@
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { AlertTriangle, Clock, MapPinned, Plus, RotateCcw } from "lucide-react";
+import { AlertTriangle, BedDouble, Clock, MapPinned, Plus, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useDaySwipe } from "../hooks/useDaySwipe";
@@ -8,6 +8,7 @@ import { DayHeader } from "../features/itinerary/DayHeader";
 import { FilteredStopList } from "../features/itinerary/FilteredStopList";
 import { LocationBreak } from "../features/itinerary/LocationBreak";
 import { SortableStopCard } from "../features/itinerary/SortableStopCard";
+import { nochesPorDia, nochesSinAlojamiento } from "../features/itinerary/alojamiento";
 import { useDayClosures } from "../hooks/useDayClosures";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
 import { useTripStore } from "../stores/useTripStore";
@@ -121,6 +122,7 @@ export function ItineraryPage() {
             <p>Este día tiene {stops.length} paradas, por encima de las 3-5 recomendadas. Considera desactivar o convertir en opcionales las de prioridad media/baja.</p>
           </div>
         )}
+        <AvisoAlojamiento activeDayId={activeDayId} />
         <AvisoCierres stops={stops} fecha={activeDay.date} />
       </div>
 
@@ -210,6 +212,54 @@ function AvisoCierres({ stops, fecha }: { stops: Stop[]; fecha: ISODate }) {
             </p>
           )
         )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Dónde duermes ese día, y aviso si alguna noche se quedó sin nada.
+ *
+ * Un hotel de varias noches está en los datos como una parada repetida en
+ * cada día, y en pantalla parecían reservas distintas. Aquí se dice "noche 2
+ * de 3" para que se vea que es la misma estancia. Se deduce de lo que ya hay,
+ * sin tocar el viaje.
+ */
+function AvisoAlojamiento({ activeDayId }: { activeDayId: string }) {
+  const days = useTripStore((s) => s.trip.days);
+  const stopsById = useTripStore((s) => s.stopsById);
+
+  const noches = nochesPorDia(days, stopsById);
+  const hoy = noches.find((n) => n.dayId === activeDayId);
+  const sinNada = nochesSinAlojamiento(noches);
+  const faltaHoy = sinNada.some((n) => n.dayId === activeDayId);
+
+  const sobrantes = hoy?.sobrantes ?? [];
+  if (!hoy?.nombre && !faltaHoy) return null;
+
+  return (
+    <div className="mt-2 flex items-start gap-2 rounded-xl bg-(--color-surface-muted) p-2.5 text-xs text-(--color-text)">
+      <BedDouble size={15} className={`mt-0.5 shrink-0 ${faltaHoy ? "text-(--color-skipped)" : "text-(--color-hotel)"}`} aria-hidden="true" />
+      <div className="min-w-0 flex-1 space-y-1">
+      {hoy?.nombre ? (
+        <p>
+          Duermes en <span className="font-medium">{hoy.nombre}</span>
+          {hoy.totalNoches > 1 && (
+            <span className="text-(--color-text-muted)">
+              {" "}
+              · noche {hoy.numeroDeNoche} de {hoy.totalNoches}
+            </span>
+          )}
+        </p>
+      ) : (
+        <p>Esta noche no tienes dónde dormir apuntado.</p>
+      )}
+
+      {sobrantes.length > 0 && (
+        <p className="text-(--color-skipped)">
+          Y también {sobrantes.join(", ")}. Dos alojamientos la misma noche: puede que uno esté en el día que no toca.
+        </p>
+      )}
       </div>
     </div>
   );
