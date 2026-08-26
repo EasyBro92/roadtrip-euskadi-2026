@@ -18,6 +18,8 @@ export type ModalState =
   /** Biblioteca de lugares opcionales embebida, para añadir desde el itinerario. */
   | { type: "trip-switcher" }
   | { type: "review"; tipo: "stop" | "route"; targetId: string; nombre: string }
+  | { type: "prompt"; title: string; message?: string; placeholder?: string; initialValue?: string; onSubmit: (valor: string) => void }
+  | { type: "choice"; title: string; message?: string; options: { id: string; label: string }[]; onPick: (id: string) => void }
   | { type: "place-library"; dayId: string }
   | { type: "add-place-search" }
   | { type: "share" }

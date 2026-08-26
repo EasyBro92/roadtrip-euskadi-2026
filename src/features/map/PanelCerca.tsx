@@ -1,7 +1,8 @@
 import type L from "leaflet";
-import { Navigation, Plus, X } from "lucide-react";
+import { Bookmark, Navigation, Plus, X } from "lucide-react";
 import { NEARBY_CATEGORY_LABEL, type NearbyCategory, type NearbyPlace } from "../../services/places/NearbyService";
 import { useNearbyStore } from "../../stores/useNearbyStore";
+import { useSavedPlacesStore } from "../../stores/useSavedPlacesStore";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { StopCategory } from "../../types";
@@ -135,6 +136,7 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
                   <p className="truncate text-sm text-(--color-text)">{lugar.name}</p>
                   <p className="text-xs text-(--color-text-muted)">{formatKm(lugar.distanceMeters)}</p>
                 </button>
+                <BotonGuardar lugar={lugar} como={como} />
                 {como ? (
                   <button
                     onClick={() => anadir(lugar, como)}
@@ -169,4 +171,39 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
 
 function Aviso({ texto }: { texto: string }) {
   return <p className="px-4 py-6 text-center text-sm text-(--color-text-muted)">{texto}</p>;
+}
+
+/**
+ * Guarda el sitio en tus listas de "Quiero ir".
+ *
+ * Guardar no es añadir al viaje: esto es para lo que te apetece algún día,
+ * sin fecha, y sobrevive a cambiar de viaje. El marcador se rellena cuando ya
+ * lo tienes, para no guardarlo dos veces sin darte cuenta.
+ */
+function BotonGuardar({ lugar, como }: { lugar: NearbyPlace; como?: StopCategory }) {
+  const guardar = useSavedPlacesStore((s) => s.guardar);
+  const lugares = useSavedPlacesStore((s) => s.lugares);
+  const pushToast = useUIStore((s) => s.pushToast);
+
+  const guardado = lugares.some(
+    (p) =>
+      p.nombre.trim().toLowerCase() === lugar.name.trim().toLowerCase() &&
+      p.coordinates.latitude.toFixed(4) === lugar.coordinates.latitude.toFixed(4),
+  );
+
+  return (
+    <button
+      onClick={() => {
+        if (guardado) return;
+        guardar({ nombre: lugar.name, coordinates: lugar.coordinates, categoria: como });
+        pushToast(`${lugar.name} guardado en "Quiero ir".`, "success");
+      }}
+      aria-label={guardado ? `${lugar.name} ya está guardado` : `Guardar ${lugar.name}`}
+      aria-pressed={guardado}
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-(--color-navigation)"
+      style={{ borderColor: "var(--color-border)" }}
+    >
+      <Bookmark size={15} fill={guardado ? "currentColor" : "none"} aria-hidden="true" />
+    </button>
+  );
 }

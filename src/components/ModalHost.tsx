@@ -2,7 +2,9 @@ import { PlaceLibraryModal } from "../features/itinerary/PlaceLibraryModal";
 import { StopEditorModal } from "../features/itinerary/StopEditorModal";
 import { ReviewModal } from "../features/reviews/ReviewModal";
 import { useUIStore } from "../stores/useUIStore";
+import { ChoiceModal } from "./ChoiceModal";
 import { DayPickerModal } from "./DayPickerModal";
+import { PromptModal } from "./PromptModal";
 import { TripSwitcherModal } from "./TripSwitcherModal";
 
 /** Punto único de renderizado de modales (sección 17/25), controlado por useUIStore.modal. */
@@ -20,6 +22,9 @@ export function ModalHost() {
 
   if (modal.type === "trip-switcher") return <TripSwitcherModal />;
   if (modal.type === "review") return <ReviewModal tipo={modal.tipo} targetId={modal.targetId} nombre={modal.nombre} />;
+  if (modal.type === "prompt")
+    return <PromptModal title={modal.title} message={modal.message} placeholder={modal.placeholder} initialValue={modal.initialValue} onSubmit={modal.onSubmit} />;
+  if (modal.type === "choice") return <ChoiceModal title={modal.title} message={modal.message} options={modal.options} onPick={modal.onPick} />;
 
   if (modal.type === "confirm") {
     return (
