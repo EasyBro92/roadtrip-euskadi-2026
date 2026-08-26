@@ -8,6 +8,7 @@ import { MapControls } from "../features/map/MapControls";
 import { MapSearchBar } from "../features/map/MapSearchBar";
 import { RoutePolylines } from "../features/map/RoutePolylines";
 import { StartRouteButton } from "../features/map/StartRouteButton";
+import { NearbyMarkers } from "../features/map/NearbyMarkers";
 import { StopMarkers } from "../features/map/StopMarkers";
 import { useLiveNavigation } from "../features/map/useLiveNavigation";
 import { useSkipToNextStop } from "../features/map/useSkipToNextStop";
@@ -190,6 +191,7 @@ export function MapPage() {
         <TileLayer key={layer.id} url={layer.url} attribution={layer.attribution} maxZoom={layer.maxZoom} subdomains={["a", "b", "c"]} />
         <RoutePolylines dayId={dayId} />
         <StopMarkers dayId={dayId} />
+        <NearbyMarkers />
         <VehicleMarker />
         <InvalidateSizeOnSheetChange />
         <AutoFitOnDayChange dayId={dayId} />

@@ -50,16 +50,49 @@ export const NEARBY_CATEGORY_LABEL: Record<NearbyCategory, string> = {
 const OVERPASS_ENDPOINT = "https://overpass-api.de/api/interpreter";
 
 /**
+ * Overpass va a rachas: medido un día tardaba 12 s y devolvía 504, y al día
+ * siguiente respondía en 330 ms. Cortamos nosotros antes de que el usuario se
+ * quede mirando una rueda eterna.
+ */
+const LIMITE_MS = 12000;
+
+/**
+ * Caché de la sesión, 10 minutos.
+ *
+ * Corta las repeticiones de volver a la misma categoría sin dejar la lista
+ * rancia: una gasolinera abierta a las 9 puede no estarlo a las 22, así que
+ * esto no se guarda en disco a propósito.
+ */
+const CADUCIDAD_MS = 10 * 60 * 1000;
+const cache = new Map<string, { en: number; resultados: NearbyPlace[] }>();
+
+/** Coordenada redondeada a ~100 m: moverse un poco no invalida la búsqueda. */
+function claveDe(center: Coordinates, category: NearbyCategory, radiusMeters: number): string {
+  return `${center.latitude.toFixed(3)},${center.longitude.toFixed(3)}:${category}:${radiusMeters}`;
+}
+
+/** Vacía la caché. Para el botón de reintentar y para los tests. */
+export function olvidarCercanos(): void {
+  cache.clear();
+}
+
+/**
  * Busca sitios cercanos reales en OpenStreetMap vía Overpass API (pública,
  * sin clave). Si Overpass no responde, devolvemos un error explícito en vez
  * de inventar resultados (sección 50 del encargo).
  */
 export const NearbyService = {
   async search(center: Coordinates, category: NearbyCategory, radiusMeters = 5000): Promise<NearbyPlace[]> {
+    const clave = claveDe(center, category, radiusMeters);
+    const guardado = cache.get(clave);
+    if (guardado && Date.now() - guardado.en < CADUCIDAD_MS) return guardado.resultados;
+
     const filter = OVERPASS_FILTER[category];
     const query = `[out:json][timeout:20];${filter}(around:${radiusMeters},${center.latitude},${center.longitude});out body 40;`;
 
+    const corte = AbortSignal.timeout(LIMITE_MS);
     const response = await fetch(OVERPASS_ENDPOINT, {
+      signal: corte,
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: `data=${encodeURIComponent(query)}`,
@@ -69,7 +102,7 @@ export const NearbyService = {
 
     const data: { elements?: Array<{ id: number; lat: number; lon: number; tags?: Record<string, string> }> } = await response.json();
 
-    return (data.elements ?? [])
+    const resultados = (data.elements ?? [])
       .filter((el) => el.lat != null && el.lon != null)
       .map((el) => {
         const coordinates = { latitude: el.lat, longitude: el.lon };
@@ -84,5 +117,8 @@ export const NearbyService = {
       })
       .sort((a, b) => a.distanceMeters - b.distanceMeters)
       .slice(0, 25);
+
+    cache.set(clave, { en: Date.now(), resultados });
+    return resultados;
   },
 };

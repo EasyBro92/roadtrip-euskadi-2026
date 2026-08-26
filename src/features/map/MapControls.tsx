@@ -1,5 +1,5 @@
 import type L from "leaflet";
-import { Compass, Crosshair, Layers, ListFilter, LocateFixed, Navigation2 } from "lucide-react";
+import { Compass, Crosshair, Layers, ListFilter, LocateFixed, Navigation2, Radar } from "lucide-react";
 import { useState } from "react";
 import { useStopsOfDay } from "../../hooks/useStopsOfDay";
 import { useTap } from "../../hooks/useTap";
@@ -8,6 +8,7 @@ import { useLocationStore } from "../../stores/useLocationStore";
 import { useSettingsStore } from "../../stores/useSettingsStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { StopCategory } from "../../types";
+import { PanelCerca } from "./PanelCerca";
 
 const LOCATION_ERROR_MESSAGES: Record<string, string> = {
   denied: "Permiso de ubicación denegado. Actívalo en los ajustes del navegador para usar esta función.",
@@ -82,7 +83,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
   const stopTracking = useLocationStore((s) => s.stopTracking);
   const pushToast = useUIStore((s) => s.pushToast);
 
-  const [panel, setPanel] = useState<"none" | "layers" | "categories" | "legend">("none");
+  const [panel, setPanel] = useState<"none" | "layers" | "categories" | "legend" | "cerca">("none");
   const [locating, setLocating] = useState(false);
 
   const enabledStops = stops.filter((s) => s.enabled);
@@ -139,6 +140,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
           <ControlButton grouped icon={Layers} label="Selector de mapa" active={panel === "layers"} onClick={() => setPanel(panel === "layers" ? "none" : "layers")} />
           <ControlButton grouped icon={ListFilter} label="Mostrar u ocultar categorías" active={panel === "categories"} onClick={() => setPanel(panel === "categories" ? "none" : "categories")} />
           <ControlButton grouped icon={Compass} label="Leyenda" active={panel === "legend"} onClick={() => setPanel(panel === "legend" ? "none" : "legend")} />
+          <ControlButton grouped icon={Radar} label="Qué hay cerca" active={panel === "cerca"} onClick={() => setPanel(panel === "cerca" ? "none" : "cerca")} />
         </ControlGroup>
         <ControlGroup>
           <ControlButton grouped icon={Crosshair} label="Ver ruta completa del día" onClick={fitToDay} />
@@ -146,6 +148,8 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
           <ControlButton grouped icon={Navigation2} label={locationTracking ? "Dejar de seguir" : "Seguir mi posición"} active={locationTracking} onClick={toggleFollow} />
         </ControlGroup>
       </div>
+
+      {panel === "cerca" && <PanelCerca map={map} onCerrar={() => setPanel("none")} />}
 
       {panel === "layers" && (
         // Alineado con la columna de controles, que ya está por debajo de la
