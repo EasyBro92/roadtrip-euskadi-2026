@@ -2,6 +2,7 @@ import { Download, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { PanelPresupuesto } from "../features/expenses/PanelPresupuesto";
+import { PanelReparto } from "../features/expenses/PanelReparto";
 import { SwipeToDelete } from "../components/SwipeToDelete";
 import { ExportService } from "../services/export/ExportService";
 import { ExpenseService } from "../services/expenses/ExpenseService";
@@ -62,6 +63,8 @@ export function ExpensesPage() {
     });
   }
 
+  const [pagador, setPagador] = useState(trip.travelers[0]?.id ?? "");
+
   function handleAdd() {
     const value = Number.parseFloat(amount);
     if (!value || value <= 0) return;
@@ -74,7 +77,7 @@ export function ExpensesPage() {
       place: place || category,
       dayId: trip.currentDayId,
       stopId: trip.currentStopId,
-      paidByTravelerId: trip.travelers[0]?.id ?? null,
+      paidByTravelerId: pagador || trip.travelers[0]?.id || null,
       splitBetweenTravelerIds: trip.travelers.map((t) => t.id),
       paymentMethod: "tarjeta",
       notes: "",
@@ -121,6 +124,7 @@ export function ExpensesPage() {
       </div>
 
       <PanelPresupuesto gastadoPorCategoria={stats.byCategory} />
+      <PanelReparto saldos={stats.balanceByTraveler} />
 
       <div className="mt-3 grid grid-cols-2 gap-2.5">
         <div className="rounded-(--radius-card) border bg-(--color-surface) p-3 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
@@ -185,6 +189,23 @@ export function ExpensesPage() {
             ))}
           </select>
           <input value={place} onChange={(e) => setPlace(e.target.value)} placeholder="Lugar" className="min-w-[100px] flex-1 rounded-lg border px-2.5 py-2 text-sm" style={{ borderColor: "var(--color-border)" }} />
+          {/* Sin esto todo se le apuntaba siempre al primer viajero, y el
+              saldo de quién debe a quién no significaba nada. */}
+          {trip.travelers.length > 1 && (
+            <select
+              value={pagador}
+              onChange={(e) => setPagador(e.target.value)}
+              aria-label="Quién ha pagado"
+              className="rounded-lg border px-2.5 py-2 text-sm"
+              style={{ borderColor: "var(--color-border)" }}
+            >
+              {trip.travelers.map((t) => (
+                <option key={t.id} value={t.id}>
+                  Paga {t.name}
+                </option>
+              ))}
+            </select>
+          )}
           <button onClick={handleAdd} className="flex items-center gap-1 rounded-lg bg-(--color-navigation) px-3 py-2 text-sm font-semibold text-white">
             <Plus size={14} aria-hidden="true" /> Añadir
           </button>

@@ -9,6 +9,8 @@ import { FilteredStopList } from "../features/itinerary/FilteredStopList";
 import { LocationBreak } from "../features/itinerary/LocationBreak";
 import { SortableStopCard } from "../features/itinerary/SortableStopCard";
 import { AvisoTiempo } from "../features/itinerary/AvisoTiempo";
+import { openExternalUrl } from "../utils/openExternal";
+import { diaSiguiente, urlBooking } from "../utils/reservas";
 import { nochesPorDia, nochesSinAlojamiento } from "../features/itinerary/alojamiento";
 import { useDayClosures } from "../hooks/useDayClosures";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
@@ -230,6 +232,7 @@ function AvisoCierres({ stops, fecha }: { stops: Stop[]; fecha: ISODate }) {
 function AvisoAlojamiento({ activeDayId }: { activeDayId: string }) {
   const days = useTripStore((s) => s.trip.days);
   const stopsById = useTripStore((s) => s.stopsById);
+  const viajeros = useTripStore((s) => s.trip.travelers.length);
 
   const noches = nochesPorDia(days, stopsById);
   const hoy = noches.find((n) => n.dayId === activeDayId);
@@ -254,7 +257,21 @@ function AvisoAlojamiento({ activeDayId }: { activeDayId: string }) {
           )}
         </p>
       ) : (
-        <p>Esta noche no tienes dónde dormir apuntado.</p>
+        <>
+          <p>Esta noche no tienes dónde dormir apuntado.</p>
+          {/* La búsqueda ya lleva la ciudad y las fechas: sin acuerdos ni
+              comisiones, sólo para no tener que teclearlas. */}
+          <button
+            onClick={() => {
+              const dia = days.find((d) => d.id === activeDayId);
+              if (!dia) return;
+              openExternalUrl(urlBooking(dia.city || dia.title, dia.date, diaSiguiente(dia.date), viajeros || 2));
+            }}
+            className="font-medium text-(--color-navigation)"
+          >
+            Buscar hotel para esa noche
+          </button>
+        </>
       )}
 
       {sobrantes.length > 0 && (
