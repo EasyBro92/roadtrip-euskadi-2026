@@ -28,6 +28,7 @@ const SummaryPage = lazy(() => import("../pages/SummaryPage").then((m) => ({ def
 const CopilotPage = lazy(() => import("../pages/CopilotPage").then((m) => ({ default: m.CopilotPage })));
 const NearbyPage = lazy(() => import("../pages/NearbyPage").then((m) => ({ default: m.NearbyPage })));
 const SavedPlacesPage = lazy(() => import("../pages/SavedPlacesPage").then((m) => ({ default: m.SavedPlacesPage })));
+const DocumentsPage = lazy(() => import("../pages/DocumentsPage").then((m) => ({ default: m.DocumentsPage })));
 const NotesPage = lazy(() => import("../pages/NotesPage").then((m) => ({ default: m.NotesPage })));
 const ReturnTripPage = lazy(() => import("../pages/ReturnTripPage").then((m) => ({ default: m.ReturnTripPage })));
 
@@ -77,6 +78,7 @@ export const router = createBrowserRouter([
       { path: "/mas/copiloto", element: withSuspense(<CopilotPage />) },
       { path: "/mas/cerca", element: withSuspense(<NearbyPage />) },
       { path: "/mas/guardados", element: withSuspense(<SavedPlacesPage />) },
+      { path: "/mas/documentos", element: withSuspense(<DocumentsPage />) },
       { path: "/mas/notas", element: withSuspense(<NotesPage />) },
       { path: "/mas/regreso", element: withSuspense(<ReturnTripPage />) },
       { path: "/resumen", element: withSuspense(<SummaryPage />) },

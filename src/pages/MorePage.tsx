@@ -1,4 +1,4 @@
-import { Bookmark, Car, ChevronsUpDown, CircleHelp, CloudDownload, Compass, CornerUpLeft, Flag, ListChecks, MapPinned, NotebookPen, Radar, Settings, Share2, Sparkles, Star, Trophy, type LucideIcon } from "lucide-react";
+import { Bookmark, Car, ChevronsUpDown, FileText, CircleHelp, CloudDownload, Compass, CornerUpLeft, Flag, ListChecks, MapPinned, NotebookPen, Radar, Settings, Share2, Sparkles, Star, Trophy, type LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTripStats } from "../hooks/useTripStats";
 import { useTripStore } from "../stores/useTripStore";
@@ -18,6 +18,7 @@ const GROUPS: { title: string; items: MoreItem[] }[] = [
     items: [
       { to: "/mas/copiloto", label: "Copiloto", description: "Recomendaciones según hora, día y presupuesto", icon: Sparkles },
       { to: "/mas/cerca", label: "Cerca de mí", description: "Gasolineras, talleres, farmacias y más", icon: Radar },
+      { to: "/mas/documentos", label: "Reservas y documentos", description: "PDFs y localizadores, disponibles sin cobertura", icon: FileText },
       { to: "/mas/notas", label: "Notas del viaje", description: "Todo lo que has escrito, con búsqueda", icon: NotebookPen },
     ],
   },

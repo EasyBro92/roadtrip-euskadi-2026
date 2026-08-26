@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
+import type { DocumentoGuardado } from "../documents/DocumentService";
 import type { PlaceDetails } from "../places/PlaceDetailsService";
 import type { HistorySnapshot, Photo } from "../../types";
 
@@ -18,6 +19,8 @@ export class RoadtripDatabase extends Dexie {
   historySnapshots!: EntityTable<HistorySnapshot, "id">;
   /** Caché de datos prácticos de OpenStreetMap: horarios, teléfono, web. */
   placeDetails!: EntityTable<PlaceDetails, "id">;
+  /** Reservas, entradas y billetes, con el PDF o la foto dentro. */
+  documents!: EntityTable<DocumentoGuardado, "id">;
 
   constructor() {
     // NO renombrar aunque la app se llame ahora Easy Travel: es el nombre de
@@ -31,6 +34,9 @@ export class RoadtripDatabase extends Dexie {
     // Dexie conserva las tablas de la versión anterior: sólo se añade la nueva.
     this.version(2).stores({
       placeDetails: "id, fetchedAt",
+    });
+    this.version(3).stores({
+      documents: "id, dayId, fecha",
     });
   }
 }
