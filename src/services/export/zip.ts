@@ -15,7 +15,7 @@
 export interface EntradaZip {
   /** Ruta dentro del ZIP. La barra `/` crea carpetas. */
   nombre: string;
-  datos: Uint8Array;
+  datos: Uint8Array<ArrayBuffer>;
   fecha?: Date;
 }
 
@@ -39,7 +39,7 @@ const TABLA_CRC = (() => {
 })();
 
 /** CRC-32 (el del ZIP y el de PNG: polinomio IEEE 802.3, reflejado). */
-export function crc32(datos: Uint8Array): number {
+export function crc32(datos: Uint8Array<ArrayBuffer>): number {
   let c = 0xffffffff;
   for (let i = 0; i < datos.length; i++) {
     c = TABLA_CRC[(c ^ datos[i]) & 0xff] ^ (c >>> 8);
@@ -70,14 +70,14 @@ class Bloque {
     return this;
   }
 
-  bytesFinales(): Uint8Array {
+  bytesFinales(): Uint8Array<ArrayBuffer> {
     return new Uint8Array(this.bytes);
   }
 }
 
 interface Preparada {
-  nombreBytes: Uint8Array;
-  datos: Uint8Array;
+  nombreBytes: Uint8Array<ArrayBuffer>;
+  datos: Uint8Array<ArrayBuffer>;
   crc: number;
   hora: number;
   dia: number;
