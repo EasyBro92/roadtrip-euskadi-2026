@@ -1,5 +1,5 @@
 import type L from "leaflet";
-import { Compass, Crosshair, Layers, ListFilter, LocateFixed, Navigation2, Radar } from "lucide-react";
+import { Compass, Crosshair, Landmark, Layers, ListFilter, LocateFixed, Navigation2, Radar } from "lucide-react";
 import { useState } from "react";
 import { useStopsOfDay } from "../../hooks/useStopsOfDay";
 import { useTap } from "../../hooks/useTap";
@@ -8,6 +8,7 @@ import { useLocationStore } from "../../stores/useLocationStore";
 import { useSettingsStore } from "../../stores/useSettingsStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { StopCategory } from "../../types";
+import { usePoiStore } from "../../stores/usePoiStore";
 import { PanelCerca } from "./PanelCerca";
 
 const LOCATION_ERROR_MESSAGES: Record<string, string> = {
@@ -84,6 +85,12 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
   const pushToast = useUIStore((s) => s.pushToast);
 
   const [panel, setPanel] = useState<"none" | "layers" | "categories" | "legend" | "cerca">("none");
+  const capaPois = usePoiStore((s) => s.activa);
+  const alternarPois = usePoiStore((s) => s.alternar);
+  const poisCargando = usePoiStore((s) => s.cargando);
+  const poisError = usePoiStore((s) => s.error);
+  const buscarPois = usePoiStore((s) => s.buscar);
+  const numeroPois = usePoiStore((s) => s.pois.length);
   const [locating, setLocating] = useState(false);
 
   const enabledStops = stops.filter((s) => s.enabled);
@@ -141,6 +148,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
           <ControlButton grouped icon={ListFilter} label="Mostrar u ocultar categorías" active={panel === "categories"} onClick={() => setPanel(panel === "categories" ? "none" : "categories")} />
           <ControlButton grouped icon={Compass} label="Leyenda" active={panel === "legend"} onClick={() => setPanel(panel === "legend" ? "none" : "legend")} />
           <ControlButton grouped icon={Radar} label="Qué hay cerca" active={panel === "cerca"} onClick={() => setPanel(panel === "cerca" ? "none" : "cerca")} />
+          <ControlButton grouped icon={Landmark} label={capaPois ? "Ocultar sitios de interés" : "Ver sitios de interés"} active={capaPois} onClick={alternarPois} />
         </ControlGroup>
         <ControlGroup>
           <ControlButton grouped icon={Crosshair} label="Ver ruta completa del día" onClick={fitToDay} />
@@ -150,6 +158,30 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
       </div>
 
       {panel === "cerca" && <PanelCerca map={map} onCerrar={() => setPanel("none")} />}
+
+      {/* Con la capa encendida, un botón para volver a buscar donde estés
+          mirando. Recargar en cada arrastre sería una consulta por gesto. */}
+      {capaPois && (
+        <div className="pointer-events-auto absolute inset-x-0 top-[124px] flex justify-center px-3">
+          <button
+            onClick={() => {
+              const b = map.getBounds();
+              buscarPois({ sur: b.getSouth(), oeste: b.getWest(), norte: b.getNorth(), este: b.getEast() });
+            }}
+            disabled={poisCargando}
+            className="rounded-full border bg-(--color-surface) px-4 py-2 text-xs font-medium text-(--color-navigation) shadow-(--shadow-card)"
+            style={{ borderColor: "var(--color-border)" }}
+          >
+            {poisCargando ? "Buscando sitios…" : poisError ? "Reintentar" : `Buscar en esta zona${numeroPois > 0 ? ` · ${numeroPois}` : ""}`}
+          </button>
+        </div>
+      )}
+
+      {poisError && capaPois && (
+        <div className="pointer-events-none absolute inset-x-0 top-[168px] flex justify-center px-6">
+          <p className="rounded-full bg-(--color-surface) px-3 py-1.5 text-center text-[11px] text-(--color-text-muted) shadow-(--shadow-card)">{poisError}</p>
+        </div>
+      )}
 
       {panel === "layers" && (
         // Alineado con la columna de controles, que ya está por debajo de la

@@ -9,6 +9,7 @@ import { MapSearchBar } from "../features/map/MapSearchBar";
 import { RoutePolylines } from "../features/map/RoutePolylines";
 import { StartRouteButton } from "../features/map/StartRouteButton";
 import { NearbyMarkers } from "../features/map/NearbyMarkers";
+import { FichaPoi, PoiLayer } from "../features/map/PoiLayer";
 import { StopMarkers } from "../features/map/StopMarkers";
 import { useLiveNavigation } from "../features/map/useLiveNavigation";
 import { useSkipToNextStop } from "../features/map/useSkipToNextStop";
@@ -192,6 +193,7 @@ export function MapPage() {
         <RoutePolylines dayId={dayId} />
         <StopMarkers dayId={dayId} />
         <NearbyMarkers />
+        <PoiLayer />
         <VehicleMarker />
         <InvalidateSizeOnSheetChange />
         <AutoFitOnDayChange dayId={dayId} />
@@ -203,6 +205,8 @@ export function MapPage() {
       {map && <MapSearchBar dayId={dayId} map={map} />}
       <DaySelector />
       {map && <MapControls dayId={dayId} map={map} />}
+      {/* Va antes del panel inferior para quedar por debajo de él si coinciden. */}
+      <FichaPoi />
       <PlaybackControls dayId={dayId} />
       <BottomSheet dayId={dayId} />
     </div>
