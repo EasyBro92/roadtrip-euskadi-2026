@@ -1,7 +1,8 @@
-import { ArrowLeft, Download, FileJson, Map as MapIcon, QrCode, Share2 } from "lucide-react";
+import { ArrowLeft, Download, FileJson, Images, Map as MapIcon, QrCode, Share2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ExportService } from "../services/export/ExportService";
+import { PhotoExportService } from "../services/export/PhotoExportService";
 import { SharingService } from "../services/sharing/SharingService";
 import { useSettingsStore } from "../stores/useSettingsStore";
 import { useTripStore } from "../stores/useTripStore";
@@ -27,6 +28,34 @@ export function SharePage() {
     achievementsState: state.achievementsState,
     settings,
   };
+
+  const [empaquetando, setEmpaquetando] = useState(false);
+
+  /**
+   * Saca las fotos del viaje a la carpeta de Descargas.
+   *
+   * Es su única vía de escape: dentro de la app viven en el almacenamiento del
+   * navegador, y si desinstalas la app o el sistema libera espacio, se pierden.
+   * Una PWA no puede escribir en la galería del móvil, así que un ZIP en
+   * Descargas es lo más cerca que se puede llegar.
+   */
+  async function exportarFotos() {
+    setEmpaquetando(true);
+    try {
+      const { fotos, bytes } = await PhotoExportService.descargarZip(state.trip, state.stopsById);
+      if (fotos === 0) {
+        pushToast("Este viaje aún no tiene fotos.", "info");
+        return;
+      }
+      // En KB por debajo de un mega: "0.0 MB" no le dice nada a nadie.
+      const tamano = bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+      pushToast(`${fotos} ${fotos === 1 ? "foto" : "fotos"} · ${tamano} en Descargas.`, "success");
+    } catch (error) {
+      pushToast(`No se pudo crear el ZIP: ${(error as Error).message}`, "error");
+    } finally {
+      setEmpaquetando(false);
+    }
+  }
 
   async function handleShareSummary() {
     const summary = `${state.trip.name}\n${state.trip.startDate} — ${state.trip.endDate}\n${state.trip.days.map((d) => `• ${d.title}`).join("\n")}`;
@@ -66,6 +95,7 @@ export function SharePage() {
         <ActionRow icon={FileJson} label="Exportar JSON completo" onClick={() => handleDownload(() => ExportService.downloadJSON(exportable), "JSON")} />
         <ActionRow icon={MapIcon} label="Exportar ruta GPX" onClick={() => handleDownload(() => ExportService.downloadGPX(state.trip, Object.values(state.stopsById)), "GPX")} />
         <ActionRow icon={Download} label="Exportar paradas GeoJSON" onClick={() => handleDownload(() => ExportService.downloadGeoJSON(Object.values(state.stopsById)), "GeoJSON")} />
+        <ActionRow icon={Images} label={empaquetando ? "Preparando el ZIP…" : "Exportar mis fotos (ZIP)"} onClick={exportarFotos} />
         <ActionRow icon={QrCode} label={busy ? "Generando QR…" : "Generar código QR"} onClick={handleGenerateQR} />
       </div>
 
