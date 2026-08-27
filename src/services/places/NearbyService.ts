@@ -20,6 +20,12 @@ export interface NearbyPlace {
   distanceMeters: number;
   /** true = dato real de OpenStreetMap; nunca inventamos resultados. */
   isReal: boolean;
+  /** Tipo de cocina, ya legible: "vasca, pescado". Sólo restaurantes. */
+  cocina?: string;
+  /** Rango de precio de OpenStreetMap, de € a €€€€. */
+  precio?: string;
+  /** Bar, cafetería o restaurante: no es lo mismo buscar cena que un café. */
+  clase?: string;
 }
 
 /** Filtro Overpass por categoría. Datos reales de OpenStreetMap, sin clave. */
@@ -48,6 +54,49 @@ export const NEARBY_CATEGORY_LABEL: Record<NearbyCategory, string> = {
 };
 
 const OVERPASS_ENDPOINT = "https://overpass-api.de/api/interpreter";
+
+/** Traducción de las etiquetas de cocina más comunes por aquí. */
+const COCINAS: Record<string, string> = {
+  spanish: "española",
+  basque: "vasca",
+  regional: "regional",
+  tapas: "tapas",
+  pintxos: "pintxos",
+  seafood: "pescado y marisco",
+  fish: "pescado",
+  italian: "italiana",
+  pizza: "pizza",
+  asian: "asiática",
+  chinese: "china",
+  japanese: "japonesa",
+  indian: "india",
+  mexican: "mexicana",
+  burger: "hamburguesas",
+  sandwich: "bocadillos",
+  kebab: "kebab",
+  vegetarian: "vegetariana",
+  vegan: "vegana",
+  coffee_shop: "cafetería",
+  ice_cream: "heladería",
+  bakery: "panadería",
+  international: "internacional",
+  french: "francesa",
+  portuguese: "portuguesa",
+  grill: "parrilla",
+  barbecue: "parrilla",
+};
+
+const CLASES: Record<string, string> = { restaurant: "Restaurante", cafe: "Cafetería", bar: "Bar" };
+
+/** "basque;seafood" -> "vasca, pescado y marisco". Lo que no conocemos pasa tal cual. */
+function leerCocina(valor?: string): string | undefined {
+  if (!valor) return undefined;
+  return valor
+    .split(";")
+    .map((c) => COCINAS[c.trim()] ?? c.trim().replace(/_/g, " "))
+    .slice(0, 3)
+    .join(", ");
+}
 
 /**
  * Overpass va a rachas: medido un día tardaba 12 s y devolvía 504, y al día
@@ -113,6 +162,10 @@ export const NearbyService = {
           coordinates,
           distanceMeters: haversineDistanceMeters(center, coordinates),
           isReal: true,
+          cocina: leerCocina(el.tags?.cuisine),
+          // OpenStreetMap usa "€", "€€"… o a veces palabras; se deja como venga.
+          precio: el.tags?.["price_range"] ?? el.tags?.["price"],
+          clase: el.tags?.amenity ? CLASES[el.tags.amenity] : undefined,
         };
       })
       .sort((a, b) => a.distanceMeters - b.distanceMeters)

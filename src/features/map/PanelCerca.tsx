@@ -1,6 +1,7 @@
 import type L from "leaflet";
 import { Bookmark, Navigation, Plus, X } from "lucide-react";
 import { NEARBY_CATEGORY_LABEL, type NearbyCategory, type NearbyPlace } from "../../services/places/NearbyService";
+import { useState } from "react";
 import { useOnline } from "../../hooks/useOnline";
 import { useNearbyStore } from "../../stores/useNearbyStore";
 import { useSavedPlacesStore } from "../../stores/useSavedPlacesStore";
@@ -49,10 +50,23 @@ const COMO_PARADA: Partial<Record<NearbyCategory, StopCategory>> = {
 export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void }) {
   const { categoria, resultados, cargando, error, buscar, resaltar, limpiar } = useNearbyStore();
   const enLinea = useOnline();
+  /**
+   * Filtro por tipo de cocina, sólo para comer.
+   *
+   * "Restaurantes" en una ciudad devuelve veinticinco bares y no ayuda a
+   * decidir la cena. Las opciones salen de lo que hay en los resultados, no
+   * de una lista fija: ofrecer "japonesa" donde no hay ninguno es peor que
+   * no ofrecer nada.
+   */
+  const [cocina, setCocina] = useState<string | null>(null);
   const openModal = useUIStore((s) => s.openModal);
   const pushToast = useUIStore((s) => s.pushToast);
   const addStop = useTripStore((s) => s.addStop);
   const viajeActivo = useTripStore((s) => s.trip.name);
+
+  // Las cocinas que de verdad hay entre los resultados, ordenadas.
+  const cocinasDisponibles = [...new Set(resultados.map((l) => l.cocina).filter((c): c is string => Boolean(c)))].sort();
+  const visibles = cocina ? resultados.filter((l) => l.cocina === cocina) : resultados;
 
   function centroDelMapa() {
     const c = map.getCenter();
@@ -99,7 +113,10 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
         {CATEGORIAS.map((c) => (
           <button
             key={c}
-            onClick={() => buscar(centroDelMapa(), c)}
+            onClick={() => {
+              setCocina(null);
+              buscar(centroDelMapa(), c);
+            }}
             aria-pressed={categoria === c}
             className={`rounded-full border px-2.5 py-1 text-xs ${categoria === c ? "border-(--color-navigation) bg-(--color-navigation) text-white" : "bg-(--color-surface) text-(--color-text)"}`}
             style={categoria !== c ? { borderColor: "var(--color-border)" } : undefined}
@@ -126,18 +143,44 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
           </div>
         )}
 
+        {!cargando && !error && categoria && visibles.length === 0 && resultados.length > 0 && (
+          <Aviso texto={`Ninguno de ${cocina}. Toca el filtro otra vez para verlos todos.`} />
+        )}
+
         {!cargando && !error && categoria && resultados.length === 0 && (
           <Aviso texto={`No hay ${NEARBY_CATEGORY_LABEL[categoria].toLowerCase()} en 5 km a la redonda.`} />
         )}
 
+        {/* Filtro de cocina: sólo aparece si de verdad hay de dónde elegir. */}
+        {categoria === "restaurante" && cocinasDisponibles.length > 1 && (
+          <div className="flex flex-wrap gap-1.5 border-b p-2.5" style={{ borderColor: "var(--color-border)" }}>
+            {cocinasDisponibles.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCocina(cocina === c ? null : c)}
+                aria-pressed={cocina === c}
+                className={`rounded-full border px-2.5 py-1 text-[11px] ${cocina === c ? "border-(--color-navigation) bg-(--color-navigation) text-white" : "bg-(--color-surface) text-(--color-text)"}`}
+                style={cocina !== c ? { borderColor: "var(--color-border)" } : undefined}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
+
         <ul>
-          {resultados.map((lugar) => {
+          {visibles.map((lugar) => {
             const como = COMO_PARADA[lugar.category];
             return (
               <li key={lugar.id} className="flex items-center gap-2 border-b px-3 py-2 last:border-b-0" style={{ borderColor: "var(--color-border)" }}>
                 <button onClick={() => irA(lugar)} className="min-w-0 flex-1 py-1 text-left">
                   <p className="truncate text-sm text-(--color-text)">{lugar.name}</p>
-                  <p className="text-xs text-(--color-text-muted)">{formatKm(lugar.distanceMeters)}</p>
+                  <p className="truncate text-xs text-(--color-text-muted)">
+                    {formatKm(lugar.distanceMeters)}
+                    {lugar.clase && <> · {lugar.clase}</>}
+                    {lugar.cocina && <> · {lugar.cocina}</>}
+                    {lugar.precio && <> · {lugar.precio}</>}
+                  </p>
                 </button>
                 <BotonGuardar lugar={lugar} como={como} />
                 {como ? (
