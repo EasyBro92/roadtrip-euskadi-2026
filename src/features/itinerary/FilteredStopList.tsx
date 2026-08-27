@@ -56,7 +56,7 @@ export function FilteredStopList({ categoria }: { categoria: StopCategory }) {
 
         <button
           onClick={() => navigate("/itinerario")}
-          className="mt-2 flex items-center gap-1.5 rounded-full bg-(--color-navigation)/10 px-3 py-1.5 text-xs font-medium text-(--color-navigation)"
+          className="mt-2 flex items-center gap-1.5 rounded-full bg-(--color-navigation)/10 px-3 py-1.5 text-xs font-medium text-(--color-link)"
         >
           {encontradas.length} de {Object.keys(stopsById).length} paradas
           <X size={13} aria-hidden="true" />

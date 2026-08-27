@@ -103,7 +103,7 @@ export function PlacesLibraryPage() {
                   <p className="truncate text-xs text-(--color-text-muted)">{place.region} · {place.category}</p>
                 </div>
                 <button aria-label="Guardar para después" className="shrink-0" onClick={() => handleSave(place)}>
-                  <Bookmark size={18} fill={place.savedForLater ? "var(--color-navigation)" : "none"} color="var(--color-navigation)" aria-hidden="true" />
+                  <Bookmark size={18} fill={place.savedForLater ? "var(--color-link)" : "none"} color="var(--color-link)" aria-hidden="true" />
                 </button>
               </div>
               <p className="mt-1.5 text-xs text-(--color-text)">{place.shortDescription}</p>
@@ -133,7 +133,7 @@ export function PlacesLibraryPage() {
                 ) : (
                   <button
                     onClick={() => askDayAndAdd(place)}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-full border py-2 text-xs font-medium text-(--color-navigation)"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-full border py-2 text-xs font-medium text-(--color-link)"
                     style={{ borderColor: "var(--color-navigation)" }}
                   >
                     <Plus size={13} aria-hidden="true" /> Añadir al itinerario

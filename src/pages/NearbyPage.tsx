@@ -113,7 +113,7 @@ export function NearbyPage() {
                 style={{ borderColor: "var(--color-border)" }}
               >
                 <span className="flex min-w-0 flex-1 items-center gap-2.5">
-                  <MapPin size={16} className="shrink-0 text-(--color-navigation)" aria-hidden="true" />
+                  <MapPin size={16} className="shrink-0 text-(--color-link)" aria-hidden="true" />
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-medium text-(--color-text)">{place.name}</span>
                     <span className="block text-xs text-(--color-text-muted)">{formatKm(place.distanceMeters)}</span>

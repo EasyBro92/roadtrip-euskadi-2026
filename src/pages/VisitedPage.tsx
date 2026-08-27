@@ -94,7 +94,7 @@ export function VisitedPage() {
           <p className="text-xs text-(--color-text-muted)">Las paradas que has marcado como visitadas, de todos tus viajes.</p>
         </div>
         {visitados.length > 0 && (
-          <button onClick={compartir} className="flex shrink-0 items-center gap-1 text-xs text-(--color-navigation)">
+          <button onClick={compartir} className="flex shrink-0 items-center gap-1 text-xs text-(--color-link)">
             <Share2 size={12} aria-hidden="true" /> Compartir
           </button>
         )}

@@ -120,7 +120,7 @@ export function MapSearchBar({ dayId, map }: { dayId: string; map: L.Map }) {
                 <p className="px-4 pb-1 pt-2 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">En tu viaje</p>
                 {localMatches.map((stop) => (
                   <button key={stop.id} onClick={() => goToStop(stop)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left active:bg-(--color-surface-muted)">
-                    <MapPin size={17} className="shrink-0 text-(--color-navigation)" aria-hidden="true" />
+                    <MapPin size={17} className="shrink-0 text-(--color-link)" aria-hidden="true" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm text-(--color-text)">{stop.name}</span>
                       <span className="block truncate text-xs capitalize text-(--color-text-muted)">{stop.category}</span>

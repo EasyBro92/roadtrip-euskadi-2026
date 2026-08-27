@@ -119,7 +119,7 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
             <p className="text-sm text-(--color-text-muted)">{error}</p>
             <button
               onClick={() => categoria && buscar(centroDelMapa(), categoria, true)}
-              className="mt-2 text-sm font-medium text-(--color-navigation)"
+              className="mt-2 text-sm font-medium text-(--color-link)"
             >
               Reintentar
             </button>
@@ -144,7 +144,7 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
                   <button
                     onClick={() => anadir(lugar, como)}
                     aria-label={`Añadir ${lugar.name} al itinerario`}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-(--color-navigation)"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-(--color-link)"
                     style={{ borderColor: "var(--color-border)" }}
                   >
                     <Plus size={15} aria-hidden="true" />
@@ -153,7 +153,7 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
                   <button
                     onClick={() => openExternalUrl(googleMapsUrl(lugar.name, lugar.coordinates))}
                     aria-label={`Cómo llegar a ${lugar.name}`}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-(--color-navigation)"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-(--color-link)"
                     style={{ borderColor: "var(--color-border)" }}
                   >
                     <Navigation size={15} aria-hidden="true" />
@@ -203,7 +203,7 @@ function BotonGuardar({ lugar, como }: { lugar: NearbyPlace; como?: StopCategory
       }}
       aria-label={guardado ? `${lugar.name} ya está guardado` : `Guardar ${lugar.name}`}
       aria-pressed={guardado}
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-(--color-navigation)"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-(--color-link)"
       style={{ borderColor: "var(--color-border)" }}
     >
       <Bookmark size={15} fill={guardado ? "currentColor" : "none"} aria-hidden="true" />

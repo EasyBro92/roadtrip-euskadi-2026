@@ -169,7 +169,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
               buscarPois({ sur: b.getSouth(), oeste: b.getWest(), norte: b.getNorth(), este: b.getEast() });
             }}
             disabled={poisCargando}
-            className="rounded-full border bg-(--color-surface) px-4 py-2 text-xs font-medium text-(--color-navigation) shadow-(--shadow-card)"
+            className="rounded-full border bg-(--color-surface) px-4 py-2 text-xs font-medium text-(--color-link) shadow-(--shadow-card)"
             style={{ borderColor: "var(--color-border)" }}
           >
             {poisCargando ? "Buscando sitios…" : poisError ? "Reintentar" : `Buscar en esta zona${numeroPois > 0 ? ` · ${numeroPois}` : ""}`}
@@ -194,7 +194,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
                 updateSettings({ mapLayer: layer.id });
                 setPanel("none");
               }}
-              className={`block w-full px-4 py-2.5 text-left text-sm ${settings.mapLayer === layer.id ? "bg-(--color-surface-muted) font-medium text-(--color-navigation)" : "text-(--color-text)"}`}
+              className={`block w-full px-4 py-2.5 text-left text-sm ${settings.mapLayer === layer.id ? "bg-(--color-surface-muted) font-medium text-(--color-link)" : "text-(--color-text)"}`}
             >
               {layer.label}
             </button>

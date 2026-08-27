@@ -16,7 +16,7 @@ const ICONO: Record<EstadoPaso, typeof Check> = {
 
 const COLOR: Record<EstadoPaso, string> = {
   pendiente: "var(--color-text-muted)",
-  haciendo: "var(--color-navigation)",
+  haciendo: "var(--color-link)",
   hecho: "var(--color-completed)",
   aviso: "var(--color-skipped)",
   fallido: "var(--color-cancelled)",

@@ -21,7 +21,7 @@ export function BotonResena({ tipo, targetId, nombre }: { tipo: TipoValorado; ta
       )}
       <button
         onClick={() => openModal({ type: "review", tipo, targetId, nombre })}
-        className="flex items-center gap-1.5 text-sm font-medium text-(--color-navigation)"
+        className="flex items-center gap-1.5 text-sm font-medium text-(--color-link)"
       >
         <PenLine size={14} aria-hidden="true" />
         {tieneResena ? "Editar tu reseña" : "Escribir una reseña"}

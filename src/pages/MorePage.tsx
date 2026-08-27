@@ -75,7 +75,7 @@ export function MorePage() {
           aria-label={`Viaje actual: ${trip.name}. Cambiar de viaje`}
           className="flex w-full items-center gap-2 text-left"
         >
-          <Compass size={18} className="shrink-0 text-(--color-navigation)" aria-hidden="true" />
+          <Compass size={18} className="shrink-0 text-(--color-link)" aria-hidden="true" />
           <p className="min-w-0 flex-1 truncate text-sm font-medium">{trip.name}</p>
           <ChevronsUpDown size={16} className="shrink-0 text-(--color-text-muted)" aria-hidden="true" />
         </button>
@@ -101,7 +101,7 @@ export function MorePage() {
                 style={index > 0 ? { borderColor: "var(--color-border)" } : undefined}
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-(--color-navigation)/10">
-                  <item.icon size={19} className="text-(--color-navigation)" aria-hidden="true" />
+                  <item.icon size={19} className="text-(--color-link)" aria-hidden="true" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-(--color-text)">{t(item.label)}</span>

@@ -39,7 +39,7 @@ export function StopDetailTabs({ stop }: { stop: Stop }) {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`shrink-0 whitespace-nowrap border-b-2 px-0.5 pb-2.5 text-sm font-medium ${
-              activeTab === tab.id ? "border-(--color-navigation) text-(--color-navigation)" : "border-transparent text-(--color-text-muted)"
+              activeTab === tab.id ? "border-(--color-navigation) text-(--color-link)" : "border-transparent text-(--color-text-muted)"
             }`}
           >
             {tab.label}
@@ -68,7 +68,7 @@ function ResumenTab({ stop }: { stop: Stop }) {
     <div className="space-y-2">
       <p className="text-(--color-text)">{expanded ? stop.fullDescription : stop.shortDescription}</p>
       {stop.fullDescription && stop.fullDescription !== stop.shortDescription && (
-        <button onClick={() => setExpanded((v) => !v)} className="text-xs font-semibold text-(--color-navigation)">
+        <button onClick={() => setExpanded((v) => !v)} className="text-xs font-semibold text-(--color-link)">
           {expanded ? "Ver menos" : "Ver más"}
         </button>
       )}
@@ -116,7 +116,7 @@ function FotosTab({ stop }: { stop: Stop }) {
     <div>
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs text-(--color-text-muted)">Valor fotográfico: {stop.photographyRating}/5</span>
-        <button onClick={() => inputRef.current?.click()} className="flex items-center gap-1 text-xs font-semibold text-(--color-navigation)">
+        <button onClick={() => inputRef.current?.click()} className="flex items-center gap-1 text-xs font-semibold text-(--color-link)">
           <Plus size={14} aria-hidden="true" /> Añadir foto
         </button>
         <input ref={inputRef} type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
@@ -199,7 +199,7 @@ function HotelTab({ stop }: { stop: Stop }) {
               {h.hasParking && <span>Aparcamiento</span>}
               {h.source === "demo" && <span className="rounded-full bg-(--color-optional)/20 px-2 py-0.5">Demo</span>}
             </div>
-            {isSelected && <p className="mt-1.5 text-xs font-medium text-(--color-navigation)">Seleccionado para esta noche</p>}
+            {isSelected && <p className="mt-1.5 text-xs font-medium text-(--color-link)">Seleccionado para esta noche</p>}
           </button>
         );
       })}
@@ -314,7 +314,7 @@ function LluviaTab({ stop }: { stop: Stop }) {
   if (!stop.rainAlternative) return <EmptyState message="Sin alternativa de lluvia definida para esta parada." icon={CloudRain} />;
   return (
     <div className="flex items-start gap-2 rounded-xl bg-(--color-surface-muted) p-3">
-      <CloudRain size={18} className="mt-0.5 shrink-0 text-(--color-navigation)" aria-hidden="true" />
+      <CloudRain size={18} className="mt-0.5 shrink-0 text-(--color-link)" aria-hidden="true" />
       <p>{stop.rainAlternative}</p>
     </div>
   );
@@ -358,7 +358,7 @@ function PracticaTab({ stop }: { stop: Stop }) {
           {datos?.telefono && (
             <a
               href={`tel:${datos.telefono.replace(/\s/g, "")}`}
-              className="flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm text-(--color-navigation)"
+              className="flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm text-(--color-link)"
               style={{ borderColor: "var(--color-border)" }}
             >
               <Phone size={15} aria-hidden="true" /> Llamar
@@ -367,7 +367,7 @@ function PracticaTab({ stop }: { stop: Stop }) {
           {(datos?.web ?? stop.officialUrl) && (
             <button
               onClick={() => openExternalUrl((datos?.web ?? stop.officialUrl)!)}
-              className="flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm text-(--color-navigation)"
+              className="flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm text-(--color-link)"
               style={{ borderColor: "var(--color-border)" }}
             >
               <Globe size={15} aria-hidden="true" /> Web oficial

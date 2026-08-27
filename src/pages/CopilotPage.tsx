@@ -61,7 +61,7 @@ export function CopilotPage() {
 
       <div className="mb-1 flex items-center justify-between gap-2">
         <h1 className="flex items-center gap-2 text-xl font-bold">
-          <Sparkles size={20} className="text-(--color-navigation)" aria-hidden="true" /> Copiloto
+          <Sparkles size={20} className="text-(--color-link)" aria-hidden="true" /> Copiloto
         </h1>
         <button
           onClick={refresh}
@@ -79,7 +79,7 @@ export function CopilotPage() {
 
       <label className="mb-4 flex items-center justify-between rounded-(--radius-card) border bg-(--color-surface) p-3.5 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
         <span className="flex items-center gap-2 text-sm">
-          <CloudRain size={17} className="text-(--color-navigation)" aria-hidden="true" /> Modo lluvia
+          <CloudRain size={17} className="text-(--color-link)" aria-hidden="true" /> Modo lluvia
         </span>
         <input
           type="checkbox"
@@ -103,7 +103,7 @@ export function CopilotPage() {
       <div className="space-y-3">
         {suggestions.map((s) => (
           <article key={s.id} className="rounded-(--radius-card) border bg-(--color-surface) p-4 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
-            <span className="inline-block rounded-full bg-(--color-navigation)/10 px-2.5 py-0.5 text-[11px] font-medium text-(--color-navigation)">
+            <span className="inline-block rounded-full bg-(--color-navigation)/10 px-2.5 py-0.5 text-[11px] font-medium text-(--color-link)">
               {KIND_LABEL[s.kind] ?? s.kind}
             </span>
             <h2 className="mt-2 text-sm font-medium text-(--color-text)">{s.title}</h2>

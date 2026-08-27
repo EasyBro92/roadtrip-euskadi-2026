@@ -36,7 +36,7 @@ export function PanelReparto({ saldos }: { saldos: Record<ID, number> }) {
     <div className="mt-4 rounded-(--radius-card) border bg-(--color-surface) p-4 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-sm font-semibold text-(--color-text)">Quién debe a quién</h2>
-        <button onClick={compartir} className="flex items-center gap-1 text-xs text-(--color-navigation)">
+        <button onClick={compartir} className="flex items-center gap-1 text-xs text-(--color-link)">
           <Share2 size={12} aria-hidden="true" /> Compartir
         </button>
       </div>

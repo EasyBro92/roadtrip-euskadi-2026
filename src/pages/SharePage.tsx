@@ -113,7 +113,7 @@ export function SharePage() {
 function ActionRow({ icon: Icon, label, onClick }: { icon: typeof Share2; label: string; onClick: () => void }) {
   return (
     <button onClick={onClick} className="flex w-full items-center gap-3 rounded-(--radius-card) border bg-(--color-surface) p-3.5 text-left text-sm font-medium shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
-      <Icon size={18} className="text-(--color-navigation)" aria-hidden="true" />
+      <Icon size={18} className="text-(--color-link)" aria-hidden="true" />
       {label}
     </button>
   );

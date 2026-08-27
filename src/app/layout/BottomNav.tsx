@@ -40,11 +40,11 @@ export function BottomNav() {
                 <Icon
                   size={22}
                   strokeWidth={isActive ? 2.4 : 1.9}
-                  className={isActive ? "text-(--color-navigation)" : "text-(--color-text-muted)"}
+                  className={isActive ? "text-(--color-link)" : "text-(--color-text-muted)"}
                   aria-hidden="true"
                 />
               </span>
-              <span className={clsx("text-[11px]", isActive ? "font-medium text-(--color-navigation)" : "text-(--color-text-muted)")}>{t(label)}</span>
+              <span className={clsx("text-[11px]", isActive ? "font-medium text-(--color-link)" : "text-(--color-text-muted)")}>{t(label)}</span>
             </>
           )}
         </NavLink>

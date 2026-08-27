@@ -64,7 +64,7 @@ export function TripSwitcherModal() {
                     </span>
                   </span>
                 </span>
-                {v.isActive && <Check size={18} className="shrink-0 text-(--color-navigation)" aria-hidden="true" />}
+                {v.isActive && <Check size={18} className="shrink-0 text-(--color-link)" aria-hidden="true" />}
               </button>
             </li>
           ))}

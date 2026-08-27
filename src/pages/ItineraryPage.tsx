@@ -173,7 +173,7 @@ export function ItineraryPage() {
           </button>
           <button
             onClick={() => openModal({ type: "stop-editor", stopId: null, dayId: activeDayId })}
-            className="flex items-center justify-center gap-1.5 rounded-(--radius-card) border border-dashed py-3 text-sm font-medium text-(--color-navigation)"
+            className="flex items-center justify-center gap-1.5 rounded-(--radius-card) border border-dashed py-3 text-sm font-medium text-(--color-link)"
             style={{ borderColor: "var(--color-navigation)" }}
           >
             <Plus size={16} aria-hidden="true" /> Buscar lugar
@@ -214,7 +214,7 @@ function AvisoCierres({ stops, fecha }: { stops: Stop[]; fecha: ISODate }) {
             Comprobando horarios… {progreso ? `${progreso.hechas} de ${progreso.total}` : ""}
           </p>
         ) : sinComprobar > 0 ? (
-          <button onClick={comprobar} className="font-medium text-(--color-navigation)">
+          <button onClick={comprobar} className="font-medium text-(--color-link)">
             Comprobar el horario de {sinComprobar} {sinComprobar === 1 ? "parada" : "paradas"}
           </button>
         ) : null}
@@ -269,7 +269,7 @@ function AvisoAlojamiento({ activeDayId }: { activeDayId: string }) {
               if (!dia) return;
               openExternalUrl(urlBooking(dia.city || dia.title, dia.date, diaSiguiente(dia.date), viajeros || 2));
             }}
-            className="font-medium text-(--color-navigation)"
+            className="font-medium text-(--color-link)"
           >
             Buscar hotel para esa noche
           </button>

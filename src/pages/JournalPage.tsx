@@ -210,7 +210,7 @@ function DayEntry({ dayId }: { dayId: string }) {
           const firstPending = dayStops.find((s) => !s.visited);
           if (firstPending) setCurrentStop(firstPending.id);
         }}
-        className="mt-3 w-full rounded-full border py-2.5 text-sm font-medium text-(--color-navigation)"
+        className="mt-3 w-full rounded-full border py-2.5 text-sm font-medium text-(--color-link)"
         style={{ borderColor: "var(--color-navigation)" }}
       >
         Continuar este día en el mapa
@@ -222,7 +222,7 @@ function DayEntry({ dayId }: { dayId: string }) {
 function MetricCard({ icon: Icon, value, label }: { icon: typeof Clock; value: string; label: string }) {
   return (
     <div className="rounded-2xl border bg-(--color-surface) p-2 text-center shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
-      <Icon size={15} className="mx-auto text-(--color-navigation)" aria-hidden="true" />
+      <Icon size={15} className="mx-auto text-(--color-link)" aria-hidden="true" />
       <p className="mt-1 truncate text-xs font-medium text-(--color-text)">{value}</p>
       <p className="truncate text-[10px] text-(--color-text-muted)">{label}</p>
     </div>

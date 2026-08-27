@@ -131,7 +131,7 @@ export function DocumentsPage() {
             <button
               onClick={() => inputFichero.current?.click()}
               disabled={guardando}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium text-(--color-navigation)"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium text-(--color-link)"
               style={{ borderColor: "var(--color-border)" }}
             >
               <Paperclip size={14} aria-hidden="true" /> Adjuntar PDF o foto
@@ -200,7 +200,7 @@ function Ficha({ doc, onAbrir, onBorrar }: { doc: Documento; onAbrir: (d: Docume
         </p>
       </div>
       {doc.nombreFichero && (
-        <button onClick={() => onAbrir(doc)} aria-label={`Abrir ${doc.titulo}`} className="shrink-0 p-1.5 text-(--color-navigation)">
+        <button onClick={() => onAbrir(doc)} aria-label={`Abrir ${doc.titulo}`} className="shrink-0 p-1.5 text-(--color-link)">
           <ExternalLink size={16} aria-hidden="true" />
         </button>
       )}

@@ -22,6 +22,15 @@
   --color-border: #e8eaed;
 
   --color-navigation: #1a73e8;
+  /*
+   * El azul cuando es TEXTO, no fondo.
+   *
+   * En claro es el mismo. En oscuro hace falta uno más claro: #1a73e8 sobre
+   * el fondo oscuro da 3,6 de contraste, por debajo del 4,5 que se considera
+   * legible, y son los enlaces que se leen de noche en un coche. Como fondo
+   * de botón sigue valiendo el original, porque encima lleva texto blanco.
+   */
+  --color-link: #1a73e8;
   --color-progress: #16a34a;
   --color-nature: #14b8a6;
   --color-gastronomy: #f97316;
@@ -58,6 +67,7 @@
   --color-text: #e8eaed;
   --color-text-muted: #9aa5b1;
   --color-border: #2c3a47;
+  --color-link: #8ab4f8;
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.45);
   --shadow-sheet: 0 -4px 24px rgba(0, 0, 0, 0.55);
 }
@@ -70,6 +80,7 @@
     --color-text: #e8eaed;
     --color-text-muted: #9aa5b1;
     --color-border: #2c3a47;
+  --color-link: #8ab4f8;
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.45);
     --shadow-sheet: 0 -4px 24px rgba(0, 0, 0, 0.55);
   }

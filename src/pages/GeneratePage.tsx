@@ -237,7 +237,7 @@ export function GeneratePage() {
       {propuesta && (
         <div className="mt-4 rounded-(--radius-card) border bg-(--color-surface) p-4 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
           <div className="flex items-center gap-2">
-            <Sparkles size={16} className="text-(--color-navigation)" aria-hidden="true" />
+            <Sparkles size={16} className="text-(--color-link)" aria-hidden="true" />
             <h2 className="text-sm font-semibold">{propuesta.length} sitios en {porDia.size} días</h2>
           </div>
 

@@ -123,7 +123,7 @@ export function FichaPoi() {
       </div>
 
       <div className="mt-2 flex gap-3">
-        <button onClick={() => anadir(elegido)} className="flex items-center gap-1 text-xs font-medium text-(--color-navigation)">
+        <button onClick={() => anadir(elegido)} className="flex items-center gap-1 text-xs font-medium text-(--color-link)">
           <Plus size={13} aria-hidden="true" /> Añadir al viaje
         </button>
         <button
@@ -132,7 +132,7 @@ export function FichaPoi() {
             guardar({ nombre: elegido.name, coordinates: elegido.coordinates, categoria: "cultura" });
             pushToast(`${elegido.name} guardado en "Quiero ir".`, "success");
           }}
-          className="flex items-center gap-1 text-xs font-medium text-(--color-navigation)"
+          className="flex items-center gap-1 text-xs font-medium text-(--color-link)"
         >
           <Bookmark size={13} fill={guardado ? "currentColor" : "none"} aria-hidden="true" />
           {guardado ? "Guardado" : "Guardar"}

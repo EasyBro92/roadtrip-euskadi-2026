@@ -115,7 +115,7 @@ export function SavedPlacesPage() {
         ))}
         <button
           onClick={nuevaLista}
-          className="flex items-center gap-1 rounded-full border border-dashed px-3.5 py-1.5 text-sm text-(--color-navigation)"
+          className="flex items-center gap-1 rounded-full border border-dashed px-3.5 py-1.5 text-sm text-(--color-link)"
           style={{ borderColor: "var(--color-border)" }}
         >
           <Plus size={14} aria-hidden="true" /> Nueva lista
@@ -135,7 +135,7 @@ export function SavedPlacesPage() {
       {activa && (
         <>
           <div className="mb-3 flex gap-3">
-            <button onClick={renombrar} className="flex items-center gap-1 text-xs text-(--color-navigation)">
+            <button onClick={renombrar} className="flex items-center gap-1 text-xs text-(--color-link)">
               <Pencil size={13} aria-hidden="true" /> Renombrar
             </button>
             <button onClick={borrar} className="flex items-center gap-1 text-xs text-(--color-cancelled)">
@@ -182,7 +182,7 @@ function Accion({
   destructivo?: boolean;
 }) {
   return (
-    <button onClick={onClick} className={`flex items-center gap-1 text-xs ${destructivo ? "text-(--color-cancelled)" : "text-(--color-navigation)"}`}>
+    <button onClick={onClick} className={`flex items-center gap-1 text-xs ${destructivo ? "text-(--color-cancelled)" : "text-(--color-link)"}`}>
       <Icon size={13} aria-hidden="true" /> {label}
     </button>
   );

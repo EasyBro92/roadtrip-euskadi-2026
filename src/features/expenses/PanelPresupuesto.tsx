@@ -67,7 +67,7 @@ export function PanelPresupuesto({ gastadoPorCategoria }: { gastadoPorCategoria:
         <h2 className="text-sm font-semibold text-(--color-text)">Presupuesto</h2>
         <button
           onClick={() => pedirImporte("Presupuesto del viaje", trip.budgetEUR, (v) => setBudget(v ?? 0))}
-          className="flex items-center gap-1 text-xs text-(--color-navigation)"
+          className="flex items-center gap-1 text-xs text-(--color-link)"
         >
           <Pencil size={12} aria-hidden="true" /> Cambiar total
         </button>
@@ -103,7 +103,7 @@ export function PanelPresupuesto({ gastadoPorCategoria }: { gastadoPorCategoria:
                     </>
                   ) : (
                     <>
-                      {formatEUR(gastado)} <span className="text-(--color-navigation)">· poner tope</span>
+                      {formatEUR(gastado)} <span className="text-(--color-link)">· poner tope</span>
                     </>
                   )}
                 </button>

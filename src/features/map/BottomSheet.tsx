@@ -188,7 +188,7 @@ export function BottomSheet({ dayId }: { dayId: string }) {
             {sheetState === "expanded" ? (
               <StopDetailTabs stop={stop} />
             ) : (
-              <button onClick={() => setSheetState("expanded")} className="mt-3 flex items-center gap-1 text-sm font-medium text-(--color-navigation)">
+              <button onClick={() => setSheetState("expanded")} className="mt-3 flex items-center gap-1 text-sm font-medium text-(--color-link)">
                 Ver ficha completa <ChevronUp size={15} aria-hidden="true" />
               </button>
             )}
@@ -230,16 +230,17 @@ function CircleAction({
   onClick: () => void;
   tone?: "navigation" | "progress";
 }) {
-  const color = tone === "progress" ? "var(--color-progress)" : "var(--color-navigation)";
+  const relleno = tone === "progress" ? "var(--color-progress)" : "var(--color-navigation)";
+  const tinta = tone === "progress" ? "var(--color-progress)" : "var(--color-link)";
   return (
     <button onClick={onClick} className="flex w-14 shrink-0 flex-col items-center gap-1">
       <span
         className="flex h-10 w-10 items-center justify-center rounded-full border"
-        style={{ borderColor: active ? color : "var(--color-border)", background: active ? color : "transparent" }}
+        style={{ borderColor: active ? relleno : "var(--color-border)", background: active ? relleno : "transparent" }}
       >
-        <Icon size={17} color={active ? "#fff" : color} fill={active ? "#fff" : "none"} aria-hidden="true" />
+        <Icon size={17} color={active ? "#fff" : tinta} fill={active ? "#fff" : "none"} aria-hidden="true" />
       </span>
-      <span className="text-center text-[11px] leading-tight" style={{ color }}>
+      <span className="text-center text-[11px] leading-tight" style={{ color: tinta }}>
         {label}
       </span>
     </button>

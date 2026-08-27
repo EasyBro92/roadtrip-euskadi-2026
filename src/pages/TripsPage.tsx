@@ -157,7 +157,7 @@ export function TripsPage() {
           >
             <Search size={18} className="shrink-0 text-(--color-text-muted)" aria-hidden="true" />
             <span className="min-w-0 flex-1 truncate text-sm text-(--color-text-muted)">¿A dónde quieres ir?</span>
-            <Wand2 size={16} className="shrink-0 text-(--color-navigation)" aria-hidden="true" />
+            <Wand2 size={16} className="shrink-0 text-(--color-link)" aria-hidden="true" />
           </button>
           <button
             onClick={() => setCreando(true)}

@@ -139,7 +139,7 @@ function ActionButton({ icon: Icon, label, onClick }: { icon: typeof Pencil; lab
       className="flex items-center justify-center gap-2 rounded-full border bg-(--color-surface) px-3 py-2.5 text-xs font-medium text-(--color-text) transition-transform active:scale-[0.97]"
       style={{ borderColor: "var(--color-border)" }}
     >
-      <Icon size={15} className="shrink-0 text-(--color-navigation)" aria-hidden="true" />
+      <Icon size={15} className="shrink-0 text-(--color-link)" aria-hidden="true" />
       <span className="truncate">{label}</span>
     </button>
   );

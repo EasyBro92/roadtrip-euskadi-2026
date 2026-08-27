@@ -55,7 +55,7 @@ export function AvisoTiempo({ fecha, stops }: { fecha: ISODate; stops: Stop[] })
 
   return (
     <div className="mt-2 flex items-start gap-2 rounded-xl bg-(--color-surface-muted) p-2.5 text-xs text-(--color-text)">
-      <Icono size={15} className={`mt-0.5 shrink-0 ${preocupa ? "text-(--color-navigation)" : "text-(--color-skipped)"}`} aria-hidden="true" />
+      <Icono size={15} className={`mt-0.5 shrink-0 ${preocupa ? "text-(--color-link)" : "text-(--color-skipped)"}`} aria-hidden="true" />
       <div className="min-w-0 flex-1 space-y-1">
         <p>
           <span className="font-medium">{texto}</span> · {dia.maxC}° / {dia.minC}°

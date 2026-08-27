@@ -82,7 +82,7 @@ export function MyReviewsPage() {
               {nombre && (
                 <button
                   onClick={() => openModal({ type: "review", tipo: v.tipo, targetId: v.targetId, nombre })}
-                  className="mt-2 flex items-center gap-1 text-xs font-medium text-(--color-navigation)"
+                  className="mt-2 flex items-center gap-1 text-xs font-medium text-(--color-link)"
                 >
                   <PenLine size={12} aria-hidden="true" /> Editar
                 </button>

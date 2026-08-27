@@ -58,7 +58,7 @@ export function DeDondeSalenLosDatos() {
 
       <div className="rounded-(--radius-card) border bg-(--color-surface) p-3.5 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
         <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-(--color-text)">
-          <Wifi size={15} className="text-(--color-navigation)" aria-hidden="true" /> Necesita datos o wifi
+          <Wifi size={15} className="text-(--color-link)" aria-hidden="true" /> Necesita datos o wifi
         </p>
         <ul className="space-y-1.5 text-sm text-(--color-text-muted)">
           {CON_INTERNET.map((f) => (

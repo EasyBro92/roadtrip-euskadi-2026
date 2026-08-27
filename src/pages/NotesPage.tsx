@@ -85,7 +85,7 @@ export function NotesPage() {
           <article key={note.id} className="rounded-(--radius-card) border bg-(--color-surface) p-3.5 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
             <div className="flex items-start justify-between gap-2">
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-xs font-medium text-(--color-navigation)">{targetName(note.targetType, note.targetId)}</span>
+                <span className="block truncate text-xs font-medium text-(--color-link)">{targetName(note.targetType, note.targetId)}</span>
                 <span className="block text-[11px] text-(--color-text-muted)">{new Date(note.date).toLocaleDateString("es-ES", { day: "numeric", month: "long" })}</span>
               </span>
               <span className="flex shrink-0 items-center gap-1">

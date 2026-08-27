@@ -17,7 +17,7 @@ export function StatCard({ icon: Icon, label, value, to }: StatCardProps) {
   const contenido = (
     <>
       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-(--color-navigation)/10">
-        <Icon size={16} className="text-(--color-navigation)" aria-hidden="true" />
+        <Icon size={16} className="text-(--color-link)" aria-hidden="true" />
       </span>
       <span className="w-full truncate text-sm font-medium text-(--color-text)">{value}</span>
       <span className="w-full truncate text-[11px] text-(--color-text-muted)">{label}</span>

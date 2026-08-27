@@ -127,7 +127,7 @@ export function ReturnTripPage() {
               }}
             >
               <div className="flex items-center gap-2">
-                <RouteIcon size={16} className="shrink-0 text-(--color-navigation)" aria-hidden="true" />
+                <RouteIcon size={16} className="shrink-0 text-(--color-link)" aria-hidden="true" />
                 <span className="text-sm font-medium">{alt.label}</span>
               </div>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--color-text-muted)">
@@ -136,7 +136,7 @@ export function ReturnTripPage() {
                 {est && <span>{est.liters.toFixed(1)} L de gasóleo</span>}
               </div>
               {alt.isFallback && <p className="mt-1.5 text-xs text-(--color-skipped)">Ruta aproximada: ningún servicio de rutas respondió.</p>}
-              {isChosen && <p className="mt-1.5 text-xs font-medium text-(--color-navigation)">Opción elegida</p>}
+              {isChosen && <p className="mt-1.5 text-xs font-medium text-(--color-link)">Opción elegida</p>}
             </button>
           );
         })}

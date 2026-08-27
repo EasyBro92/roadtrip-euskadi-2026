@@ -55,7 +55,7 @@ function FichaRuta({ ruta }: { ruta: RouteTemplate }) {
   return (
     <li className="rounded-(--radius-card) border bg-(--color-surface) p-4 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
       <button onClick={() => setAbierta((v) => !v)} className="w-full text-left" aria-expanded={abierta}>
-        <p className="text-xs font-medium uppercase tracking-wide text-(--color-navigation)">{ruta.region}</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-(--color-link)">{ruta.region}</p>
         <h2 className="mt-0.5 text-base font-semibold text-(--color-text)">{ruta.name}</h2>
         <p className="mt-1.5 text-sm leading-relaxed text-(--color-text-muted)">{ruta.summary}</p>
         <div className="mt-3 flex gap-4 text-xs text-(--color-text-muted)">
@@ -98,7 +98,7 @@ function FichaRuta({ ruta }: { ruta: RouteTemplate }) {
                       <button
                         onClick={() => anadirSuelta(s)}
                         aria-label={`Añadir ${s.name} a ${viajeActivo}`}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-(--color-navigation)"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-(--color-link)"
                         style={{ borderColor: "var(--color-border)" }}
                       >
                         <Plus size={16} aria-hidden="true" />
