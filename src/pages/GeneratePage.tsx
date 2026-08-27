@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { ItineraryGeneratorService, type Interes, type Ritmo, type SugerenciaParada, type Transporte } from "../services/generator/ItineraryGeneratorService";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
-import { toISODate } from "../utils/dates";
+import { shiftISODate, toISODate } from "../utils/dates";
+import { formatDateLong } from "../utils/format";
 
 const INTERESES: { id: Interes; label: string }[] = [
   { id: "cultura", label: "Museos y cultura" },
@@ -64,6 +65,8 @@ export function GeneratePage() {
   const [dias, setDias] = useState(3);
   const [intereses, setIntereses] = useState<Interes[]>(["cultura", "gastronomia"]);
   const [ritmo, setRitmo] = useState<Ritmo>("normal");
+  const [fechaInicio, setFechaInicio] = useState(toISODate(new Date()));
+  const [presupuesto, setPresupuesto] = useState("");
   const [transporte, setTransporte] = useState<Transporte>("pie");
 
   const [generando, setGenerando] = useState(false);
@@ -98,7 +101,15 @@ export function GeneratePage() {
 
   function aceptar() {
     if (!propuesta) return;
-    createTrip({ name: destino.trim(), startDate: toISODate(new Date()), dayCount: dias });
+    // La fecha importa de verdad: con ella el itinerario ya sabe avisar de
+    // lo que estará cerrado y de qué tiempo hará cada día.
+    const importe = Number(presupuesto.replace(",", "."));
+    createTrip({
+      name: destino.trim(),
+      startDate: fechaInicio || toISODate(new Date()),
+      dayCount: dias,
+      budgetEUR: Number.isFinite(importe) && importe > 0 ? importe : 0,
+    });
 
     const diasDelViaje = useTripStore.getState().trip.days;
     for (const sugerencia of propuesta) {
@@ -157,6 +168,33 @@ export function GeneratePage() {
           />
         </label>
 
+        <div className="mt-3 flex flex-wrap gap-3">
+          <label className="block text-xs font-medium text-(--color-text-muted)">
+            ¿Cuándo empiezas?
+            <input
+              type="date"
+              value={fechaInicio}
+              onChange={(e) => setFechaInicio(e.target.value)}
+              className="mt-1 block rounded-(--radius-control) border bg-(--color-bg) px-3 py-2.5 text-base text-(--color-text)"
+              style={{ borderColor: "var(--color-border)" }}
+            />
+          </label>
+
+          <label className="block text-xs font-medium text-(--color-text-muted)">
+            Presupuesto (opcional)
+            <input
+              type="number"
+              inputMode="decimal"
+              min={0}
+              value={presupuesto}
+              onChange={(e) => setPresupuesto(e.target.value)}
+              placeholder="€"
+              className="mt-1 block w-28 rounded-(--radius-control) border bg-(--color-bg) px-3 py-2.5 text-base text-(--color-text)"
+              style={{ borderColor: "var(--color-border)" }}
+            />
+          </label>
+        </div>
+
         <div className="mt-4">
           <p className="mb-1.5 text-xs font-medium text-(--color-text-muted)">¿Qué te interesa?</p>
           <div className="flex flex-wrap gap-2">
@@ -205,7 +243,11 @@ export function GeneratePage() {
 
           {[...porDia.entries()].sort((a, b) => a[0] - b[0]).map(([dia, paradas]) => (
             <div key={dia} className="mt-3">
-              <p className="text-xs font-semibold uppercase text-(--color-text-muted)">Día {dia}</p>
+              {/* El día de la semana no es adorno: es lo que decide si un
+                  museo abre. Verlo aquí evita montar un lunes de cierres. */}
+              <p className="text-xs font-semibold uppercase text-(--color-text-muted)">
+                Día {dia} · <span className="font-normal normal-case">{formatDateLong(shiftISODate(fechaInicio, dia - 1))}</span>
+              </p>
               <ul className="mt-1">
                 {paradas.map((p) => (
                   <li key={p.name} className="py-1 text-sm text-(--color-text)">
