@@ -1,6 +1,7 @@
 import { BookOpen, Map, MoreHorizontal, Route, Wallet } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import clsx from "clsx";
+import { useT } from "../../hooks/useT";
 
 const ITEMS = [
   { to: "/mapa", label: "Mapa", icon: Map },
@@ -16,9 +17,11 @@ const ITEMS = [
  * limitarse a cambiar de color. Objetivo táctil >= 44px, accesible con una mano.
  */
 export function BottomNav() {
+  const { t } = useT();
+
   return (
     <nav
-      aria-label="Navegación principal"
+      aria-label={t("Navegación principal")}
       className="safe-bottom safe-x flex shrink-0 items-stretch justify-around border-t bg-(--color-surface)"
       // La barra ocupa todo el ancho a propósito: solo necesita el recorte
       // real del dispositivo, no el margen de lectura de las páginas.
@@ -41,7 +44,7 @@ export function BottomNav() {
                   aria-hidden="true"
                 />
               </span>
-              <span className={clsx("text-[11px]", isActive ? "font-medium text-(--color-navigation)" : "text-(--color-text-muted)")}>{label}</span>
+              <span className={clsx("text-[11px]", isActive ? "font-medium text-(--color-navigation)" : "text-(--color-text-muted)")}>{t(label)}</span>
             </>
           )}
         </NavLink>

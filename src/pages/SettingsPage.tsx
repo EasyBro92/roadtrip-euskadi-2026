@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../services/storage/db";
 import { validateExportedState } from "../services/storage/schema";
 import { StorageService } from "../services/storage/StorageService";
+import { ETIQUETA_IDIOMA, IDIOMAS } from "../i18n";
 import { useSettingsStore } from "../stores/useSettingsStore";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
@@ -135,6 +136,26 @@ export function SettingsPage() {
             </button>
           ))}
         </div>
+      </Section>
+
+      <Section title="Idioma">
+        <div className="flex gap-2">
+          {IDIOMAS.map((id) => (
+            <button
+              key={id}
+              onClick={() => updateSettings({ language: id })}
+              className={`flex-1 rounded-lg border py-2 text-sm ${settings.language === id ? "bg-(--color-navigation) text-white border-(--color-navigation)" : ""}`}
+              style={settings.language !== id ? { borderColor: "var(--color-border)" } : undefined}
+            >
+              {ETIQUETA_IDIOMA[id]}
+            </button>
+          ))}
+        </div>
+        {/* Honestidad por delante: la traducción va por pantallas y lo que
+            falta se ve en castellano, no roto ni en blanco. */}
+        <p className="mt-2 text-xs text-(--color-text-muted)">
+          El inglés está a medias: lo que aún no está traducido se ve en castellano.
+        </p>
       </Section>
 
       <Section title="Ubicación">

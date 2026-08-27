@@ -11,7 +11,8 @@ export interface AppSettings {
   batterySaverMode: boolean;
   drivingModeEnabled: boolean;
   offlineLimitMB: number;
-  language: "es";
+  /** "auto" sigue al idioma del móvil. Ver src/i18n. */
+  language: "auto" | "es" | "en";
   reducedMotion: boolean;
 }
 
@@ -27,6 +28,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   batterySaverMode: false,
   drivingModeEnabled: false,
   offlineLimitMB: 250,
-  language: "es",
+  language: "auto",
   reducedMotion: false,
 };

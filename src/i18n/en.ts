@@ -1,0 +1,142 @@
+/**
+ * Traducción al inglés.
+ *
+ * La clave es el texto en castellano tal cual aparece en pantalla. Lo que no
+ * esté aquí sale en castellano, así que esta lista puede crecer poco a poco
+ * sin dejar la app a medias.
+ */
+export const EN: Record<string, string> = {
+  // --- Navegación ---
+  Mapa: "Map",
+  Itinerario: "Itinerary",
+  Diario: "Journal",
+  Gastos: "Expenses",
+  Más: "More",
+
+  // --- Mis viajes ---
+  "Mis viajes": "My trips",
+  "{n} viaje": "{n} trip",
+  "{n} viajes": "{n} trips",
+  Explorar: "Explore",
+  "¿A dónde quieres ir?": "Where do you want to go?",
+  "En curso": "Current",
+  Borrar: "Delete",
+  "{n} días": "{n} days",
+  "{n} paradas": "{n} stops",
+  "{n} parada": "{n} stop",
+
+  // --- Itinerario ---
+  "Restaurar original": "Restore original",
+  Deshacer: "Undo",
+  "Día {n}": "Day {n}",
+  "Duermes en": "You sleep at",
+  "noche {n} de {total}": "night {n} of {total}",
+  "Esta noche no tienes dónde dormir apuntado.": "No accommodation saved for tonight.",
+  "Buscar hotel para esa noche": "Find a hotel for that night",
+  "Ese día no abre.": "It does not open that day.",
+  "Ese día no abren.": "They do not open that day.",
+  "Llegarías cerrado a": "You would arrive to a closed",
+  "Comprobar el horario de {n} paradas": "Check opening hours for {n} stops",
+  "Comprobando horarios…": "Checking opening hours…",
+  "Todo lo de este día es al aire libre. Quizá convenga un plan B.":
+    "Everything this day is outdoors. A plan B might help.",
+  "Bajo techo ese día: {sitios}.": "Indoors that day: {sitios}.",
+
+  // --- Mapa ---
+  "Qué hay cerca": "What's nearby",
+  "Buscar en tu viaje o un lugar nuevo": "Search your trip or a new place",
+  "Ver sitios de interés": "Show places of interest",
+  "Ocultar sitios de interés": "Hide places of interest",
+  "Buscar en esta zona": "Search this area",
+  "Mi ubicación": "My location",
+  "Cómo llegar": "Directions",
+  Navegar: "Navigate",
+  "Siguiente parada": "Next stop",
+  Visitar: "Visit",
+  Visitada: "Visited",
+  Guardar: "Save",
+  Guardado: "Saved",
+  "¿Qué te ha parecido?": "What did you think?",
+  "Escribir una reseña": "Write a review",
+  "Editar tu reseña": "Edit your review",
+  "Información práctica": "Practical information",
+  "Abierto ahora": "Open now",
+  Cerrado: "Closed",
+  "Cierra en {n} min": "Closes in {n} min",
+  Horario: "Opening hours",
+  "Sin datos": "No data",
+  "Web oficial": "Official website",
+  Llamar: "Call",
+  "Datos de OpenStreetMap, mantenidos por voluntarios.": "Data from OpenStreetMap, maintained by volunteers.",
+
+  // --- Categorías de "qué hay cerca" ---
+  Aparcamientos: "Car parks",
+  Gasolineras: "Petrol stations",
+  Restaurantes: "Restaurants",
+  Supermercados: "Supermarkets",
+  Farmacias: "Pharmacies",
+  Cajeros: "Cash machines",
+  Hoteles: "Hotels",
+  Talleres: "Garages",
+  Hospitales: "Hospitals",
+
+  // --- Gastos ---
+  Presupuesto: "Budget",
+  "Cambiar total": "Change total",
+  "Quién debe a quién": "Who owes whom",
+  "Las cuentas están saldadas.": "All settled up.",
+  Compartir: "Share",
+  "Registrar gasto": "Add expense",
+  Añadir: "Add",
+  Lugar: "Place",
+  "Coste por km": "Cost per km",
+  "Por viajero": "Per traveller",
+
+  // --- Más ---
+  "Quiero ir": "Want to go",
+  Favoritos: "Favourites",
+  "Dónde has estado": "Where you've been",
+  "Mis valoraciones": "My ratings",
+  "Reservas y documentos": "Bookings and documents",
+  "Cerca de mí": "Near me",
+  "Notas del viaje": "Trip notes",
+  "Contenido offline": "Offline content",
+  "Compartir y exportar": "Share and export",
+  Configuración: "Settings",
+  Ayuda: "Help",
+  Logros: "Achievements",
+  Atrás: "Back",
+
+// --- Descripciones del menú Más ---
+  Copiloto: "Copilot",
+  "Recomendaciones según hora, día y presupuesto": "Suggestions by time, day and budget",
+  "Gasolineras, talleres, farmacias y más": "Petrol, garages, pharmacies and more",
+  "PDFs y localizadores, disponibles sin cobertura": "PDFs and booking codes, available offline",
+  "Todo lo que has escrito, con búsqueda": "Everything you have written, searchable",
+  "Añade paradas a cualquier día": "Add stops to any day",
+  "Lugares opcionales": "Optional places",
+  "Sitios guardados en tus propias listas": "Places saved in your own lists",
+  "Paradas que has marcado en este viaje": "Stops you starred on this trip",
+  "El mapa de todo lo que has visitado": "The map of everywhere you have been",
+  "Lo que has puntuado y las reseñas que escribiste": "What you rated and the reviews you wrote",
+  "Desbloquea hitos del roadtrip": "Unlock milestones of the road trip",
+  "Consumo, repostajes y estadísticas": "Consumption, refuelling and stats",
+  "Mi Golf": "My car",
+  Checklist: "Checklist",
+  "Documentación, vehículo y equipaje": "Papers, vehicle and luggage",
+  "Descarga el viaje para la carretera": "Download the trip for the road",
+  "JSON, GPX, GeoJSON y QR": "JSON, GPX, GeoJSON and QR",
+  "Fechas, tema, ubicación y privacidad": "Dates, theme, location and privacy",
+  "Preguntas frecuentes": "Frequently asked questions",
+  "Regreso a Girona": "Return to Girona",
+  "Compara rutas de vuelta y su coste": "Compare return routes and their cost",
+  "Lo que has guardado": "What you have saved",
+  "Durante el viaje": "During the trip",
+  "El viaje": "The trip",
+  Apariencia: "Appearance",
+  Ubicación: "Location",
+
+  // --- Ajustes ---
+  Idioma: "Language",
+  "El del móvil": "Your phone's",
+};

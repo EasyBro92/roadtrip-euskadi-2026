@@ -1,5 +1,6 @@
 import { Bookmark, Car, ChevronsUpDown, FileText, Globe2, CircleHelp, CloudDownload, Compass, CornerUpLeft, Flag, ListChecks, MapPinned, NotebookPen, Radar, Settings, Share2, Sparkles, Star, Trophy, type LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useT } from "../hooks/useT";
 import { useTripStats } from "../hooks/useTripStats";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
@@ -54,6 +55,7 @@ const GROUPS: { title: string; items: MoreItem[] }[] = [
 ];
 
 export function MorePage() {
+  const { t } = useT();
   const navigate = useNavigate();
   const stats = useTripStats();
   const trip = useTripStore((s) => s.trip);
@@ -101,8 +103,8 @@ export function MorePage() {
                   <item.icon size={19} className="text-(--color-navigation)" aria-hidden="true" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-(--color-text)">{item.label}</span>
-                  <span className="block truncate text-xs text-(--color-text-muted)">{item.description}</span>
+                  <span className="block truncate text-sm font-medium text-(--color-text)">{t(item.label)}</span>
+                  <span className="block truncate text-xs text-(--color-text-muted)">{t(item.description)}</span>
                 </span>
               </button>
             ))}
