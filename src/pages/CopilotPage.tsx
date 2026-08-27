@@ -73,8 +73,8 @@ export function CopilotPage() {
       </div>
       <p className="mb-4 text-xs text-(--color-text-muted)">
         {mode === "local"
-          ? "Motor local basado en reglas: analiza tu día, la hora, el presupuesto y las paradas pendientes. Sin conexión ni datos en tiempo real."
-          : "Sugerencias generadas por el backend de IA configurado."}
+          ? "Funciona dentro del móvil, con reglas: mira tu día, la hora, el presupuesto y lo que te queda por visitar. No necesita internet ni ningún servicio externo."
+          : "Sugerencias del servidor propio que tengas configurado."}
       </p>
 
       <label className="mb-4 flex items-center justify-between rounded-(--radius-card) border bg-(--color-surface) p-3.5 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>

@@ -136,7 +136,7 @@ export function GeneratePage() {
         <button onClick={() => navigate("/viajes")} aria-label="Volver a mis viajes" className="-ml-2 p-2">
           <ArrowLeft size={22} aria-hidden="true" />
         </button>
-        <h1 className="text-2xl font-semibold text-(--color-text)">Crear con IA</h1>
+        <h1 className="text-2xl font-semibold text-(--color-text)">Proponme un viaje</h1>
       </header>
       <p className="mb-4 text-sm text-(--color-text-muted)">
         Dime a dónde vas y te propongo un itinerario para retocar.

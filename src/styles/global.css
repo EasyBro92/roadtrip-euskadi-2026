@@ -3,9 +3,24 @@
 @import "./theme.css";
 
 html,
-body,
-#root {
+body {
   height: 100%;
+}
+
+/*
+ * La app va anclada a la ventana, no al documento.
+ *
+ * Antes `#root` medía 100% y `.app-shell` 100dvh, y en Android esas dos
+ * cosas no valen lo mismo: al esconderse la barra del navegador, `dvh`
+ * crece, la app se hace más alta que el body y la barra de navegación de
+ * abajo se sale de la pantalla — costaba recuperarla. Con `fixed` el
+ * contenedor mide siempre exactamente la ventana visible y no hay
+ * desplazamiento de página que pueda esconder nada.
+ */
+#root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
 }
 
 body {
@@ -18,8 +33,8 @@ body {
 
 /* Altura dinámica real en móviles (barra de navegador Android/iOS), sección 3. */
 .app-shell {
-  height: 100dvh;
-  min-height: 100dvh;
+  /* 100% de #root, que ya es exactamente la ventana. */
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
