@@ -94,6 +94,12 @@ export interface Cobertura {
   enCache: number;
   /** 0 a 100. */
   porcentaje: number;
+  /**
+   * No existe la caché de teselas: la app no se está ejecutando como app
+   * instalada. En desarrollo el service worker va desactivado, y ahí un 0%
+   * no significa "no tienes mapa" sino "aquí no hay dónde mirarlo".
+   */
+  sinCache: boolean;
 }
 
 /**
@@ -105,7 +111,10 @@ export interface Cobertura {
  * hace; lo que puede es decirte con honestidad qué tienes y qué no.
  */
 export async function medirCobertura(puntos: Coordinates[], plantilla: string): Promise<Cobertura> {
-  if (!("caches" in globalThis)) return { total: 0, enCache: 0, porcentaje: 0 };
+  // `caches.open` la crearía vacía, así que primero hay que preguntar si existe.
+  if (!("caches" in globalThis) || !(await caches.has("map-tiles-cache"))) {
+    return { total: 0, enCache: 0, porcentaje: 0, sinCache: true };
+  }
 
   const cache = await caches.open("map-tiles-cache");
   let total = 0;
@@ -122,5 +131,5 @@ export async function medirCobertura(puntos: Coordinates[], plantilla: string): 
     }
   }
 
-  return { total, enCache, porcentaje: total === 0 ? 0 : Math.round((enCache / total) * 100) };
+  return { total, enCache, porcentaje: total === 0 ? 0 : Math.round((enCache / total) * 100), sinCache: false };
 }

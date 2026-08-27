@@ -1,4 +1,4 @@
-import { Bookmark, Car, ChevronsUpDown, FileText, Globe2, CircleHelp, CloudDownload, Compass, CornerUpLeft, Flag, ListChecks, MapPinned, NotebookPen, Radar, Settings, Share2, Sparkles, Star, Trophy, type LucideIcon } from "lucide-react";
+import { Bookmark, Car, ChevronsUpDown, FileText, Globe2, HardDrive, CircleHelp, CloudDownload, Compass, CornerUpLeft, Flag, ListChecks, MapPinned, NotebookPen, Radar, Settings, Share2, Sparkles, Star, Trophy, type LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useT } from "../hooks/useT";
 import { useTripStats } from "../hooks/useTripStats";
@@ -41,7 +41,8 @@ const GROUPS: { title: string; items: MoreItem[] }[] = [
     items: [
       { to: "/mas/mi-golf", label: "Mi Golf", description: "Consumo, repostajes y estadísticas", icon: Car },
       { to: "/mas/checklist", label: "Checklist", description: "Documentación, vehículo y equipaje", icon: ListChecks },
-      { to: "/mas/offline", label: "Contenido offline", description: "Descarga el viaje para la carretera", icon: CloudDownload },
+      { to: "/mas/preparar", label: "Preparar el viaje", description: "Déjalo todo listo antes de salir, con wifi", icon: CloudDownload },
+      { to: "/mas/offline", label: "Contenido offline", description: "Espacio, límites y cobertura del mapa", icon: HardDrive },
     ],
   },
   {
