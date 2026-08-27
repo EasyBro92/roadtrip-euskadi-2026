@@ -115,24 +115,34 @@ export function ItineraryPage() {
         ))}
       </div>
 
-      {/* key: al cambiar de día React monta esto de nuevo y la animación se
-          reproduce; sin la key el contenido cambiaría sin animarse. */}
-      <div key={activeDay.id} className={`safe-x px-4 ${claseEntrada}`}>
-        <DayHeader day={activeDay} totalDays={days.length} />
-        {activeDay.isOverloaded && (
-          <div className="mt-2 flex items-start gap-2 rounded-xl bg-(--color-skipped)/15 p-2.5 text-xs text-(--color-text)">
-            <AlertTriangle size={15} className="mt-0.5 shrink-0 text-(--color-skipped)" aria-hidden="true" />
-            <p>Este día tiene {stops.length} paradas, por encima de las 3-5 recomendadas. Considera desactivar o convertir en opcionales las de prioridad media/baja.</p>
-          </div>
-        )}
-        <AvisoTiempo fecha={activeDay.date} stops={stops} />
-        <AvisoAlojamiento activeDayId={activeDayId} />
-        <AvisoCierres stops={stops} fecha={activeDay.date} />
-      </div>
+      {/*
+       * La cabecera del día y los avisos van DENTRO del contenedor que hace
+       * scroll, como en el Diario. Antes estaban fuera y se quedaban fijos:
+       * con el tiempo, el alojamiento y los horarios a la vez se comían media
+       * pantalla y a las paradas no les quedaba sitio.
+       *
+       * key: al cambiar de día React monta esto de nuevo y la animación se
+       * reproduce; sin la key el contenido cambiaría sin animarse.
+       *
+       * El gesto ignora lo que empiece sobre un botón o el asa de arrastrar,
+       * para no competir con el reordenado de paradas.
+       */}
+      <div key={activeDay.id} className={`safe-x mt-2 flex-1 space-y-2 overflow-y-auto px-4 pb-24 ${claseEntrada}`} style={{ touchAction: "pan-y" }} {...swipe}>
+        <div>
+          <DayHeader day={activeDay} totalDays={days.length} />
+          {activeDay.isOverloaded && (
+            <div className="mt-2 flex items-start gap-2 rounded-xl bg-(--color-skipped)/15 p-2.5 text-xs text-(--color-text)">
+              <AlertTriangle size={15} className="mt-0.5 shrink-0 text-(--color-skipped)" aria-hidden="true" />
+              <p>{stops.length} paradas: es mucho para un día. Desactiva o marca como opcionales las que menos te importen.</p>
+            </div>
+          )}
+          {/* A lo ancho, no en dos columnas: probado en fila, el nombre del
+              hotel se partía en tres líneas y ocupaba casi lo mismo. */}
+          <AvisoTiempo fecha={activeDay.date} stops={stops} />
+          <AvisoAlojamiento activeDayId={activeDayId} />
+          <AvisoCierres stops={stops} fecha={activeDay.date} />
+        </div>
 
-      {/* El gesto ignora lo que empiece sobre un botón o el asa de arrastrar,
-          para no competir con el reordenado de paradas. */}
-      <div key={`lista-${activeDay.id}`} className={`safe-x mt-3 flex-1 space-y-2 overflow-y-auto px-4 pb-24 ${claseEntrada}`} style={{ touchAction: "pan-y" }} {...swipe}>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={stops.map((s) => s.id)} strategy={verticalListSortingStrategy}>
             {stops.map((stop, indice) => {
@@ -207,15 +217,7 @@ function AvisoCierres({ stops, fecha }: { stops: Stop[]; fecha: ISODate }) {
           <button onClick={comprobar} className="font-medium text-(--color-navigation)">
             Comprobar el horario de {sinComprobar} {sinComprobar === 1 ? "parada" : "paradas"}
           </button>
-        ) : (
-          sinHorario > 0 && (
-            // Ya se preguntó y no había nada. Se dice para que no parezca que
-            // la comprobación no llegó a hacerse.
-            <p className="text-(--color-text-muted)">
-              Sin horario en OpenStreetMap: {sinHorario} {sinHorario === 1 ? "parada" : "paradas"}. Puedes escribirlo tú al editarlas.
-            </p>
-          )
-        )}
+        ) : null}
       </div>
     </div>
   );
