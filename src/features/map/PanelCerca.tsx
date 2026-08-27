@@ -1,6 +1,7 @@
 import type L from "leaflet";
 import { Bookmark, Navigation, Plus, X } from "lucide-react";
 import { NEARBY_CATEGORY_LABEL, type NearbyCategory, type NearbyPlace } from "../../services/places/NearbyService";
+import { useOnline } from "../../hooks/useOnline";
 import { useNearbyStore } from "../../stores/useNearbyStore";
 import { useSavedPlacesStore } from "../../stores/useSavedPlacesStore";
 import { useTripStore } from "../../stores/useTripStore";
@@ -47,6 +48,7 @@ const COMO_PARADA: Partial<Record<NearbyCategory, StopCategory>> = {
  */
 export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void }) {
   const { categoria, resultados, cargando, error, buscar, resaltar, limpiar } = useNearbyStore();
+  const enLinea = useOnline();
   const openModal = useUIStore((s) => s.openModal);
   const pushToast = useUIStore((s) => s.pushToast);
   const addStop = useTripStore((s) => s.addStop);
@@ -108,7 +110,8 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {!categoria && <Aviso texto="Elige qué buscas alrededor del centro del mapa." />}
+        {!enLinea && <Aviso texto="Buscar sitios cercanos necesita conexión. Sin ella no hay nada que consultar." />}
+        {enLinea && !categoria && <Aviso texto="Elige qué buscas alrededor del centro del mapa." />}
         {cargando && <Aviso texto="Buscando en OpenStreetMap…" />}
 
         {error && (

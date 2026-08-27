@@ -1,4 +1,5 @@
 import { Outlet } from "react-router-dom";
+import { AvisoSinConexion } from "../../components/AvisoSinConexion";
 import { BottomNav } from "./BottomNav";
 
 /**
@@ -10,6 +11,7 @@ import { BottomNav } from "./BottomNav";
 export function AppShell() {
   return (
     <div className="app-shell safe-top">
+      <AvisoSinConexion />
       <main className="min-h-0 flex-1 overflow-hidden">
         <Outlet />
       </main>
