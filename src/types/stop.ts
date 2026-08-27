@@ -1,3 +1,4 @@
+import type { ModoTransporte } from "../features/itinerary/tramos";
 import type {
   Coordinates,
   DataSource,
@@ -56,6 +57,11 @@ export interface Stop extends Timestamped {
   expectedCostEUR?: number;
   actualCostEUR?: number;
 
+  /**
+   * Cómo llegas a esta parada desde la anterior. Opcional: sin él se deduce
+   * de la distancia, así que los viajes ya guardados siguen valiendo.
+   */
+  modoLlegada?: ModoTransporte;
   openingHours?: string;
   bookingRequired: boolean;
   officialUrl?: string;

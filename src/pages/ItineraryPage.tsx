@@ -144,7 +144,7 @@ export function ItineraryPage() {
               const salto = anterior ? haversineDistanceMeters(anterior.coordinates, stop.coordinates) : 0;
               return (
                 <div key={stop.id}>
-                  {salto >= DISTANCIA_OTRA_LOCALIDAD_M && <LocationBreak metros={salto} />}
+                  {salto >= DISTANCIA_OTRA_LOCALIDAD_M && <LocationBreak metros={salto} stopId={stop.id} />}
                   <SortableStopCard stop={stop} />
                 </div>
               );
