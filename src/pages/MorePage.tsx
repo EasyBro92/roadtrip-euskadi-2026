@@ -31,6 +31,7 @@ const GROUPS: { title: string; items: MoreItem[] }[] = [
       { to: "/mas/guardados", label: "Quiero ir", description: "Sitios guardados en tus propias listas", icon: Bookmark },
       { to: "/mas/favoritos", label: "Favoritos", description: "Paradas que has marcado en este viaje", icon: Star },
       { to: "/mas/visitados", label: "Dónde has estado", description: "El mapa de todo lo que has visitado", icon: Globe2 },
+      { to: "/mas/valoraciones", label: "Mis valoraciones", description: "Lo que has puntuado y las reseñas que escribiste", icon: Star },
       { to: "/mas/logros", label: "Logros", description: "Desbloquea hitos del roadtrip", icon: Trophy },
     ],
   },
