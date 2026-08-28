@@ -1,6 +1,7 @@
 import QRCode from "qrcode";
 import type { Stop, Trip } from "../../types";
 import { validateExportedState, type ExportedState } from "../storage/schema";
+import { desempaquetar, empaquetar, type ItinerarioLeido } from "./enlaceItinerario";
 
 const QR_SAFE_BYTE_LIMIT = 2200; // Margen práctico para que el QR (nivel L) siga siendo legible en móvil.
 
@@ -36,7 +37,51 @@ export type ShareOutcome =
  * fallback, y exportar/importar JSON + QR con los datos comprimidos.
  * Nunca se simula un enlace público que no existe de verdad.
  */
+/**
+ * Longitud a partir de la cual un enlace deja de ser práctico.
+ *
+ * Los navegadores aguantan más, pero WhatsApp y el correo cortan o estropean
+ * los enlaces muy largos. Mejor decir que no cabe que dar uno roto.
+ */
+const LIMITE_ENLACE = 8000;
+
 export const SharingService = {
+  /**
+   * Enlace con el itinerario dentro, sin servidor de por medio.
+   *
+   * Los datos viajan en la parte de la dirección que va tras la almohadilla,
+   * que el navegador no manda al servidor: aunque se abra en GitHub Pages,
+   * el viaje no sale del móvil de quien lo abre.
+   */
+  async enlaceDeItinerario(trip: Trip, stopsById: Record<string, Stop>): Promise<{ url: string } | { error: string }> {
+    const compacto = empaquetar(trip, stopsById);
+    if (compacto.p.length === 0) return { error: "Este viaje no tiene paradas que compartir." };
+
+    const comprimido = await compressToBase64(JSON.stringify(compacto));
+    // base64url: el "+" y el "/" se estropean al pasar por una dirección web.
+    const seguro = comprimido.split("+").join("-").split("/").join("_").replace(/=+$/, "");
+    // La ruta va en el camino, porque el router es de rutas normales. Los
+    // datos van tras la almohadilla a propósito: esa parte el navegador no la
+    // manda al servidor, así que el itinerario no sale del móvil de nadie.
+    const url = `${location.origin}${import.meta.env.BASE_URL}importar#i=${seguro}`;
+
+    if (url.length > LIMITE_ENLACE) {
+      return { error: `El viaje es demasiado grande para un enlace (${Math.round(url.length / 1000)} kB). Usa "Exportar JSON completo".` };
+    }
+    return { url };
+  },
+
+  /** Lee un itinerario venido en un enlace. Nada se da por bueno sin comprobar. */
+  async leerEnlace(codificado: string): Promise<ItinerarioLeido | null> {
+    try {
+      const base64 = codificado.split("-").join("+").split("_").join("/");
+      const json = await decompressFromBase64(base64);
+      return desempaquetar(JSON.parse(json));
+    } catch {
+      return null;
+    }
+  },
+
   canUseNativeShare(): boolean {
     return typeof navigator.share === "function";
   },

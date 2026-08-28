@@ -32,6 +32,7 @@ const DocumentsPage = lazy(() => import("../pages/DocumentsPage").then((m) => ({
 const VisitedPage = lazy(() => import("../pages/VisitedPage").then((m) => ({ default: m.VisitedPage })));
 const MyReviewsPage = lazy(() => import("../pages/MyReviewsPage").then((m) => ({ default: m.MyReviewsPage })));
 const PrepararPage = lazy(() => import("../pages/PrepararPage").then((m) => ({ default: m.PrepararPage })));
+const ImportarPage = lazy(() => import("../pages/ImportarPage").then((m) => ({ default: m.ImportarPage })));
 const NotesPage = lazy(() => import("../pages/NotesPage").then((m) => ({ default: m.NotesPage })));
 const ReturnTripPage = lazy(() => import("../pages/ReturnTripPage").then((m) => ({ default: m.ReturnTripPage })));
 
@@ -58,6 +59,7 @@ export const router = createBrowserRouter([
   { path: "/viajes", element: withSuspense(<TripsPage />) },
   { path: "/explorar", element: withSuspense(<ExplorePage />) },
   { path: "/crear", element: withSuspense(<GeneratePage />) },
+  { path: "/importar", element: withSuspense(<ImportarPage />) },
 
   // Nivel 2 — dentro de un viaje. El Resumen es la antigua portada.
   { path: "/viaje", element: withSuspense(<WelcomePage />) },

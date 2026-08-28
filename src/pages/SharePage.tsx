@@ -1,4 +1,4 @@
-import { ArrowLeft, Download, FileJson, Images, Map as MapIcon, QrCode, Share2 } from "lucide-react";
+import { ArrowLeft, Download, FileJson, Images, Link2, Map as MapIcon, QrCode, Share2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ExportService } from "../services/export/ExportService";
@@ -30,6 +30,21 @@ export function SharePage() {
   };
 
   const [empaquetando, setEmpaquetando] = useState(false);
+
+  /**
+   * Enlace con el itinerario dentro. Sin servidor: los datos viajan tras la
+   * almohadilla de la dirección, que el navegador no envía a ninguna parte.
+   */
+  async function copiarEnlace() {
+    const resultado = await SharingService.enlaceDeItinerario(state.trip, state.stopsById);
+    if ("error" in resultado) {
+      pushToast(resultado.error, "error");
+      return;
+    }
+    const compartido = await SharingService.shareSummary(state.trip, resultado.url);
+    if (compartido.kind === "clipboard") pushToast("Enlace copiado. Pégalo donde quieras.", "success");
+    else if (compartido.kind === "unsupported") pushToast(compartido.reason, "error");
+  }
 
   /**
    * Saca las fotos del viaje a la carpeta de Descargas.
@@ -95,6 +110,7 @@ export function SharePage() {
         <ActionRow icon={FileJson} label="Exportar JSON completo" onClick={() => handleDownload(() => ExportService.downloadJSON(exportable), "JSON")} />
         <ActionRow icon={MapIcon} label="Exportar ruta GPX" onClick={() => handleDownload(() => ExportService.downloadGPX(state.trip, Object.values(state.stopsById)), "GPX")} />
         <ActionRow icon={Download} label="Exportar paradas GeoJSON" onClick={() => handleDownload(() => ExportService.downloadGeoJSON(Object.values(state.stopsById)), "GeoJSON")} />
+        <ActionRow icon={Link2} label="Compartir el itinerario por enlace" onClick={copiarEnlace} />
         <ActionRow icon={Images} label={empaquetando ? "Preparando el ZIP…" : "Exportar mis fotos (ZIP)"} onClick={exportarFotos} />
         <ActionRow icon={QrCode} label={busy ? "Generando QR…" : "Generar código QR"} onClick={handleGenerateQR} />
       </div>
