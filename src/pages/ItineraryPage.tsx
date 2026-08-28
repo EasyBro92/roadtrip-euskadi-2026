@@ -7,6 +7,7 @@ import { useDaySwipe } from "../hooks/useDaySwipe";
 import { DayHeader } from "../features/itinerary/DayHeader";
 import { FilteredStopList } from "../features/itinerary/FilteredStopList";
 import { AvisoDuracion } from "../features/itinerary/AvisoDuracion";
+import { ChipAviso } from "../features/itinerary/ChipAviso";
 import { LocationBreak } from "../features/itinerary/LocationBreak";
 import { SortableStopCard } from "../features/itinerary/SortableStopCard";
 import { AvisoTiempo } from "../features/itinerary/AvisoTiempo";
@@ -132,18 +133,26 @@ export function ItineraryPage() {
         <div>
           <DayHeader day={activeDay} totalDays={days.length} />
           {/*
-           * Las horas del día, no el número de paradas.
+           * Los cuatro avisos del día en una misma fila, y lo que no cabe pasa
+           * a la siguiente.
            *
-           * El aviso de antes contaba paradas, y contar paradas no distingue
-           * nueve sitios del casco viejo de Bilbao — que caben en una mañana
-           * andando — de doce repartidos entre Gaztelugatxe y Hondarribia.
+           * Cada uno ocupaba su propia tira gris a lo ancho: entre los cuatro
+           * se comían 170 px y al abrir el itinerario se veía una parada y
+           * media. Los que no tienen nada malo que decir son pastillas y
+           * comparten línea; el que sí — lluvia, una noche sin hotel, un día
+           * que no cabe — se declara `w-full` y se queda solo con su
+           * explicación y sus botones.
+           *
+           * Las horas del día, además, no son el número de paradas: nueve
+           * sitios del casco viejo de Bilbao caben en una mañana andando y
+           * doce entre Gaztelugatxe y Hondarribia no caben en un día.
            */}
-          <AvisoDuracion stops={stops} />
-          {/* A lo ancho, no en dos columnas: probado en fila, el nombre del
-              hotel se partía en tres líneas y ocupaba casi lo mismo. */}
-          <AvisoTiempo fecha={activeDay.date} stops={stops} />
-          <AvisoAlojamiento activeDayId={activeDayId} />
-          <AvisoCierres stops={stops} fecha={activeDay.date} />
+          <div className="mt-2 flex flex-wrap items-start gap-2">
+            <AvisoDuracion stops={stops} />
+            <AvisoTiempo fecha={activeDay.date} stops={stops} />
+            <AvisoAlojamiento activeDayId={activeDayId} />
+            <AvisoCierres stops={stops} fecha={activeDay.date} />
+          </div>
         </div>
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -199,8 +208,18 @@ function AvisoCierres({ stops, fecha }: { stops: Stop[]; fecha: ISODate }) {
 
   if (cerradas.length === 0 && sinComprobar === 0 && sinHorario === 0) return null;
 
+  // Nada cerrado: lo único que queda es la invitación a comprobar horarios, y
+  // eso es un botón pequeño, no una tira a lo ancho.
+  if (cerradas.length === 0 && !comprobando && sinComprobar > 0) {
+    return (
+      <ChipAviso icon={Clock} onClick={comprobar}>
+        Comprobar {sinComprobar} {sinComprobar === 1 ? "horario" : "horarios"}
+      </ChipAviso>
+    );
+  }
+
   return (
-    <div className="mt-2 rounded-xl bg-(--color-surface-muted) p-2.5 text-xs text-(--color-text)">
+    <div className="w-full rounded-xl bg-(--color-surface-muted) p-2.5 text-xs text-(--color-text)">
       {cerradas.length > 0 && (
         <div className="flex items-start gap-2">
           <Clock size={15} className="mt-0.5 shrink-0 text-(--color-cancelled)" aria-hidden="true" />
@@ -247,8 +266,22 @@ function AvisoAlojamiento({ activeDayId }: { activeDayId: string }) {
   const sobrantes = hoy?.sobrantes ?? [];
   if (!hoy?.nombre && !faltaHoy) return null;
 
+  /*
+   * Con hotel apuntado y sin líos, el nombre es un dato y va en pastilla. La
+   * tira entera se guarda para cuando falta dónde dormir o hay dos
+   * alojamientos la misma noche: ahí sí hay algo que hacer.
+   */
+  if (hoy?.nombre && sobrantes.length === 0) {
+    return (
+      <ChipAviso icon={BedDouble} color="var(--color-hotel)">
+        {hoy.nombre}
+        {hoy.totalNoches > 1 && ` · noche ${hoy.numeroDeNoche}/${hoy.totalNoches}`}
+      </ChipAviso>
+    );
+  }
+
   return (
-    <div className="mt-2 flex items-start gap-2 rounded-xl bg-(--color-surface-muted) p-2.5 text-xs text-(--color-text)">
+    <div className="flex w-full items-start gap-2 rounded-xl bg-(--color-surface-muted) p-2.5 text-xs text-(--color-text)">
       <BedDouble size={15} className={`mt-0.5 shrink-0 ${faltaHoy ? "text-(--color-skipped)" : "text-(--color-hotel)"}`} aria-hidden="true" />
       <div className="min-w-0 flex-1 space-y-1">
       {hoy?.nombre ? (

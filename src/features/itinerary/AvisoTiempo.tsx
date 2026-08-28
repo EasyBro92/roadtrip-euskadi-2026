@@ -1,4 +1,5 @@
 import { CloudRain, Sun, Umbrella } from "lucide-react";
+import { ChipAviso } from "./ChipAviso";
 import { useEffect, useState } from "react";
 import {
   LLUVIA_PREOCUPANTE_PCT,
@@ -53,8 +54,17 @@ export function AvisoTiempo({ fecha, stops }: { fecha: ISODate; stops: Stop[] })
 
   const Icono = preocupa ? CloudRain : Sun;
 
+  // Sin lluvia de por medio, el parte del día es un dato: cabe en una pastilla.
+  if (!preocupa) {
+    return (
+      <ChipAviso icon={Sun} color="var(--color-skipped)">
+        {dia.maxC}° / {dia.minC}°
+      </ChipAviso>
+    );
+  }
+
   return (
-    <div className="mt-2 flex items-start gap-2 rounded-xl bg-(--color-surface-muted) p-2.5 text-xs text-(--color-text)">
+    <div className="flex w-full items-start gap-2 rounded-xl bg-(--color-surface-muted) p-2.5 text-xs text-(--color-text)">
       <Icono size={15} className={`mt-0.5 shrink-0 ${preocupa ? "text-(--color-link)" : "text-(--color-skipped)"}`} aria-hidden="true" />
       <div className="min-w-0 flex-1 space-y-1">
         <p>

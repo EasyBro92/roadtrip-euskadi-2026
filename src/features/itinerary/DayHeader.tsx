@@ -30,7 +30,7 @@ export function DayHeader({ day, totalDays }: { day: TripDay; totalDays: number 
   }
 
   return (
-    <div className="rounded-(--radius-card) border bg-(--color-surface) p-3" style={{ borderColor: "var(--color-border)" }}>
+    <div className="rounded-(--radius-card) border bg-(--color-surface) p-2.5" style={{ borderColor: "var(--color-border)" }}>
       <div className="flex items-center gap-2">
         <button
           onClick={() => mover(-1)}
@@ -61,17 +61,24 @@ export function DayHeader({ day, totalDays }: { day: TripDay; totalDays: number 
         </button>
       </div>
 
-      <p className="mt-0.5 text-center text-xs text-(--color-text-muted)">{formatDateLong(day.date)}</p>
-
-      {/* La localidad va en grande justo encima de las paradas: es lo primero
-          que se busca al mirar un día del viaje. */}
-      <input
-        value={day.city ?? ""}
-        onChange={(e) => updateDay(day.id, { city: e.target.value })}
-        aria-label="Ciudad o localidad del día"
-        placeholder="¿En qué ciudad? (opcional)"
-        className="mt-2 w-full rounded-lg bg-transparent px-2 py-1 text-lg font-semibold text-(--color-text) placeholder:text-base placeholder:font-normal placeholder:text-(--color-text-muted)"
-      />
+      {/*
+       * La fecha y la localidad comparten línea.
+       *
+       * Iban en dos filas más, una debajo de otra, y la tarjeta del día se
+       * llevaba 132 px antes de la primera parada. Son dos datos cortos: en
+       * la misma línea se leen igual de bien y sobra media pantalla.
+       */}
+      <div className="mt-0.5 flex items-baseline gap-1.5 px-2 text-xs text-(--color-text-muted)">
+        <span className="shrink-0">{formatDateLong(day.date)}</span>
+        <span aria-hidden="true">·</span>
+        <input
+          value={day.city ?? ""}
+          onChange={(e) => updateDay(day.id, { city: e.target.value })}
+          aria-label="Ciudad o localidad del día"
+          placeholder="¿en qué ciudad?"
+          className="min-w-0 flex-1 rounded-lg bg-transparent py-0.5 text-sm font-semibold text-(--color-text) placeholder:text-xs placeholder:font-normal placeholder:text-(--color-text-muted)"
+        />
+      </div>
     </div>
   );
 }

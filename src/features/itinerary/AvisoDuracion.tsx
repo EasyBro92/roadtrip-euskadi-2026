@@ -1,4 +1,5 @@
 import { Clock, TriangleAlert } from "lucide-react";
+import { ChipAviso } from "./ChipAviso";
 import type { Stop } from "../../types";
 import { duracionDelDia } from "./duracionDia";
 import { formatearMinutos } from "./tramos";
@@ -19,19 +20,14 @@ export function AvisoDuracion({ stops }: { stops: Stop[] }) {
   const desglose = `${formatearMinutos(minutosVisitas)} de visitas y ${formatearMinutos(minutosCamino)} de camino`;
 
   if (nivel === "holgado") {
-    return (
-      <p className="mt-2 flex items-center gap-1.5 text-xs text-(--color-text-muted)">
-        <Clock size={13} className="shrink-0" aria-hidden="true" />
-        Unas {formatearMinutos(minutosTotales)} en total: {desglose}.
-      </p>
-    );
+    return <ChipAviso icon={Clock}>{formatearMinutos(minutosTotales)} de día</ChipAviso>;
   }
 
   const imposible = nivel === "imposible";
 
   return (
     <div
-      className="mt-2 flex items-start gap-2 rounded-xl p-2.5 text-xs text-(--color-text)"
+      className="flex w-full items-start gap-2 rounded-xl p-2.5 text-xs text-(--color-text)"
       style={{ background: imposible ? "color-mix(in srgb, var(--color-cancelled) 14%, transparent)" : "color-mix(in srgb, var(--color-skipped) 18%, transparent)" }}
     >
       {imposible ? (

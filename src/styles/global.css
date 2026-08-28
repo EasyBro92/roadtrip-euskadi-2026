@@ -69,6 +69,31 @@ a,
   min-width: 44px;
 }
 
+/*
+ * Controles que viven dentro de una línea de texto.
+ *
+ * La regla de arriba da 44px de alto mínimo a todo lo que se toca, y para un
+ * botón de verdad está bien. Pero el separador entre dos paradas es una
+ * etiqueta — "267 km aprox. · 4 h 19 min" — que además se puede tocar para
+ * cambiar cómo llegas, y ese mínimo le metía 52px de alto: entre cada dos
+ * paradas del itinerario había más aire que tarjeta, y la lista parecía el
+ * doble de larga de lo que es.
+ *
+ * Aquí el alto lo pone el contenido, y la zona que responde al dedo se
+ * agranda por fuera con un pseudo-elemento. Se sigue tocando igual de fácil
+ * sin empujar el diseño.
+ */
+.control-en-linea {
+  min-height: 0;
+  position: relative;
+}
+
+.control-en-linea::after {
+  content: "";
+  position: absolute;
+  inset: -10px -4px;
+}
+
 :focus-visible {
   outline: 2px solid var(--color-navigation);
   outline-offset: 2px;

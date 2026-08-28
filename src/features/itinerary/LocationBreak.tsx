@@ -43,13 +43,22 @@ export function LocationBreak({ metros, stopId }: { metros: number; stopId?: str
   }
 
   return (
-    <div className="flex items-center gap-2 py-1">
-      <span className="h-px flex-1 bg-(--color-border)" aria-hidden="true" />
+    /*
+     * Una línea vertical que atraviesa el hueco, con la etiqueta encima.
+     *
+     * Antes eran dos rayas horizontales a los lados, y eso corta la lista en
+     * rodajas: cada parada quedaba suelta en su recuadro. Un hilo de arriba
+     * abajo hace lo contrario — enseña que de una parada se va a la
+     * siguiente —, que es como lo dibujan las apps de rutas.
+     */
+    <div className="relative flex items-center justify-center">
+      <span className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-(--color-border)" aria-hidden="true" />
       <button
         onClick={cambiar}
         disabled={!stopId}
         aria-label={stopId ? `${ETIQUETA_MODO[modo]}. Cambiar cómo llegas` : undefined}
-        className="flex items-center gap-1.5 rounded-full bg-(--color-surface-muted) px-2.5 py-1 text-[11px] font-medium text-(--color-text-muted)"
+        className="control-en-linea relative flex items-center gap-1.5 rounded-full border bg-(--color-surface) px-2.5 py-0.5 text-[11px] font-medium text-(--color-text-muted)"
+        style={{ borderColor: "var(--color-border)" }}
       >
         <Icono size={12} aria-hidden="true" />
         <span>{formatKm(metros)} aprox.</span>
@@ -57,7 +66,6 @@ export function LocationBreak({ metros, stopId }: { metros: number; stopId?: str
             El espacio va explícito: en JSX dos elementos pegados no dejan hueco. */}
         {minutos != null && <span className="text-(--color-text)">&nbsp;· {formatearMinutos(minutos)}</span>}
       </button>
-      <span className="h-px flex-1 bg-(--color-border)" aria-hidden="true" />
     </div>
   );
 }
