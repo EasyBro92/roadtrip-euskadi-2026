@@ -16,8 +16,22 @@ export interface NocheDelDia {
   sobrantes: string[];
 }
 
+/**
+ * Dos noches en el mismo sitio, aunque el nombre no sea idéntico.
+ *
+ * Duplicar una parada le añade "(copia)", y así es como se apunta de verdad
+ * una estancia de varias noches: en el viaje de Euskadi el hotel de Bilbao
+ * está como "Ibis budget bilbao" el día 2 y "Ibis budget bilbao (copia)" el
+ * día 3. Comparando el nombre tal cual, la app los tomaba por dos hoteles
+ * distintos y nunca decía "noche 1 de 2".
+ */
 function mismoSitio(a: string, b: string): boolean {
-  const limpio = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+  const limpio = (s: string) =>
+    s
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .replace(/\s*\(copia(\s+\d+)?\)$/, "");
   return limpio(a) === limpio(b);
 }
 

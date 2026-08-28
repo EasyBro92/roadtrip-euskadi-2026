@@ -104,3 +104,24 @@ describe("dos alojamientos el mismo día", () => {
     expect(nochesPorDia(days, stopsById)[0].sobrantes).toEqual([]);
   });
 });
+
+describe("estancias apuntadas con Duplicar", () => {
+  it('agrupa "(copia)" como la misma estancia', () => {
+    // Es como se apunta de verdad una estancia de varias noches: en el viaje
+    // de Euskadi, el Ibis de Bilbao está duplicado en los días 2 y 3.
+    const { days, stopsById } = viaje(["Ibis budget bilbao", "Ibis budget bilbao (copia)", null]);
+    const noches = nochesPorDia(days, stopsById);
+
+    expect(noches.map((n) => `${n.numeroDeNoche}/${n.totalNoches}`)).toEqual(["1/2", "2/2", "1/1"]);
+  });
+
+  it("agrupa también las copias numeradas", () => {
+    const { days, stopsById } = viaje(["Hotel", "Hotel (copia)", "Hotel (copia 2)"]);
+    expect(nochesPorDia(days, stopsById)[0].totalNoches).toBe(3);
+  });
+
+  it("no junta dos hoteles distintos por llevar copia", () => {
+    const { days, stopsById } = viaje(["Ibis Bilbao", "Pensión Bretxa (copia)"]);
+    expect(nochesPorDia(days, stopsById)[0].totalNoches).toBe(1);
+  });
+});
