@@ -54,9 +54,15 @@ export function EditarGastoModal({ expenseId }: { expenseId: string }) {
    */
   const [fotoId, setFotoId] = useState<string | null>(gasto?.receiptPhotoId ?? null);
   const [miniatura, setMiniatura] = useState<string | null>(null);
-  const { abrir: abrirFoto, input: inputFoto, subiendo } = useAnadirFotos(
-    { stopId: gasto?.stopId ?? null, dayId: gasto?.dayId ?? null },
-    (ids) => setFotoId(ids[0] ?? null),
+  /*
+   * Sin día ni parada a propósito.
+   *
+   * Colgándola del día, el ticket entraba en la galería del Diario y llegó a
+   * salir de portada: la foto que abre el día del Guggenheim era el recibo
+   * del hotel. El ticket pertenece al gasto, y desde el gasto se encuentra.
+   */
+  const { abrir: abrirFoto, input: inputFoto, subiendo } = useAnadirFotos({ stopId: null, dayId: null }, (ids) =>
+    setFotoId(ids[0] ?? null),
   );
 
   useEffect(() => {

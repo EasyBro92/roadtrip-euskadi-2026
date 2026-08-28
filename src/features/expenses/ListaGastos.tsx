@@ -1,4 +1,5 @@
 import { Paperclip, Receipt } from "lucide-react";
+import { PhotoService } from "../../services/photos/PhotoService";
 import { SwipeToDelete } from "../../components/SwipeToDelete";
 import { Vacio } from "../../components/Vacio";
 import { useTripStore } from "../../stores/useTripStore";
@@ -48,6 +49,9 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
       title: "Borrar gasto",
       message: `¿Borrar ${formatEUR(e.amountEUR)} de ${descripcion}? No se puede deshacer.`,
       onConfirm: () => {
+        // El ticket no le sirve a nadie sin su gasto, y ocupa sitio de verdad
+        // en el móvil: se va con él.
+        if (e.receiptPhotoId) void PhotoService.remove(e.receiptPhotoId);
         deleteExpense(e.id);
         pushToast("Gasto borrado.", "success");
       },

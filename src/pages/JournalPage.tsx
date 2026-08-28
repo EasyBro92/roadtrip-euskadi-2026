@@ -1,11 +1,12 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { Camera, CheckCircle2, Circle, Clock, Gauge, Wallet } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDaySwipe } from "../hooks/useDaySwipe";
 import { useAnadirFotos } from "../hooks/useAnadirFotos";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
 import { db } from "../services/storage/db";
 import { useTripStore } from "../stores/useTripStore";
+import type { TripDay } from "../types";
 import { CategoryThumb } from "../components/CategoryThumb";
 import { formatDateLong, formatDateShort, formatEUR, formatKm } from "../utils/format";
 import { haversineDistanceMeters } from "../utils/geo";
@@ -71,6 +72,55 @@ export function JournalPage() {
   );
 }
 
+
+/**
+ * La foto que abre el día.
+ *
+ * De 37 paradas, 36 traen ya una fotografía, y sólo se veían a 56 px en una
+ * miniatura. Un diario que empieza con la foto del sitio se parece a un
+ * diario; una lista de tarjetas se parece a una hoja de cálculo.
+ *
+ * Manda una foto tuya del día sobre la de la parada: si has hecho fotos, el
+ * recuerdo es el tuyo, no el de Wikimedia.
+ */
+function PortadaDia({ day, blob, imagenStop }: { day: TripDay; blob?: Blob; imagenStop?: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!blob) {
+      setUrl(null);
+      return;
+    }
+    // Sin revocarla, cada cambio de día deja una foto entera en memoria.
+    const creada = URL.createObjectURL(blob);
+    setUrl(creada);
+    return () => URL.revokeObjectURL(creada);
+  }, [blob]);
+
+  const fondo = url ?? imagenStop;
+
+  if (!fondo) {
+    return (
+      <header className="pt-1">
+        <h2 className="text-lg font-medium text-(--color-text)">{day.title}</h2>
+        <p className="text-sm capitalize text-(--color-text-muted)">{formatDateLong(day.date)}</p>
+      </header>
+    );
+  }
+
+  return (
+    <div className="relative mt-1 h-44 overflow-hidden rounded-(--radius-card)">
+      <img src={fondo} alt="" className="h-full w-full object-cover" />
+      {/* El degradado no es adorno: sin él el texto blanco desaparece sobre
+          un cielo claro, que es la mitad superior de casi cualquier foto. */}
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3.5 pt-12">
+        <h2 className="text-lg font-semibold text-white">{day.title}</h2>
+        <p className="text-sm capitalize text-white/85">{formatDateLong(day.date)}</p>
+      </div>
+    </div>
+  );
+}
+
 function DayEntry({ dayId }: { dayId: string }) {
   const trip = useTripStore((s) => s.trip);
   const expenses = useTripStore((s) => s.expenses);
@@ -100,6 +150,9 @@ function DayEntry({ dayId }: { dayId: string }) {
 
   const totalMinutes = dayStops.reduce((sum, s) => sum + s.recommendedDurationMinutes, 0);
 
+  // La marcada como portada, si no una favorita, si no la primera que hubiera.
+  const portada = photos?.find((p) => p.isHero) ?? photos?.find((p) => p.isFavorite) ?? photos?.[0];
+
   function saveNote() {
     if (note) updateNote(note.id, { text: draft });
     else if (draft.trim()) addNote({ targetType: "day", targetId: dayId, text: draft, tags: [], favorite: false });
@@ -109,10 +162,7 @@ function DayEntry({ dayId }: { dayId: string }) {
     <article className="pb-2">
       {inputFotos}
 
-      <header className="pt-1">
-        <h2 className="text-lg font-medium text-(--color-text)">{day.title}</h2>
-        <p className="text-sm capitalize text-(--color-text-muted)">{formatDateLong(day.date)}</p>
-      </header>
+      <PortadaDia day={day} blob={portada?.blob} imagenStop={dayStops.find((s) => s.heroImage)?.heroImage} />
 
       {/* Métricas del día en tarjetas, en vez de una línea de texto suelta. */}
       <div className="mt-3 grid grid-cols-4 gap-2">
