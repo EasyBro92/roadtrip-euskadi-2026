@@ -888,6 +888,10 @@ export const useTripStore = create<TripStoreState>()(
         stopsById: state.stopsById,
         places: state.places,
         expenses: state.expenses,
+        // Sin esto el bote se vaciaba al recargar: el estado existía en memoria
+        // pero nunca se escribía. Todo lo que el usuario escribe tiene que
+        // estar en esta lista, o desaparece al cerrar la app.
+        aportaciones: state.aportaciones,
         refuels: state.refuels,
         favorites: state.favorites,
         notes: state.notes,
