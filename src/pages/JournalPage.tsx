@@ -8,6 +8,7 @@ import { db } from "../services/storage/db";
 import { useTripStore } from "../stores/useTripStore";
 import type { TripDay } from "../types";
 import { CategoryThumb } from "../components/CategoryThumb";
+import { Vacio } from "../components/Vacio";
 import { formatDateLong, formatDateShort, formatEUR, formatKm } from "../utils/format";
 import { haversineDistanceMeters } from "../utils/geo";
 
@@ -227,18 +228,14 @@ function DayEntry({ dayId }: { dayId: string }) {
           </div>
         </div>
       ) : (
-        <div className="mt-2 flex flex-col items-center gap-2 rounded-2xl bg-(--color-surface-muted) py-6 text-center">
-          <Camera size={20} className="text-(--color-text-muted)" aria-hidden="true" />
-          <p className="text-xs text-(--color-text-muted)">Aún no hay fotos de este día.</p>
-          {/* Antes esto sólo explicaba dónde ir a buscarlas. Explicar un camino
-              no es lo mismo que llevarte: el botón las añade aquí mismo. */}
-          <button
-            onClick={abrirFotos}
-            disabled={subiendoFotos}
-            className="rounded-full bg-(--color-navigation) px-4 py-2 text-sm font-medium text-white"
-          >
-            {subiendoFotos ? "Añadiendo…" : "Hacer o añadir foto"}
-          </button>
+        <div className="mt-2 rounded-2xl bg-(--color-surface-muted)">
+          {/* El botón añade las fotos aquí mismo: explicar dónde ir a buscarlas
+              no es lo mismo que llevarte. */}
+          <Vacio
+            icon={Camera}
+            titulo="Todavía no hay fotos de este día"
+            accion={{ etiqueta: subiendoFotos ? "Añadiendo…" : "Hacer o añadir foto", onClick: abrirFotos }}
+          />
         </div>
       )}
 

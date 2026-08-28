@@ -1,4 +1,5 @@
-import { Pencil } from "lucide-react";
+import { Pencil, PiggyBank } from "lucide-react";
+import { Vacio } from "../../components/Vacio";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { ExpenseCategory } from "../../types";
@@ -119,9 +120,7 @@ export function PanelPresupuesto({ gastadoPorCategoria }: { gastadoPorCategoria:
       </ul>
 
       {CATEGORIAS.every(({ id }) => !topes[id] && (gastadoPorCategoria[id] ?? 0) === 0) && (
-        <p className="mt-2 text-xs text-(--color-text-muted)">
-          Aún no hay gastos. Cuando apuntes alguno podrás ponerle un tope a cada categoría.
-        </p>
+        <Vacio icon={PiggyBank} titulo="Sin gastos todavía" texto="En cuanto apuntes el primero podrás ponerle un tope a cada categoría." />
       )}
     </div>
   );

@@ -88,9 +88,8 @@ export function NearbyPage() {
       )}
 
       {!loading && results === null && (
-        <div className="flex flex-col items-center gap-2 rounded-(--radius-card) bg-(--color-surface-muted) py-10 text-center">
-          <LocateFixed size={22} className="text-(--color-text-muted)" aria-hidden="true" />
-          <p className="max-w-[240px] text-sm text-(--color-text-muted)">Elige una categoría para buscar sitios cercanos.</p>
+        <div className="rounded-(--radius-card) bg-(--color-surface-muted)">
+          <Vacio icon={LocateFixed} titulo="Elige qué buscas" texto="Gasolineras, farmacias, talleres… se busca alrededor de donde estés." />
         </div>
       )}
 
