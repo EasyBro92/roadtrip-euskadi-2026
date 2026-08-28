@@ -1,5 +1,6 @@
 import { Check, MapPin, Navigation, Pencil, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAperturaDesde, type Origen } from "../../hooks/useAperturaDesde";
 import { CategoryThumb } from "../../components/CategoryThumb";
 import { StarRatingInput } from "../../components/StarRatingInput";
 import { useTripStore } from "../../stores/useTripStore";
@@ -20,7 +21,7 @@ import { StopDetailTabs } from "../map/StopDetailTabs";
  * que ya se enseña desde el mapa, para no tener dos verdades distintas de la
  * misma parada.
  */
-export function FichaParadaModal({ stopId }: { stopId: string }) {
+export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: Origen }) {
   const stop = useTripStore((s) => s.stopsById[stopId]);
   const setStopVisited = useTripStore((s) => s.setStopVisited);
   const setCurrentStop = useTripStore((s) => s.setCurrentStop);
@@ -29,6 +30,8 @@ export function FichaParadaModal({ stopId }: { stopId: string }) {
   const openModal = useUIStore((s) => s.openModal);
   const pushToast = useUIStore((s) => s.pushToast);
   const navigate = useNavigate();
+
+  const { panel, fondo, cerrar } = useAperturaDesde(origen, closeModal);
 
   if (!stop) return null;
 
@@ -40,10 +43,12 @@ export function FichaParadaModal({ stopId }: { stopId: string }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[2000] flex items-end justify-center bg-black/40" onClick={closeModal}>
+    <div ref={fondo} className="fixed inset-0 z-[2000] flex items-end justify-center bg-black/40" onClick={cerrar}>
       <div
+        ref={panel}
         className="safe-bottom flex max-h-[88dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-(--radius-sheet) bg-(--color-surface)"
         onClick={(e) => e.stopPropagation()}
+        style={{ willChange: "transform, opacity" }}
       >
         <div className="min-h-0 flex-1 overflow-y-auto">
           {/* La foto y el nombre, juntos. El degradado no es adorno: sin él el
@@ -53,7 +58,7 @@ export function FichaParadaModal({ stopId }: { stopId: string }) {
 
             <button
               aria-label="Cerrar"
-              onClick={closeModal}
+              onClick={cerrar}
               className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm"
             >
               <X size={18} aria-hidden="true" />

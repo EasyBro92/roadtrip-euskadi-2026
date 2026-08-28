@@ -18,7 +18,7 @@ export function ModalHost() {
 
   if (modal.type === "stop-editor") return <StopEditorModal stopId={modal.stopId} dayId={modal.dayId} />;
 
-  if (modal.type === "ficha-parada") return <FichaParadaModal stopId={modal.stopId} />;
+  if (modal.type === "ficha-parada") return <FichaParadaModal stopId={modal.stopId} origen={modal.origen} />;
 
   if (modal.type === "day-picker") return <DayPickerModal title={modal.title} message={modal.message} onPick={modal.onPick} />;
 

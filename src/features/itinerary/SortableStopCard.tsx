@@ -42,6 +42,7 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
     <div
       ref={setNodeRef}
       style={style}
+      data-tarjeta-parada=""
       className="relative flex items-center gap-2 rounded-(--radius-card) border bg-(--color-surface) p-2.5 shadow-(--shadow-card)"
     >
       <button
@@ -64,7 +65,14 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
          * mover no se pisan.
          */}
         <button
-          onClick={() => openModal({ type: "ficha-parada", stopId: stop.id })}
+          onClick={(e) => {
+            // La tarjeta entera, no sólo este botón: la ficha tiene que
+            // crecer desde el rectángulo que se ve, no desde el trozo de
+            // dentro que responde al toque.
+            const tarjeta = e.currentTarget.closest("[data-tarjeta-parada]") ?? e.currentTarget;
+            const r = tarjeta.getBoundingClientRect();
+            openModal({ type: "ficha-parada", stopId: stop.id, origen: { x: r.x, y: r.y, w: r.width, h: r.height } });
+          }}
           className="flex w-full items-center gap-2.5 text-left"
           aria-label={`Abrir ${stop.name}`}
         >
