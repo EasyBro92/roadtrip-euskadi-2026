@@ -3,6 +3,7 @@ import { estadoDelBote } from "../../services/expenses/bote";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import { formatEUR } from "../../utils/format";
+import { useDuenoDelBote } from "./useDuenoDelBote";
 
 /**
  * El bote común: dinero que alguien adelanta para los gastos de todos.
@@ -22,6 +23,7 @@ export function PanelBote() {
 
   const bote = estadoDelBote(expenses, aportaciones);
   const vacio = aportaciones.length === 0;
+  const dueno = useDuenoDelBote();
 
   function anadir() {
     const poner = (travelerId: string) =>
@@ -56,6 +58,7 @@ export function PanelBote() {
       <div className="flex items-center justify-between gap-2">
         <h2 className="flex items-center gap-1.5 text-sm font-semibold text-(--color-text)">
           <PiggyBank size={15} className="text-(--color-link)" aria-hidden="true" /> Bote común
+          {dueno && <span className="font-normal text-(--color-text-muted)">de {dueno}</span>}
         </h2>
         <button onClick={anadir} className="flex items-center gap-1 text-xs font-medium text-(--color-link)">
           <Plus size={12} aria-hidden="true" /> Poner dinero
@@ -71,7 +74,7 @@ export function PanelBote() {
           <div className="mt-2 flex items-baseline justify-between gap-2">
             <p className={`text-2xl font-medium tracking-tight ${bote.restante < 0 ? "text-(--color-cancelled)" : "text-(--color-text)"}`}>{formatEUR(bote.restante)}</p>
             <p className="shrink-0 text-xs text-(--color-text-muted)">
-              quedan de {formatEUR(bote.totalAportado)}
+              {bote.restante < 0 ? <>de más sobre los {formatEUR(bote.totalAportado)} puestos</> : <>quedan de {formatEUR(bote.totalAportado)}</>}
             </p>
           </div>
 
@@ -87,18 +90,18 @@ export function PanelBote() {
 
           {bote.restante < 0 && (
             /*
-             * Gastar del bote más de lo que hay no es un aviso estético: son
-             * euros que no ha puesto nadie, y hasta apuntar quién los puso las
-             * cuentas no pueden cuadrar. Por eso se dice la cifra exacta y se
-             * ofrece arreglarlo aquí mismo.
+             * Que del bote salga más de lo que se metió no es un error que haya
+             * que arreglar antes de seguir: ese dinero lo ha adelantado quien
+             * puso el bote, y así está contado ya. Sólo se dice, por si lo puso
+             * otra persona o por si conviene volver a llenarlo.
              */
-            <div className="mt-2 rounded-xl bg-(--color-cancelled)/12 p-2.5 text-xs text-(--color-text)">
+            <div className="mt-2 rounded-xl bg-(--color-surface-muted) p-2.5 text-xs text-(--color-text)">
               <p>
-                Del bote han salido <strong>{formatEUR(bote.gastadoDelBote)}</strong> pero sólo se han puesto{" "}
-                <strong>{formatEUR(bote.totalAportado)}</strong>. Faltan <strong>{formatEUR(-bote.restante)}</strong> que no ha puesto nadie.
+                Han salido <strong>{formatEUR(-bote.restante)}</strong> más de lo que se puso.{" "}
+                {dueno ? <>Cuentan como adelantados por {dueno}.</> : <>Cuentan repartidos entre quienes lo llenaron.</>}
               </p>
               <button onClick={anadir} className="mt-1.5 font-medium text-(--color-link)">
-                Apuntar quién puso esos {formatEUR(-bote.restante)}
+                Los puso otra persona
               </button>
             </div>
           )}

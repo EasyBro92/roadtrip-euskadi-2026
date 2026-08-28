@@ -4,6 +4,7 @@ import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { ExpenseCategory } from "../../types";
 import { CATEGORIAS_GASTO } from "./categorias";
+import { useDuenoDelBote } from "./useDuenoDelBote";
 
 /**
  * Apuntar un gasto.
@@ -27,6 +28,8 @@ export function FormularioGasto() {
   const [pagador, setPagador] = useState(trip.travelers[0]?.id ?? "");
   const aportaciones = useTripStore((s) => s.aportaciones);
   const hayBote = aportaciones.length > 0;
+  // Sólo el nombre de pila: el botón comparte fila con el campo de sitio.
+  const dueno = useDuenoDelBote()?.split(" ")[0];
   /**
    * Con bote, lo normal es que el gasto salga de ahí: es el motivo de haber
    * adelantado el dinero. Por eso viene marcado y se desmarca si alguien paga
@@ -132,7 +135,7 @@ export function FormularioGasto() {
             className={`flex shrink-0 items-center gap-1.5 rounded-(--radius-control) border px-3 py-2 text-sm ${delBote ? "border-(--color-navigation) bg-(--color-navigation) font-medium text-white" : "bg-(--color-bg) text-(--color-text)"}`}
             style={!delBote ? { borderColor: "var(--color-border)" } : undefined}
           >
-            <PiggyBank size={14} aria-hidden="true" /> Bote
+            <PiggyBank size={14} aria-hidden="true" /> {dueno ?? "Bote"}
           </button>
         )}
         {trip.travelers.length > 1 && !(hayBote && delBote) && (

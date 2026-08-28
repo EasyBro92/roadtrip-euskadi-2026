@@ -5,6 +5,7 @@ import { useUIStore } from "../../stores/useUIStore";
 import type { ExpenseCategory } from "../../types";
 import { formatEUR } from "../../utils/format";
 import { CATEGORIAS_GASTO } from "./categorias";
+import { useDuenoDelBote } from "./useDuenoDelBote";
 
 /**
  * Editar un gasto ya apuntado.
@@ -43,6 +44,7 @@ export function EditarGastoModal({ expenseId }: { expenseId: string }) {
   const valor = Number.parseFloat(importe.replace(",", "."));
   const valido = Number.isFinite(valor) && valor > 0;
   const hayBote = aportaciones.length > 0;
+  const dueno = useDuenoDelBote();
 
   function guardar() {
     if (!valido) return;
@@ -132,7 +134,7 @@ export function EditarGastoModal({ expenseId }: { expenseId: string }) {
               className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${delBote ? "border-(--color-navigation) bg-(--color-navigation) font-medium text-white" : "bg-(--color-surface) text-(--color-text)"}`}
               style={!delBote ? { borderColor: "var(--color-border)" } : undefined}
             >
-              <PiggyBank size={13} aria-hidden="true" /> El bote
+              <PiggyBank size={13} aria-hidden="true" /> {dueno ? <>El bote de {dueno}</> : "El bote"}
             </button>
           )}
           {travelers.map((t) => {

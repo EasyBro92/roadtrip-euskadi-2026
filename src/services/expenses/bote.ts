@@ -26,7 +26,10 @@ export interface DetalleViajero {
   puso: number;
   /** Sólo lo que pagó directamente él. */
   deSuBolsillo: number;
-  /** Lo suyo del bote que ya se ha gastado. Lo que queda dentro no cuenta. */
+  /**
+   * Lo suyo del bote que ya se ha gastado. Lo que queda dentro no cuenta, y
+   * puede pasar de lo que puso si del bote ha salido más de lo que se metió.
+   */
   porElBote: number;
   /** Su parte de todo lo consumido. */
   debe: number;
@@ -64,7 +67,8 @@ export function detallePorViajero(gastos: Expense[], aportaciones: Aportacion[],
   }
 
   /*
-   * Del bote sólo cuenta como aportado lo que se ha gastado de verdad.
+   * Del bote cuenta como puesto lo que se ha gastado de verdad, repartido
+   * entre quienes lo llenaron y en la proporción en que lo llenaron.
    *
    * Lo que sigue dentro es dinero que vuelve a quien lo puso, no una
    * aportación al viaje. Contándolo entero salía que quien adelantó el dinero
@@ -72,12 +76,18 @@ export function detallePorViajero(gastos: Expense[], aportaciones: Aportacion[],
    * intacto la app llegaba a decir "las cuentas están saldadas" mientras uno
    * le debía dinero al otro.
    *
-   * Si se ha gastado más de lo que hay, la proporción se queda en 1: nadie ha
-   * puesto más de lo que puso.
+   * Si sale más de lo que se metió, la proporción pasa de 1 y quien llenó el
+   * bote figura poniendo esa diferencia. Es lo que ha pasado en la calle: el
+   * bote es su dinero, y si de ahí ha salido más, lo ha adelantado él. Topando
+   * en 1, esos euros no eran de nadie, los saldos dejaban de sumar cero y
+   * había que apuntar la diferencia a mano cada vez que se pasaba.
+   *
+   * Sin nada aportado no hay entre quiénes repartirlo, y entonces sí queda
+   * como gasto sin dueño: eso lo avisa la pantalla.
    */
   const totalAportado = aportaciones.reduce((s, a) => s + a.amountEUR, 0);
   const gastadoDelBote = gastos.filter((g) => g.kind === "actual" && g.pagadoDelBote).reduce((s, g) => s + g.amountEUR, 0);
-  const proporcionUsada = totalAportado > 0 ? Math.min(1, gastadoDelBote / totalAportado) : 0;
+  const proporcionUsada = totalAportado > 0 ? gastadoDelBote / totalAportado : 0;
 
   for (const a of aportaciones) {
     if (a.travelerId in porElBote) porElBote[a.travelerId] += a.amountEUR * proporcionUsada;
@@ -112,6 +122,18 @@ export function detallePorViajero(gastos: Expense[], aportaciones: Aportacion[],
 export function calcularSaldos(gastos: Expense[], aportaciones: Aportacion[], viajeros: ID[]): Record<ID, number> {
   const detalle = detallePorViajero(gastos, aportaciones, viajeros);
   return Object.fromEntries(Object.entries(detalle).map(([id, d]) => [id, d.saldo]));
+}
+
+/**
+ * Quién llena el bote, cuando lo llena una sola persona.
+ *
+ * Si sólo pone uno, "el bote" y esa persona son lo mismo, y las pantallas lo
+ * dicen con su nombre. Marcar un gasto como del bote no parece entonces que
+ * no lo pague nadie: se ve que sale del dinero que adelantó ella.
+ */
+export function quienLlenaElBote(aportaciones: Aportacion[]): ID | null {
+  const quienes = new Set(aportaciones.map((a) => a.travelerId));
+  return quienes.size === 1 ? [...quienes][0] : null;
 }
 
 export function estadoDelBote(gastos: Expense[], aportaciones: Aportacion[]): EstadoBote {

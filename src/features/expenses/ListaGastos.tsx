@@ -4,6 +4,7 @@ import { useUIStore } from "../../stores/useUIStore";
 import type { Expense } from "../../types";
 import { formatDateLong, formatEUR } from "../../utils/format";
 import { colorCategoria, etiquetaCategoria } from "./categorias";
+import { useDuenoDelBote } from "./useDuenoDelBote";
 
 /**
  * Los gastos, agrupados por día.
@@ -16,6 +17,7 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
   const stops = useTripStore((s) => s.stopsById);
   const travelers = useTripStore((s) => s.trip.travelers);
   const yo = useTripStore((s) => s.trip.miViajeroId);
+  const dueno = useDuenoDelBote();
   const deleteExpense = useTripStore((s) => s.deleteExpense);
   const openModal = useUIStore((s) => s.openModal);
   const pushToast = useUIStore((s) => s.pushToast);
@@ -91,7 +93,7 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
                           {etiquetaCategoria(e.category)}
                           {e.time && <> · {e.time}</>}
                           {parada && <> · {parada}</>}
-                          {e.pagadoDelBote ? <> · del bote</> : quien ? <> · pagó {quien}</> : null}
+                          {e.pagadoDelBote ? <> · del bote{dueno && <> de {dueno}</>}</> : quien ? <> · pagó {quien}</> : null}
                           {entre && <> · sólo {entre}</>}
                         </p>
                       </div>

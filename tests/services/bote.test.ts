@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calcularSaldos, detallePorViajero, estadoDelBote, type Aportacion } from "../../src/services/expenses/bote";
+import { calcularSaldos, detallePorViajero, estadoDelBote, quienLlenaElBote, type Aportacion } from "../../src/services/expenses/bote";
 import type { Expense } from "../../src/types";
 
 const VIAJEROS = ["ana", "luis"];
@@ -104,7 +104,7 @@ describe("estadoDelBote", () => {
 });
 
 describe("qué significa la suma de los saldos", () => {
-  it("suma cero sólo cuando el bote se ha gastado entero", () => {
+  it("suma cero cuando el bote se ha gastado entero", () => {
     // 200 dentro, 200 fuera: no queda dinero en ninguna hucha.
     const s = calcularSaldos([gasto(200, { pagadoDelBote: true })], [aportacion("ana", 200)], VIAJEROS);
     expect(suma(s)).toBeCloseTo(0, 6);
@@ -124,12 +124,21 @@ describe("qué significa la suma de los saldos", () => {
     expect(s.luis).toBeCloseTo(-100);
   });
 
-  it("si el bote se queda corto, lo que falta se ve en el saldo", () => {
-    // 400 gastados con 300 dentro: Ana no puede figurar como que puso 400.
+  it("suman cero aunque del bote salga más de lo que se metió", () => {
+    /*
+     * 400 gastados con 300 dentro. Esos 100 de más salieron del bolsillo de
+     * Ana, que es de quien es el bote, así que figura poniendo los 400.
+     *
+     * Antes se topaba en 300 y los otros 100 no eran de nadie: los saldos
+     * sumaban -100 y la liquidación no dejaba a todos a cero hasta que
+     * alguien apuntaba la diferencia a mano.
+     */
     const gastos = [gasto(400, { pagadoDelBote: true })];
     const s = calcularSaldos(gastos, [aportacion("ana", 300)], VIAJEROS);
-    expect(s.ana).toBeCloseTo(100);
-    expect(suma(s)).toBeCloseTo(-100, 6);
+
+    expect(s.ana).toBeCloseTo(200);
+    expect(s.luis).toBeCloseTo(-200);
+    expect(suma(s)).toBeCloseTo(0, 6);
   });
 });
 
@@ -206,14 +215,35 @@ describe("de dónde sale lo que puso cada uno", () => {
     expect(d.ana.puso).toBeCloseTo(160);
   });
 
-  it("nadie figura poniendo más de lo que puso aunque el bote se quede corto", () => {
-    // 200 dentro y 300 fuera: esos 100 no los ha puesto nadie, y la app no
-    // puede apuntárselos a Ana para que le cuadre la resta.
+  it("quien llena el bote adelanta lo que sale de más", () => {
+    // 200 dentro y 300 fuera: los 100 de diferencia los ha puesto Ana, que es
+    // la única que ha metido dinero. No hay que apuntarlos aparte.
     const d = detallePorViajero([gasto(300, { pagadoDelBote: true })], [aportacion("ana", 200)], VIAJEROS);
 
-    expect(d.ana.porElBote).toBeCloseTo(200);
-    expect(d.ana.puso).toBeCloseTo(200);
+    expect(d.ana.porElBote).toBeCloseTo(300);
+    expect(d.ana.puso).toBeCloseTo(300);
     expect(d.luis.puso).toBe(0);
+    expect(d.luis.saldo).toBeCloseTo(-150);
+  });
+
+  it("si el bote lo llenan varios, lo de más se reparte como se llenó", () => {
+    // 200 de Ana y 100 de Luis, y salen 330: cada uno ha adelantado un 10% de
+    // más. Con varios no se puede saber quién puso la diferencia, y repartirla
+    // igual que el bote es lo único que no favorece a nadie.
+    const d = detallePorViajero([gasto(330, { pagadoDelBote: true })], [aportacion("ana", 200), aportacion("luis", 100)], VIAJEROS);
+
+    expect(d.ana.porElBote).toBeCloseTo(220);
+    expect(d.luis.porElBote).toBeCloseTo(110);
+  });
+
+  it("del bote sin nada dentro no lo pone nadie", () => {
+    // Sin aportaciones no hay a quién repartirlo, y el saldo lo enseña: es el
+    // único caso que sigue necesitando que alguien diga quién puso el dinero.
+    const d = detallePorViajero([gasto(50, { pagadoDelBote: true })], [], VIAJEROS);
+
+    expect(d.ana.puso).toBe(0);
+    expect(d.luis.puso).toBe(0);
+    expect(d.ana.saldo).toBeCloseTo(-25);
   });
 
   it("lo que puso es siempre lo suelto más lo del bote", () => {
@@ -221,5 +251,21 @@ describe("de dónde sale lo que puso cada uno", () => {
     const d = detallePorViajero(gastos, [aportacion("ana", 90), aportacion("luis", 60)], VIAJEROS);
 
     for (const id of VIAJEROS) expect(d[id].puso).toBeCloseTo(d[id].deSuBolsillo + d[id].porElBote);
+  });
+});
+
+describe("quienLlenaElBote", () => {
+  it("da el nombre cuando lo pone una sola persona", () => {
+    // Con un solo dueño, "el bote" y esa persona son lo mismo, y decirlo con
+    // su nombre evita la duda de si marcar "bote" descuenta de ella.
+    expect(quienLlenaElBote([aportacion("ana", 200), aportacion("ana", 50)])).toBe("ana");
+  });
+
+  it("no elige uno si lo llenan varios", () => {
+    expect(quienLlenaElBote([aportacion("ana", 200), aportacion("luis", 50)])).toBeNull();
+  });
+
+  it("sin bote no hay nadie", () => {
+    expect(quienLlenaElBote([])).toBeNull();
   });
 });
