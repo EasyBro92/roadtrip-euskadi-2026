@@ -5,10 +5,9 @@ import { Graficas } from "../features/expenses/Graficas";
 import { ListaGastos } from "../features/expenses/ListaGastos";
 import { PanelBote } from "../features/expenses/PanelBote";
 import { PanelPresupuesto } from "../features/expenses/PanelPresupuesto";
-import { PanelReparto } from "../features/expenses/PanelReparto";
-import { TuSaldo } from "../features/expenses/TuSaldo";
+import { PanelPersonas } from "../features/expenses/PanelPersonas";
 import { ExportService } from "../services/export/ExportService";
-import { calcularSaldos } from "../services/expenses/bote";
+import { detallePorViajero } from "../services/expenses/bote";
 import { ExpenseService } from "../services/expenses/ExpenseService";
 import { useTripStore } from "../stores/useTripStore";
 import { formatEUR } from "../utils/format";
@@ -35,8 +34,8 @@ export function ExpensesPage() {
   const stats = useMemo(() => ExpenseService.computeStats(expenses, totalKm), [expenses, totalKm]);
   // Los saldos se calculan aparte de las estadísticas porque el bote cambia
   // quién ha puesto qué, y eso `computeStats` no lo sabe.
-  const saldos = useMemo(
-    () => calcularSaldos(expenses, aportaciones, trip.travelers.map((t) => t.id)),
+  const detalle = useMemo(
+    () => detallePorViajero(expenses, aportaciones, trip.travelers.map((t) => t.id)),
     [expenses, aportaciones, trip.travelers],
   );
 
@@ -56,9 +55,9 @@ export function ExpensesPage() {
         </button>
       </div>
 
-      {/* Primero lo tuyo, como hace Splitwise: si debes o te deben. El gasto
-          total del viaje es un dato del viaje, no tuyo, y va debajo. */}
-      <TuSaldo saldos={saldos} />
+      {/* Quién ha puesto qué, con todos en igualdad. El gasto total del viaje
+          va debajo: importa menos que saber cómo está repartido. */}
+      <PanelPersonas detalle={detalle} />
 
       <div className="mt-3 rounded-(--radius-card) border bg-(--color-surface) p-4 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
         <p className="text-xs text-(--color-text-muted)">Gastado en el viaje</p>
@@ -103,7 +102,6 @@ export function ExpensesPage() {
 
       <PanelPresupuesto gastadoPorCategoria={stats.byCategory} />
       <PanelBote />
-      <PanelReparto saldos={saldos} />
       <Graficas porCategoria={stats.byCategory} porDia={stats.byDay} dias={trip.days} />
     </div>
   );

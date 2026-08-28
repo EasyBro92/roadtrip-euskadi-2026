@@ -20,23 +20,36 @@ export interface EstadoBote {
   restante: number;
 }
 
+/** Lo que ha movido cada viajero, no sólo el neto. */
+export interface DetalleViajero {
+  /** Pagado de su bolsillo más su parte del bote ya gastada. */
+  puso: number;
+  /** Su parte de todo lo consumido. */
+  debe: number;
+  saldo: number;
+}
+
 /**
- * Saldo de cada viajero, contando el bote.
+ * Qué ha puesto y qué ha consumido cada viajero, contando el bote.
  *
  * La cuenta es una sola resta por persona:
  *
- *   lo que puso  = lo que pagó de su bolsillo + lo que metió en el bote
+ *   lo que puso  = lo que pagó de su bolsillo + su parte del bote ya gastada
  *   lo que debe  = su parte de todo lo gastado, venga del bote o no
  *   saldo        = puso - debe
  *
  * Así sale solo lo que hace falta: quien adelantó el dinero recupera lo que
- * sobra del bote, porque figura como puesto y no como gastado. No hay que
+ * sobra del bote, porque lo que sigue dentro no cuenta como puesto. No hay que
  * tratar "devolver el sobrante" como un caso aparte.
  *
  * Un gasto del bote no se le apunta a nadie como pagador: lo pagó el bote, y
  * quién lo puso ahí ya está contado en las aportaciones.
+ *
+ * Devuelve las tres cifras y no sólo el saldo porque con el neto no se puede
+ * enseñar quién ha gastado qué: dos personas con saldo cero pueden haber
+ * movido 20 € o 2.000 €.
  */
-export function calcularSaldos(gastos: Expense[], aportaciones: Aportacion[], viajeros: ID[]): Record<ID, number> {
+export function detallePorViajero(gastos: Expense[], aportaciones: Aportacion[], viajeros: ID[]): Record<ID, DetalleViajero> {
   const puso: Record<ID, number> = {};
   const debe: Record<ID, number> = {};
   for (const id of viajeros) {
@@ -81,9 +94,15 @@ export function calcularSaldos(gastos: Expense[], aportaciones: Aportacion[], vi
     for (const id of reparto) debe[id] += parte;
   }
 
-  const saldos: Record<ID, number> = {};
-  for (const id of viajeros) saldos[id] = puso[id] - debe[id];
-  return saldos;
+  const detalle: Record<ID, DetalleViajero> = {};
+  for (const id of viajeros) detalle[id] = { puso: puso[id], debe: debe[id], saldo: puso[id] - debe[id] };
+  return detalle;
+}
+
+/** Sólo el saldo de cada uno, que es lo que necesita la liquidación. */
+export function calcularSaldos(gastos: Expense[], aportaciones: Aportacion[], viajeros: ID[]): Record<ID, number> {
+  const detalle = detallePorViajero(gastos, aportaciones, viajeros);
+  return Object.fromEntries(Object.entries(detalle).map(([id, d]) => [id, d.saldo]));
 }
 
 export function estadoDelBote(gastos: Expense[], aportaciones: Aportacion[]): EstadoBote {
