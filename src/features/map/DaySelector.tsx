@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { diaNoCabe } from "../itinerary/duracionDia";
 import { useTripStore } from "../../stores/useTripStore";
 import { formatDateShort } from "../../utils/format";
 
@@ -12,6 +13,7 @@ export function DaySelector() {
   const days = useTripStore((s) => s.trip.days);
   const currentDayId = useTripStore((s) => s.trip.currentDayId);
   const setCurrentDay = useTripStore((s) => s.setCurrentDay);
+  const stopsById = useTripStore((s) => s.stopsById);
 
   return (
     // top-[68px] deja hueco al buscador (48px de alto + 12px de margen).
@@ -20,7 +22,9 @@ export function DaySelector() {
     // media pantalla sin motivo aparente.
     <div className="pointer-events-none absolute inset-x-0 top-[68px] z-[540]">
       <div className="pointer-events-auto flex gap-2 overflow-x-auto pb-2 pl-3 pr-2 scrollbar-none">
-        {days.map((day) => (
+        {days.map((day) => {
+          const noCabe = diaNoCabe(day.stopIds.map((id) => stopsById[id]).filter(Boolean));
+          return (
           <button
             key={day.id}
             onClick={() => setCurrentDay(day.id)}
@@ -33,15 +37,16 @@ export function DaySelector() {
             style={day.id !== currentDayId ? { borderColor: "var(--color-border)" } : undefined}
           >
             Día {day.index + 1} · {formatDateShort(day.date)}
-            {day.isOverloaded && (
+            {noCabe && (
               <span
                 className="h-1.5 w-1.5 rounded-full"
                 style={{ background: day.id === currentDayId ? "#fff" : "var(--color-skipped)" }}
-                title="Día con muchas paradas"
+                title="Este día no cabe: demasiadas horas"
               />
             )}
           </button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

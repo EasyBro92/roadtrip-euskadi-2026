@@ -61,3 +61,14 @@ export function duracionDelDia(stops: Stop[]): DuracionDia {
     nivel: minutosTotales >= IMPOSIBLE_MINUTOS ? "imposible" : minutosTotales >= LARGO_MINUTOS ? "largo" : "holgado",
   };
 }
+
+/**
+ * Si el día no cabe, para los sitios donde sólo hay hueco para una marca.
+ *
+ * Misma medida que el aviso del itinerario, a propósito: antes el punto de
+ * la tira de días y el aviso de la lista decían cosas distintas del mismo día
+ * porque uno contaba paradas y el otro horas.
+ */
+export function diaNoCabe(stops: Stop[]): boolean {
+  return duracionDelDia(stops).nivel === "imposible";
+}

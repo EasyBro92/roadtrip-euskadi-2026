@@ -42,6 +42,16 @@ export interface TripDay {
   /** Localidad base del día ("Pamplona", "San Sebastián"), encabezando sus paradas. */
   city?: string;
   stopIds: ID[];
+  /**
+   * Heredado: "más de seis paradas". Ya no lo lee nadie.
+   *
+   * Contar paradas no distingue nueve sitios del casco viejo de Bilbao, que
+   * caben en una mañana andando, de doce repartidos entre Gaztelugatxe y
+   * Hondarribia. Quien quiera saber si un día cabe usa `duracionDelDia`, que
+   * suma horas. Se sigue escribiendo porque va dentro de los ficheros que ya
+   * ha exportado la gente y quitarlo obliga a migrar el esquema; toca hacerlo
+   * en una limpieza, no a mitad de un viaje.
+   */
   isOverloaded: boolean;
   rainModeActive: boolean;
   notes: string;

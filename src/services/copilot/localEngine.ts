@@ -1,4 +1,6 @@
 import type { Coordinates, CopilotSuggestion, Expense, Stop, Trip } from "../../types";
+import { duracionDelDia } from "../../features/itinerary/duracionDia";
+import { formatearMinutos } from "../../features/itinerary/tramos";
 import { formatKm } from "../../utils/format";
 import { haversineDistanceMeters } from "../../utils/geo";
 import { generateId } from "../../utils/id";
@@ -61,16 +63,22 @@ export function generateLocalSuggestions(ctx: CopilotContext): CopilotSuggestion
     );
   }
 
-  // 2. Día sobrecargado → priorizar imprescindibles.
-  if (day?.isOverloaded) {
+  /*
+   * 2. El día no cabe → priorizar lo imprescindible.
+   *
+   * Por horas y no por número de paradas: nueve sitios del casco viejo caben
+   * en una mañana y cuatro repartidos por la costa pueden no caber en un día.
+   */
+  const duracion = duracionDelDia(dayStops);
+  if (duracion.nivel === "imposible") {
     const optionalPending = pendingStops.filter((s) => s.optional || s.priority === "medium" || s.priority === "low");
     if (optionalPending.length > 0) {
       results.push(
         suggestion({
           kind: "day-overloaded",
-          title: "Día demasiado cargado",
-          message: `Hay ${optionalPending.length} paradas de prioridad media/baja hoy. Considera convertirlas en opcionales desde el editor.`,
-          reason: `El día tiene más de 6 paradas planificadas (${dayStops.length}), por encima del margen recomendado de 3-5 paradas principales.`,
+          title: "El día no cabe",
+          message: `Hoy suma unas ${formatearMinutos(duracion.minutosTotales)} entre visitas y carretera, sin contar comidas. Hay ${optionalPending.length} paradas de prioridad media o baja que puedes dejar como opcionales.`,
+          reason: `${formatearMinutos(duracion.minutosVisitas)} de visitas en ${dayStops.length} paradas más ${formatearMinutos(duracion.minutosCamino)} de camino entre ellas, con la velocidad de puerta a puerta. Por encima de doce horas no queda hueco para comer ni para una cola.`,
           priority: 90,
         }),
       );

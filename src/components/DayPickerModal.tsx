@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { diaNoCabe } from "../features/itinerary/duracionDia";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
 import { formatDateLong } from "../utils/format";
@@ -22,7 +23,9 @@ export function DayPickerModal({ title, message, onPick }: { title: string; mess
 
         <div className="space-y-2">
           {days.map((day) => {
-            const count = day.stopIds.filter((id) => stopsById[id]?.enabled).length;
+            const paradas = day.stopIds.map((id) => stopsById[id]).filter(Boolean);
+            const count = paradas.filter((s) => s.enabled).length;
+            const noCabe = diaNoCabe(paradas);
             return (
               <button
                 key={day.id}
@@ -40,7 +43,11 @@ export function DayPickerModal({ title, message, onPick }: { title: string; mess
                 </span>
                 <span className="shrink-0 text-xs text-(--color-text-muted)">
                   {count} paradas
-                  {day.isOverloaded && <span className="ml-1 text-(--color-skipped)">•</span>}
+                  {noCabe && (
+                    <span className="ml-1 text-(--color-skipped)" title="Este día no cabe: demasiadas horas">
+                      •
+                    </span>
+                  )}
                 </span>
               </button>
             );
