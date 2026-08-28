@@ -1,19 +1,8 @@
 import type { Stop, Trip } from "../../types";
 import { triggerDownload } from "../../utils/download";
 import { db } from "../storage/db";
+import { nombreArchivo } from "../../utils/nombreArchivo";
 import { crearZip, type EntradaZip } from "./zip";
-
-/** Nombre apto para cualquier sistema de ficheros, sin acentos ni signos raros. */
-function limpiar(texto: string, porDefecto: string): string {
-  const limpio = texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 40);
-  return limpio || porDefecto;
-}
 
 export interface ResumenExportacion {
   fotos: number;
@@ -50,14 +39,14 @@ export const PhotoExportService = {
       const diaObj = foto.dayId ? trip.days.find((d) => d.id === foto.dayId) : undefined;
       // Sólo se añade la ciudad, nunca el título: los títulos son frases como
       // "Girona → Castillo de Loarre → Huesca" y dan nombres de carpeta absurdos.
-      const ciudad = diaObj?.city ? `-${limpiar(diaObj.city, "")}` : "";
+      const ciudad = diaObj?.city ? `-${nombreArchivo(diaObj.city, "")}` : "";
       const carpeta = dia ? `dia-${dia}${ciudad}` : "sin-dia";
 
       const numero = (contador.get(carpeta) ?? 0) + 1;
       contador.set(carpeta, numero);
 
       const parada = foto.stopId ? stopsById[foto.stopId]?.name : undefined;
-      const base = limpiar(parada ?? foto.description ?? "", "foto");
+      const base = nombreArchivo(parada ?? foto.description ?? "", "foto");
 
       entradas.push({
         nombre: `${carpeta}/${String(numero).padStart(2, "0")}-${base}.jpg`,
@@ -67,7 +56,7 @@ export const PhotoExportService = {
     }
 
     const zip = crearZip(entradas);
-    triggerDownload(zip, `${limpiar(trip.name, "viaje")}-fotos.zip`);
+    triggerDownload(zip, `${nombreArchivo(trip.name, "viaje")}-fotos.zip`);
 
     return { fotos: entradas.length, bytes: zip.size };
   },

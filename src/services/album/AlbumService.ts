@@ -1,6 +1,7 @@
 import type { Expense, Note, Stop, Trip } from "../../types";
 import { formatDateLong, formatEUR } from "../../utils/format";
 import { triggerDownload } from "../../utils/download";
+import { nombreArchivo } from "../../utils/nombreArchivo";
 import { db, type StoredPhoto } from "../storage/db";
 
 /*
@@ -29,17 +30,6 @@ function esc(texto: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
-}
-
-function limpiarNombre(texto: string, porDefecto: string): string {
-  const limpio = texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 40);
-  return limpio || porDefecto;
 }
 
 /** Reduce una foto guardada al tamaño del álbum y la devuelve como data URL. */
@@ -205,7 +195,7 @@ ${dias}
 </div></body></html>`;
 
     const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    triggerDownload(blob, `${limpiarNombre(trip.name, "viaje")}-album.html`);
+    triggerDownload(blob, `${nombreArchivo(trip.name, "viaje")}-album.html`);
 
     return { fotos: usadas, bytes: blob.size, sinIncrustar };
   },

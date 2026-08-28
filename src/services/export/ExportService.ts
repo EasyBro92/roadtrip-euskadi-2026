@@ -1,6 +1,7 @@
 import type { AchievementState, AppSettings, ChecklistItem, Expense, Favorite, Note, Refuel, Stop, Trip } from "../../types";
 import type { ExportedState } from "../storage/schema";
 import { triggerDownload } from "../../utils/download";
+import { nombreArchivo } from "../../utils/nombreArchivo";
 
 export interface ExportableState {
   trip: Trip;
@@ -34,7 +35,9 @@ export const ExportService = {
   downloadJSON(state: ExportableState): void {
     const exported = this.buildExportedState(state);
     const blob = new Blob([JSON.stringify(exported, null, 2)], { type: "application/json" });
-    triggerDownload(blob, `roadtrip-euskadi-2026-${exported.exportedAt.slice(0, 10)}.json`);
+    // Con el nombre del viaje, no con el del repositorio: en Descargas, seis
+    // meses después, "roadtrip-euskadi-2026-..." era el nombre de todos.
+    triggerDownload(blob, `${nombreArchivo(state.trip.name, "viaje")}-${exported.exportedAt.slice(0, 10)}.json`);
   },
 
   downloadCSV(csvContent: string, filename: string): void {
