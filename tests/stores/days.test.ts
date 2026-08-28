@@ -83,7 +83,16 @@ describe("sincronizarDiaDeHoy", () => {
      * app seguía abriendo en el primero y los gastos nuevos se apuntaban al
      * día equivocado.
      */
+    /*
+     * Las demás fechas, lejos de hoy, antes de nada.
+     *
+     * El viaje de ejemplo empieza el 29 de agosto de 2026, así que ese día el
+     * día 1 ya tenía la fecha de hoy y `find` lo encontraba antes que al 2:
+     * la prueba pasaba los otros 364 días del año y fallaba justo ese. Una
+     * prueba que depende del calendario no prueba nada.
+     */
     const [d1, d2] = dias();
+    for (const d of dias()) useTripStore.getState().updateDay(d.id, { date: "1999-01-01" });
     useTripStore.getState().updateDay(d2.id, { date: fechaLocal() });
     useTripStore.getState().setCurrentDay(d1.id);
 
