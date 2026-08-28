@@ -266,23 +266,44 @@ function AvisoAlojamiento({ activeDayId }: { activeDayId: string }) {
   const sobrantes = hoy?.sobrantes ?? [];
   if (!hoy?.nombre && !faltaHoy) return null;
 
+  function buscarHotel() {
+    const dia = days.find((d) => d.id === activeDayId);
+    if (!dia) return;
+    // La búsqueda ya lleva la ciudad y las fechas: sin acuerdos ni comisiones,
+    // sólo para no tener que teclearlas.
+    openExternalUrl(urlBooking(dia.city || dia.title, dia.date, diaSiguiente(dia.date), viajeros || 2));
+  }
+
   /*
-   * Con hotel apuntado y sin líos, el nombre es un dato y va en pastilla. La
-   * tira entera se guarda para cuando falta dónde dormir o hay dos
-   * alojamientos la misma noche: ahí sí hay algo que hacer.
+   * Una noche sin hotel no es un error.
+   *
+   * Salía en amarillo y a lo ancho, como si faltara algo por arreglar, y
+   * casi nunca falta: es que todavía no se ha decidido si merece la pena
+   * quedarse ahí. La app no tiene por qué meter prisa en eso — sólo
+   * recordarlo por si acaso y tener a mano el buscador cuando se decida.
+   *
+   * Lo que sí es un fallo de verdad son dos alojamientos la misma noche: eso
+   * significa que uno está en el día que no toca, y ahí sí conviene la tira
+   * entera con la explicación.
    */
-  if (hoy?.nombre && sobrantes.length === 0) {
-    return (
+  if (sobrantes.length === 0) {
+    return hoy?.nombre ? (
       <ChipAviso icon={BedDouble} color="var(--color-hotel)">
         {hoy.nombre}
         {hoy.totalNoches > 1 && ` · noche ${hoy.numeroDeNoche}/${hoy.totalNoches}`}
+      </ChipAviso>
+    ) : (
+      <ChipAviso icon={BedDouble} onClick={buscarHotel} label="Buscar hotel para esta noche">
+        <span className="text-(--color-text-muted)">Sin hotel · buscar</span>
       </ChipAviso>
     );
   }
 
   return (
     <div className="flex w-full items-start gap-2 rounded-xl bg-(--color-surface-muted) p-2.5 text-xs text-(--color-text)">
-      <BedDouble size={15} className={`mt-0.5 shrink-0 ${faltaHoy ? "text-(--color-skipped)" : "text-(--color-hotel)"}`} aria-hidden="true" />
+      {/* Aquí abajo sólo se llega con dos alojamientos la misma noche, que sí
+          es un fallo de apuntes: por eso el icono va en ámbar. */}
+      <BedDouble size={15} className="mt-0.5 shrink-0 text-(--color-skipped)" aria-hidden="true" />
       <div className="min-w-0 flex-1 space-y-1">
       {hoy?.nombre ? (
         <p>
@@ -295,21 +316,9 @@ function AvisoAlojamiento({ activeDayId }: { activeDayId: string }) {
           )}
         </p>
       ) : (
-        <>
-          <p>Esta noche no tienes dónde dormir apuntado.</p>
-          {/* La búsqueda ya lleva la ciudad y las fechas: sin acuerdos ni
-              comisiones, sólo para no tener que teclearlas. */}
-          <button
-            onClick={() => {
-              const dia = days.find((d) => d.id === activeDayId);
-              if (!dia) return;
-              openExternalUrl(urlBooking(dia.city || dia.title, dia.date, diaSiguiente(dia.date), viajeros || 2));
-            }}
-            className="font-medium text-(--color-link)"
-          >
-            Buscar hotel para esa noche
-          </button>
-        </>
+        <button onClick={buscarHotel} className="font-medium text-(--color-link)">
+          Buscar hotel para esta noche
+        </button>
       )}
 
       {sobrantes.length > 0 && (
