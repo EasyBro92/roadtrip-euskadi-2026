@@ -1,11 +1,12 @@
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { AlertTriangle, BedDouble, Clock, MapPinned, Plus, RotateCcw } from "lucide-react";
+import { BedDouble, Clock, MapPinned, Plus, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useDaySwipe } from "../hooks/useDaySwipe";
 import { DayHeader } from "../features/itinerary/DayHeader";
 import { FilteredStopList } from "../features/itinerary/FilteredStopList";
+import { AvisoDuracion } from "../features/itinerary/AvisoDuracion";
 import { LocationBreak } from "../features/itinerary/LocationBreak";
 import { SortableStopCard } from "../features/itinerary/SortableStopCard";
 import { AvisoTiempo } from "../features/itinerary/AvisoTiempo";
@@ -130,12 +131,14 @@ export function ItineraryPage() {
       <div key={activeDay.id} className={`safe-x mt-2 flex-1 space-y-2 overflow-y-auto px-4 pb-24 ${claseEntrada}`} style={{ touchAction: "pan-y" }} {...swipe}>
         <div>
           <DayHeader day={activeDay} totalDays={days.length} />
-          {activeDay.isOverloaded && (
-            <div className="mt-2 flex items-start gap-2 rounded-xl bg-(--color-skipped)/15 p-2.5 text-xs text-(--color-text)">
-              <AlertTriangle size={15} className="mt-0.5 shrink-0 text-(--color-skipped)" aria-hidden="true" />
-              <p>{stops.length} paradas: es mucho para un día. Desactiva o marca como opcionales las que menos te importen.</p>
-            </div>
-          )}
+          {/*
+           * Las horas del día, no el número de paradas.
+           *
+           * El aviso de antes contaba paradas, y contar paradas no distingue
+           * nueve sitios del casco viejo de Bilbao — que caben en una mañana
+           * andando — de doce repartidos entre Gaztelugatxe y Hondarribia.
+           */}
+          <AvisoDuracion stops={stops} />
           {/* A lo ancho, no en dos columnas: probado en fila, el nombre del
               hotel se partía en tres líneas y ocupaba casi lo mismo. */}
           <AvisoTiempo fecha={activeDay.date} stops={stops} />
