@@ -24,6 +24,11 @@ export interface Expense extends Timestamped {
   dayId: ID | null;
   stopId: ID | null;
   paidByTravelerId: ID | null;
+  /**
+   * Salió del bote común, no del bolsillo de nadie. Opcional: los gastos ya
+   * guardados siguen valiendo sin migración, y sin bote todo funciona igual.
+   */
+  pagadoDelBote?: boolean;
   splitBetweenTravelerIds: ID[];
   paymentMethod: PaymentMethod;
   notes: string;

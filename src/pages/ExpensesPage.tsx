@@ -3,9 +3,11 @@ import { useMemo } from "react";
 import { FormularioGasto } from "../features/expenses/FormularioGasto";
 import { Graficas } from "../features/expenses/Graficas";
 import { ListaGastos } from "../features/expenses/ListaGastos";
+import { PanelBote } from "../features/expenses/PanelBote";
 import { PanelPresupuesto } from "../features/expenses/PanelPresupuesto";
 import { PanelReparto } from "../features/expenses/PanelReparto";
 import { ExportService } from "../services/export/ExportService";
+import { calcularSaldos } from "../services/expenses/bote";
 import { ExpenseService } from "../services/expenses/ExpenseService";
 import { useTripStore } from "../stores/useTripStore";
 import { formatEUR } from "../utils/format";
@@ -22,6 +24,7 @@ export function ExpensesPage() {
   const expenses = useTripStore((s) => s.expenses);
   const trip = useTripStore((s) => s.trip);
   const refuels = useTripStore((s) => s.refuels);
+  const aportaciones = useTripStore((s) => s.aportaciones);
 
   const totalKm =
     trip.vehicle.odometerEndKm != null
@@ -29,6 +32,13 @@ export function ExpensesPage() {
       : refuels.reduce((max, r) => Math.max(max, r.odometerKm - trip.vehicle.odometerStartKm), 0);
 
   const stats = useMemo(() => ExpenseService.computeStats(expenses, totalKm), [expenses, totalKm]);
+  // Los saldos se calculan aparte de las estadísticas porque el bote cambia
+  // quién ha puesto qué, y eso `computeStats` no lo sabe.
+  const saldos = useMemo(
+    () => calcularSaldos(expenses, aportaciones, trip.travelers.map((t) => t.id)),
+    [expenses, aportaciones, trip.travelers],
+  );
+
   const usadoPct = trip.budgetEUR > 0 ? (stats.totalEUR / trip.budgetEUR) * 100 : 0;
   const pasado = usadoPct > 100;
 
@@ -87,7 +97,8 @@ export function ExpensesPage() {
       <ListaGastos expenses={expenses} />
 
       <PanelPresupuesto gastadoPorCategoria={stats.byCategory} />
-      <PanelReparto saldos={stats.balanceByTraveler} />
+      <PanelBote />
+      <PanelReparto saldos={saldos} />
       <Graficas porCategoria={stats.byCategory} porDia={stats.byDay} dias={trip.days} />
     </div>
   );

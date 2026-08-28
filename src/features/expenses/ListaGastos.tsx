@@ -70,8 +70,9 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
                     deleteLabel={`Borrar el gasto de ${formatEUR(e.amountEUR)} en ${e.place || etiquetaCategoria(e.category)}`}
                     onDelete={() => borrar(e)}
                   >
-                    <div
-                      className="flex items-center gap-2.5 rounded-xl border bg-(--color-surface) p-2.5"
+                    <button
+                      onClick={() => openModal({ type: "editar-gasto", expenseId: e.id })}
+                      className="flex w-full items-center gap-2.5 rounded-xl border bg-(--color-surface) p-2.5 text-left"
                       style={{ borderColor: "var(--color-border)" }}
                     >
                       {/* Franja de color en vez de repetir la categoría en texto. */}
@@ -82,11 +83,11 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
                           {etiquetaCategoria(e.category)}
                           {e.time && <> · {e.time}</>}
                           {parada && <> · {parada}</>}
-                          {quien && <> · pagó {quien}</>}
+                          {e.pagadoDelBote ? <> · del bote</> : quien ? <> · pagó {quien}</> : null}
                         </p>
                       </div>
                       <span className="shrink-0 text-sm font-semibold text-(--color-text)">{formatEUR(e.amountEUR)}</span>
-                    </div>
+                    </button>
                   </SwipeToDelete>
                 );
               })}

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import type { Aportacion } from "../services/expenses/bote";
 import { ACHIEVEMENT_DEFS } from "../data/achievements.data";
 import { SEED_CHECKLIST } from "../data/checklist.data";
 import { SEED_OPTIONAL_PLACES } from "../data/optionalPlaces.data";
@@ -54,6 +55,8 @@ export interface TripWorkspace {
   stopsById: Record<ID, Stop>;
   places: Place[];
   expenses: Expense[];
+  /** Dinero adelantado al bote común. Ver services/expenses/bote. */
+  aportaciones: Aportacion[];
   refuels: Refuel[];
   favorites: Favorite[];
   notes: Note[];
@@ -90,6 +93,7 @@ interface TripStoreState {
   stopsById: Record<ID, Stop>;
   places: Place[];
   expenses: Expense[];
+  aportaciones: Aportacion[];
   refuels: Refuel[];
   favorites: Favorite[];
   notes: Note[];
@@ -171,6 +175,8 @@ interface TripStoreState {
 
   // --- Gastos ---
   addExpense: (input: Omit<Expense, "id" | "createdAt" | "updatedAt">) => void;
+  addAportacion: (travelerId: ID, amountEUR: number, notes?: string) => void;
+  deleteAportacion: (id: ID) => void;
   updateExpense: (id: ID, patch: Partial<Expense>) => void;
   deleteExpense: (id: ID) => void;
 
@@ -202,6 +208,7 @@ function initialState() {
     stopsById: stopsToRecord(SEED_STOPS),
     places: SEED_OPTIONAL_PLACES,
     expenses: [] as Expense[],
+    aportaciones: [] as Aportacion[],
     refuels: [] as Refuel[],
     favorites: [] as Favorite[],
     notes: [] as Note[],
@@ -218,6 +225,7 @@ function packWorkspace(state: TripStoreState): TripWorkspace {
     stopsById: state.stopsById,
     places: state.places,
     expenses: state.expenses,
+    aportaciones: state.aportaciones,
     refuels: state.refuels,
     favorites: state.favorites,
     notes: state.notes,
@@ -535,6 +543,23 @@ export const useTripStore = create<TripStoreState>()(
       addNote: (input) => set((state) => ({ notes: [...state.notes, { ...input, id: generateId("note"), date: new Date().toISOString() }] })),
       updateNote: (id, patch) => set((state) => ({ notes: state.notes.map((n) => (n.id === id ? { ...n, ...patch } : n)) })),
       deleteNote: (id) => set((state) => ({ notes: state.notes.filter((n) => n.id !== id) })),
+
+      addAportacion: (travelerId, amountEUR, notes = "") =>
+        set((state) => ({
+          aportaciones: [
+            ...state.aportaciones,
+            {
+              id: generateId("aportacion"),
+              travelerId,
+              amountEUR: Math.abs(amountEUR),
+              date: new Date().toISOString().slice(0, 10),
+              notes,
+              createdAt: new Date().toISOString(),
+            },
+          ],
+        })),
+
+      deleteAportacion: (id) => set((state) => ({ aportaciones: state.aportaciones.filter((a) => a.id !== id) })),
 
       addExpense: (input) =>
         set((state) => {

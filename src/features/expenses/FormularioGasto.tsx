@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { PiggyBank, Plus } from "lucide-react";
 import { useState } from "react";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
@@ -25,6 +25,14 @@ export function FormularioGasto() {
   const [categoria, setCategoria] = useState<ExpenseCategory>("restaurante");
   const [lugar, setLugar] = useState("");
   const [pagador, setPagador] = useState(trip.travelers[0]?.id ?? "");
+  const aportaciones = useTripStore((s) => s.aportaciones);
+  const hayBote = aportaciones.length > 0;
+  /**
+   * Con bote, lo normal es que el gasto salga de ahí: es el motivo de haber
+   * adelantado el dinero. Por eso viene marcado y se desmarca si alguien paga
+   * de su bolsillo.
+   */
+  const [delBote, setDelBote] = useState(true);
 
   const valor = Number.parseFloat(importe.replace(",", "."));
   const valido = Number.isFinite(valor) && valor > 0;
@@ -43,7 +51,11 @@ export function FormularioGasto() {
       place: lugar.trim() || CATEGORIAS_GASTO.find((c) => c.id === categoria)!.etiqueta,
       dayId: trip.currentDayId,
       stopId: trip.currentStopId,
-      paidByTravelerId: pagador || trip.travelers[0]?.id || null,
+      // Del bote no lo paga nadie en concreto: quien puso ese dinero ya está
+      // contado en las aportaciones, y apuntar además un pagador lo contaría
+      // dos veces.
+      pagadoDelBote: hayBote && delBote,
+      paidByTravelerId: hayBote && delBote ? null : pagador || trip.travelers[0]?.id || null,
       splitBetweenTravelerIds: trip.travelers.map((t) => t.id),
       paymentMethod: "tarjeta",
       notes: "",
@@ -113,7 +125,17 @@ export function FormularioGasto() {
           className="min-w-0 flex-1 rounded-(--radius-control) border bg-(--color-bg) px-3 py-2 text-sm text-(--color-text)"
           style={{ borderColor: "var(--color-border)" }}
         />
-        {trip.travelers.length > 1 && (
+        {hayBote && (
+          <button
+            onClick={() => setDelBote((v) => !v)}
+            aria-pressed={delBote}
+            className={`flex shrink-0 items-center gap-1.5 rounded-(--radius-control) border px-3 py-2 text-sm ${delBote ? "border-(--color-navigation) bg-(--color-navigation) font-medium text-white" : "bg-(--color-bg) text-(--color-text)"}`}
+            style={!delBote ? { borderColor: "var(--color-border)" } : undefined}
+          >
+            <PiggyBank size={14} aria-hidden="true" /> Bote
+          </button>
+        )}
+        {trip.travelers.length > 1 && !(hayBote && delBote) && (
           <select
             value={pagador}
             onChange={(e) => setPagador(e.target.value)}

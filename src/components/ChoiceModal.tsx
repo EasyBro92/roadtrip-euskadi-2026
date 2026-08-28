@@ -23,8 +23,11 @@ export function ChoiceModal({ title, message, options, onPick }: { title: string
             <li key={o.id}>
               <button
                 onClick={() => {
-                  onPick(o.id);
+                  // Cerrar ANTES de avisar: si la acción abre otro modal — elegir
+                  // quién pone el dinero y luego cuánto —, cerrar después lo
+                  // borraría nada más aparecer.
                   closeModal();
+                  onPick(o.id);
                 }}
                 className="w-full border-b py-3 text-left text-sm text-(--color-text) last:border-b-0"
                 style={{ borderColor: "var(--color-border)" }}
