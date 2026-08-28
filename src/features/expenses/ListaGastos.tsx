@@ -1,4 +1,6 @@
+import { Receipt } from "lucide-react";
 import { SwipeToDelete } from "../../components/SwipeToDelete";
+import { Vacio } from "../../components/Vacio";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { Expense } from "../../types";
@@ -24,9 +26,9 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
 
   if (expenses.length === 0) {
     return (
-      <p className="mt-4 rounded-(--radius-card) bg-(--color-surface-muted) p-4 text-center text-sm text-(--color-text-muted)">
-        Aún no has apuntado nada. Escribe el importe ahí arriba y dale a Añadir.
-      </p>
+      <div className="mt-3 rounded-(--radius-card) bg-(--color-surface-muted)">
+        <Vacio icon={Receipt} titulo="Ningún gasto apuntado" texto="Escribe el importe ahí arriba y dale a Añadir. Con dos toques queda repartido." />
+      </div>
     );
   }
 

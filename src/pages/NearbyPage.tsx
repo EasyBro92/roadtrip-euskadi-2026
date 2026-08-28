@@ -1,4 +1,5 @@
-import { ArrowLeft, ExternalLink, Loader2, LocateFixed, MapPin } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, LocateFixed, MapPin, SearchX } from "lucide-react";
+import { Vacio } from "../components/Vacio";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { NEARBY_CATEGORY_LABEL, NearbyService, type NearbyCategory, type NearbyPlace } from "../services/places/NearbyService";
@@ -94,7 +95,7 @@ export function NearbyPage() {
       )}
 
       {!loading && results?.length === 0 && (
-        <p className="text-sm text-(--color-text-muted)">Sin resultados en un radio de 5 km.</p>
+        <Vacio icon={SearchX} titulo="Nada a 5 km" texto="Prueba con otra categoría, o vuelve a buscar cuando estéis más cerca de un pueblo." />
       )}
 
       {!loading && results && results.length > 0 && (

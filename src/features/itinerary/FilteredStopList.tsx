@@ -1,8 +1,9 @@
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, MapPin, X } from "lucide-react";
+import { Vacio } from "../../components/Vacio";
 import { useNavigate } from "react-router-dom";
 import { useTripStore } from "../../stores/useTripStore";
 import type { StopCategory } from "../../types";
-import { thumbStyle } from "../../utils/categoryGradient";
+import { CategoryThumb } from "../../components/CategoryThumb";
 import { formatDateShort } from "../../utils/format";
 
 const ETIQUETAS: Partial<Record<StopCategory, string>> = {
@@ -64,9 +65,7 @@ export function FilteredStopList({ categoria }: { categoria: StopCategory }) {
       </div>
 
       <div className="safe-x mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto px-4 pb-8">
-        {encontradas.length === 0 && (
-          <p className="py-8 text-center text-sm text-(--color-text-muted)">No hay paradas de esta categoría en el viaje.</p>
-        )}
+        {encontradas.length === 0 && <Vacio icon={MapPin} titulo="Ninguna parada de esta categoría" />}
 
         {encontradas.map(({ parada, dia }) => (
           <button
@@ -78,11 +77,7 @@ export function FilteredStopList({ categoria }: { categoria: StopCategory }) {
             className="flex w-full items-center gap-3 rounded-(--radius-card) border bg-(--color-surface) p-3 text-left shadow-(--shadow-card)"
             style={{ borderColor: "var(--color-border)" }}
           >
-            <span
-              className="h-12 w-12 shrink-0 rounded-xl bg-cover bg-center"
-              style={thumbStyle(parada.heroImage, parada.category)}
-              aria-hidden="true"
-            />
+            <CategoryThumb category={parada.category} heroImage={parada.heroImage} className="h-12 w-12 rounded-xl" />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium text-(--color-text)">{parada.name}</span>
               <span className="mt-0.5 block text-xs text-(--color-text-muted)">

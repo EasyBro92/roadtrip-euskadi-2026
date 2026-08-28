@@ -1,4 +1,5 @@
 import { ArrowLeft, Bookmark, FolderInput, Navigation, Pencil, Plus, Trash2 } from "lucide-react";
+import { Vacio } from "../components/Vacio";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSavedPlacesStore, type LugarGuardado } from "../stores/useSavedPlacesStore";
@@ -123,12 +124,12 @@ export function SavedPlacesPage() {
       </div>
 
       {!activa && (
-        <div className="flex flex-col items-center gap-2 rounded-2xl bg-(--color-surface-muted) py-10 text-center">
-          <Bookmark size={22} className="text-(--color-text-muted)" aria-hidden="true" />
-          <p className="text-sm text-(--color-text-muted)">Aún no has guardado ningún sitio.</p>
-          <p className="max-w-[260px] text-xs text-(--color-text-muted)">
-            Toca el marcador en "Qué hay cerca" del mapa, o en cualquier resultado de búsqueda.
-          </p>
+        <div className="rounded-2xl bg-(--color-surface-muted)">
+          <Vacio
+            icon={Bookmark}
+            titulo="Sin sitios guardados"
+            texto={"Toca el marcador en \"Qué hay cerca\" del mapa, o en cualquier resultado de búsqueda."}
+          />
         </div>
       )}
 

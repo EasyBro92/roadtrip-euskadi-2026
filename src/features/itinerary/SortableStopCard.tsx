@@ -2,12 +2,13 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CalendarArrowDown, Camera, Check, Copy, EyeOff, GripVertical, MoreVertical, Pencil, PenLine, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { useRatingsStore } from "../../stores/useRatingsStore";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { Stop } from "../../types";
 import { StarRatingInput } from "../../components/StarRatingInput";
 import { useAnadirFotos } from "../../hooks/useAnadirFotos";
-import { thumbStyle } from "../../utils/categoryGradient";
+import { CategoryThumb } from "../../components/CategoryThumb";
 
 /**
  * Tarjeta de parada del itinerario. En móvil solo caben las dos acciones
@@ -27,6 +28,8 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
   const openModal = useUIStore((s) => s.openModal);
   const pushToast = useUIStore((s) => s.pushToast);
 
+  const puntuada = useRatingsStore((s) => Boolean(s.valoraciones[`stop:${stop.id}`]));
+
   const [menuOpen, setMenuOpen] = useState(false);
   // Las fotos se cuelgan de la parada y de su día, para que salgan también
   // en el Diario sin tener que volver a elegirlas.
@@ -39,17 +42,19 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
     <div
       ref={setNodeRef}
       style={style}
-      className="relative flex items-center gap-2 rounded-(--radius-card) border bg-(--color-surface) p-2.5 shadow-(--shadow-card)"
+      className="relative flex items-center gap-2.5 rounded-(--radius-card) border bg-(--color-surface) p-3 shadow-(--shadow-card)"
     >
       <button {...attributes} {...listeners} aria-label="Reordenar parada" className="-ml-1 shrink-0 touch-none p-1 text-(--color-text-muted)">
         <GripVertical size={18} aria-hidden="true" />
       </button>
 
-      <div className="h-12 w-12 shrink-0 rounded-xl" style={thumbStyle(stop.heroImage, stop.category)} aria-hidden="true" />
+      {/* 56 px en vez de 48: casi todas las paradas acaban teniendo foto, y a
+          ese tamaño se reconoce el sitio antes de leer el nombre. */}
+      <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-14 w-14 rounded-2xl" iconSize={24} />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1">
-          <p className="truncate text-sm font-medium text-(--color-text)">{stop.name}</p>
+          <p className="truncate text-[15px] font-semibold text-(--color-text)">{stop.name}</p>
           {favorite && <Star size={12} className="shrink-0 text-(--color-gastronomy)" fill="currentColor" aria-hidden="true" />}
         </div>
         <p className="truncate text-xs capitalize text-(--color-text-muted)">
@@ -58,9 +63,19 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
           {stop.optional && <> · opcional</>}
           {!stop.enabled && <> · desactivada</>}
         </p>
-        <div className="mt-1 -ml-0.5">
-          <StarRatingInput tipo="stop" targetId={stop.id} nombre={stop.name} size={15} etiqueta={false} />
-        </div>
+        {/*
+         * Las estrellas sólo aparecen cuando hay algo que puntuar: al volver
+         * de la parada o si ya la puntuaste. Antes salían en las treinta y
+         * siete paradas del viaje, y treinta y siete filas de estrellas
+         * vacías es lo que hacía que la lista pareciese un formulario a medio
+         * rellenar en vez de un itinerario.
+         */}
+        {(stop.visited || puntuada) && (
+          <div className="mt-1 -ml-0.5 flex items-center gap-1.5">
+            <StarRatingInput tipo="stop" targetId={stop.id} nombre={stop.name} size={15} etiqueta={false} />
+            {!puntuada && <span className="text-xs text-(--color-text-muted)">¿Qué tal?</span>}
+          </div>
+        )}
       </div>
 
       <button

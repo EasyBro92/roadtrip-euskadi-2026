@@ -76,6 +76,34 @@ a,
 }
 
 /*
+ * Respuesta al toque.
+ *
+ * Arriba quitamos `-webkit-tap-highlight-color` porque pintaba recuadros
+ * grises encima de las tarjetas, pero sin nada en su lugar la pantalla se
+ * queda igual desde que pones el dedo hasta que la acción acaba, y en una
+ * lista larga acabas tocando dos veces por no saber si ha cogido. Un
+ * encogimiento mínimo es lo que hacen las apps del móvil y es de las cosas
+ * que más las diferencian de una web.
+ *
+ * Va en `base` a propósito: así una utilidad de Tailwind (`active:scale-90`
+ * en las estrellas, por ejemplo) sigue mandando donde se quiera otra cosa.
+ * El bloque de prefers-reduced-motion de más abajo lo desactiva solo.
+ */
+@layer base {
+  button,
+  a,
+  [role="button"] {
+    transition: transform 0.12s ease-out;
+  }
+
+  button:active,
+  a:active,
+  [role="button"]:active {
+    transform: scale(0.97);
+  }
+}
+
+/*
  * Entrada del contenido al cambiar de día deslizando. Sin esto el día nuevo
  * aparecía de golpe y no se entendía hacia dónde te habías movido.
  * El bloque de prefers-reduced-motion de más abajo las anula solas.

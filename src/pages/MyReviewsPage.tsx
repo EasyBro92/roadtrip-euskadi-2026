@@ -1,5 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { ArrowLeft, PenLine, Star } from "lucide-react";
+import { Vacio } from "../components/Vacio";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { TODAS_LAS_RUTAS } from "../data/routeTemplates.data";
@@ -53,9 +54,11 @@ export function MyReviewsPage() {
       </p>
 
       {lista.length === 0 && (
-        <p className="text-sm text-(--color-text-muted)">
-          Aún no has puntuado nada. Toca las estrellas en una parada del Itinerario o en una ruta de Explorar.
-        </p>
+        <Vacio
+          icon={Star}
+          titulo="Todavía no has puntuado nada"
+          texto="Marca una parada como visitada en el Itinerario y te saldrán las estrellas debajo. En Explorar puedes puntuar rutas enteras."
+        />
       )}
 
       <ul className="space-y-2">

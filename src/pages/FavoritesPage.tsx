@@ -1,4 +1,5 @@
 import { ArrowLeft, Heart, MapPin } from "lucide-react";
+import { Vacio } from "../components/Vacio";
 import { useNavigate } from "react-router-dom";
 import { useTripStore } from "../stores/useTripStore";
 
@@ -18,7 +19,9 @@ export function FavoritesPage() {
       </button>
       <h1 className="mb-4 text-xl font-bold">Favoritos</h1>
 
-      {favorites.length === 0 && <p className="text-sm text-(--color-text-muted)">Aún no has guardado ningún favorito. Toca el corazón en una parada o lugar para añadirlo aquí.</p>}
+      {favorites.length === 0 && (
+        <Vacio icon={Heart} titulo="Sin favoritos todavía" texto="Marca una parada o un lugar con el corazón y aparecerá aquí." />
+      )}
 
       <div className="space-y-2">
         {favorites.map((fav) => {

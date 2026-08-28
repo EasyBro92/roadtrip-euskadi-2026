@@ -1,5 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { ArrowLeft, ExternalLink, FileText, Paperclip, Plus, Trash2 } from "lucide-react";
+import { Vacio } from "../components/Vacio";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -154,7 +155,9 @@ export function DocumentsPage() {
         />
       </div>
 
-      {documentos.length === 0 && <p className="text-sm text-(--color-text-muted)">Aún no has guardado ninguna reserva.</p>}
+      {documentos.length === 0 && (
+        <Vacio icon={FileText} titulo="Sin reservas guardadas" texto="Guarda aquí el PDF del hotel o el localizador y lo tendrás sin cobertura." />
+      )}
 
       {porDia.map(({ dia, docs }, i) =>
         docs.length === 0 ? null : (

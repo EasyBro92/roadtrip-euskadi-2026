@@ -6,7 +6,7 @@ import { useAnadirFotos } from "../hooks/useAnadirFotos";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
 import { db } from "../services/storage/db";
 import { useTripStore } from "../stores/useTripStore";
-import { thumbStyle } from "../utils/categoryGradient";
+import { CategoryThumb } from "../components/CategoryThumb";
 import { formatDateLong, formatDateShort, formatEUR, formatKm } from "../utils/format";
 import { haversineDistanceMeters } from "../utils/geo";
 
@@ -143,7 +143,7 @@ function DayEntry({ dayId }: { dayId: string }) {
 
             <div className="min-w-0 flex-1 rounded-2xl border bg-(--color-surface) p-2.5 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
               <div className="flex gap-2.5">
-                <div className="h-14 w-14 shrink-0 rounded-xl" style={thumbStyle(stop.heroImage, stop.category)} aria-hidden="true" />
+                <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-14 w-14 rounded-xl" iconSize={24} />
                 <div className="min-w-0 flex-1">
                   <p className={`truncate text-sm font-medium ${stop.visited ? "text-(--color-text)" : "text-(--color-text-muted)"}`}>{stop.name}</p>
                   <p className="truncate text-xs capitalize text-(--color-text-muted)">

@@ -2,7 +2,7 @@ import { Check, Plus, Search, Star, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
-import { thumbStyle } from "../../utils/categoryGradient";
+import { CategoryThumb } from "../../components/CategoryThumb";
 
 /**
  * Biblioteca de lugares opcionales embebida en un modal, para poder añadir
@@ -52,7 +52,7 @@ export function PlaceLibraryModal({ dayId }: { dayId: string }) {
           {filtered.length === 0 && <p className="py-6 text-center text-sm text-(--color-text-muted)">Sin resultados.</p>}
           {filtered.map((place) => (
             <div key={place.id} className="flex items-center gap-3 rounded-xl border p-2.5" style={{ borderColor: "var(--color-border)" }}>
-              <div className="h-12 w-12 shrink-0 rounded-xl" style={thumbStyle(place.heroImage, place.category)} aria-hidden="true" />
+              <CategoryThumb category={place.category} heroImage={place.heroImage} className="h-12 w-12 rounded-xl" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{place.name}</p>
                 <p className="truncate text-xs text-(--color-text-muted)">

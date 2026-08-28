@@ -5,7 +5,7 @@ import { BotonResena } from "../reviews/BotonResena";
 import { useStopsOfDay } from "../../hooks/useStopsOfDay";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore, type BottomSheetState } from "../../stores/useUIStore";
-import { thumbStyle } from "../../utils/categoryGradient";
+import { CategoryThumb } from "../../components/CategoryThumb";
 import { StopDetailTabs } from "./StopDetailTabs";
 
 const HEIGHTS: Record<BottomSheetState, string> = {
@@ -121,12 +121,12 @@ export function BottomSheet({ dayId }: { dayId: string }) {
         {/* Foto grande de cabecera cuando el panel está abierto, como la
             ficha de lugar de Google Maps; miniatura cuando está minimizado. */}
         {sheetState !== "minimized" && stop.heroImage && (
-          <div className="mx-4 mb-3 h-32 shrink-0 overflow-hidden rounded-2xl" style={thumbStyle(stop.heroImage, stop.category)} aria-hidden="true" />
+          <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="mx-4 mb-3 h-32 rounded-2xl" iconSize={44} />
         )}
 
         <div className="flex gap-3 px-4">
           {(sheetState === "minimized" || !stop.heroImage) && (
-            <div className="h-16 w-16 shrink-0 rounded-2xl" style={thumbStyle(stop.heroImage, stop.category)} aria-hidden="true" />
+            <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-16 w-16 rounded-2xl" iconSize={28} />
           )}
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-xl font-medium text-(--color-text)">{stop.name}</h2>
