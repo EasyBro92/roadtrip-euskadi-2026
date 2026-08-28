@@ -10,6 +10,9 @@ import { formatEUR } from "../../utils/format";
 /** Por debajo de un céntimo no es una deuda, es un redondeo. */
 const CENTIMO = 0.005;
 
+/** Un viajero que no ha movido nada todavía. */
+const VACIO: DetalleViajero = { puso: 0, deSuBolsillo: 0, porElBote: 0, debe: 0, saldo: 0 };
+
 /**
  * Qué ha puesto y qué ha gastado cada uno.
  *
@@ -37,6 +40,15 @@ export function PanelPersonas({ detalle }: { detalle: Record<ID, DetalleViajero>
 
   const masAlto = Math.max(1, ...travelers.map((t) => detalle[t.id]?.puso ?? 0));
 
+  /*
+   * Los saldos suman cero cuando todo lo gastado lo ha puesto alguien. En
+   * negativo hay gastos sin dueño — normalmente del bote sale más de lo que
+   * se metió — y entonces la liquidación no puede dejar a todos a cero: paga
+   * lo que se puede pagar y el resto se queda colgando. Sin avisar, parece
+   * que la app se ha equivocado restando.
+   */
+  const descuadre = Object.values(detalle).reduce((s, d) => s + d.saldo, 0);
+
   /**
    * El resumen como texto, para mandarlo por WhatsApp o pegarlo donde sea.
    *
@@ -45,8 +57,10 @@ export function PanelPersonas({ detalle }: { detalle: Record<ID, DetalleViajero>
    */
   async function compartir() {
     const lineas = travelers.map((t) => {
-      const d = detalle[t.id] ?? { puso: 0, debe: 0, saldo: 0 };
-      return `${t.name}: puso ${formatEUR(d.puso)}, gastó ${formatEUR(d.debe)}`;
+      const d = detalle[t.id] ?? VACIO;
+      // El desglose sólo si hay bote de por medio: en un viaje sin bote sobra.
+      const origen = d.porElBote > CENTIMO ? ` (${formatEUR(d.deSuBolsillo)} suelto + ${formatEUR(d.porElBote)} del bote)` : "";
+      return `${t.name}: puso ${formatEUR(d.puso)}${origen}, gastó ${formatEUR(d.debe)}`;
     });
 
     const texto = [`Cuentas de ${trip.name}`, "", ...lineas, "", textoLiquidacion(pagos, nombre, formatEUR)].join("\n");
@@ -78,7 +92,7 @@ export function PanelPersonas({ detalle }: { detalle: Record<ID, DetalleViajero>
 
       <ul className="mt-3 space-y-3">
         {travelers.map((t) => {
-          const d = detalle[t.id] ?? { puso: 0, debe: 0, saldo: 0 };
+          const d = detalle[t.id] ?? VACIO;
           const enPaz = Math.abs(d.saldo) < CENTIMO;
           const aFavor = d.saldo > 0;
 
@@ -103,8 +117,15 @@ export function PanelPersonas({ detalle }: { detalle: Record<ID, DetalleViajero>
                 <div className="h-full rounded-full bg-(--color-navigation)" style={{ width: `${(d.puso / masAlto) * 100}%` }} />
               </div>
 
+              {/* De dónde viene lo que puso: sin desglosar, con bote de por
+                  medio no se ve quién financió qué parte. */}
               <p className="mt-1 text-xs text-(--color-text-muted)">
-                puso {formatEUR(d.puso)} · gastó {formatEUR(d.debe)}
+                puso {formatEUR(d.puso)}
+                {d.porElBote > CENTIMO && d.deSuBolsillo > CENTIMO && (
+                  <> ({formatEUR(d.deSuBolsillo)} suelto + {formatEUR(d.porElBote)} del bote)</>
+                )}
+                {d.porElBote > CENTIMO && d.deSuBolsillo <= CENTIMO && <> (todo del bote)</>}
+                {" · "}gastó {formatEUR(d.debe)}
               </p>
             </li>
           );
@@ -119,6 +140,11 @@ export function PanelPersonas({ detalle }: { detalle: Record<ID, DetalleViajero>
             <Share2 size={12} aria-hidden="true" /> Compartir
           </button>
         </div>
+        {descuadre < -CENTIMO && (
+          <p className="mt-1.5 text-xs text-(--color-cancelled)">
+            Faltan {formatEUR(-descuadre)} que no ha puesto nadie, así que con estos pagos no todos quedan a cero. Apunta quién los puso en el bote común.
+          </p>
+        )}
         <ul className="mt-1.5 space-y-1">
           {pagos.map((p, i) => (
             <li key={`${p.de}-${p.a}-${i}`} className="flex items-center gap-1.5 text-sm">

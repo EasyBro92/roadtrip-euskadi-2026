@@ -86,9 +86,21 @@ export function PanelBote() {
           </div>
 
           {bote.restante < 0 && (
-            <p className="mt-1.5 text-xs text-(--color-cancelled)">
-              Has gastado del bote más de lo que hay dentro. Revisa los apuntes o pon más dinero.
-            </p>
+            /*
+             * Gastar del bote más de lo que hay no es un aviso estético: son
+             * euros que no ha puesto nadie, y hasta apuntar quién los puso las
+             * cuentas no pueden cuadrar. Por eso se dice la cifra exacta y se
+             * ofrece arreglarlo aquí mismo.
+             */
+            <div className="mt-2 rounded-xl bg-(--color-cancelled)/12 p-2.5 text-xs text-(--color-text)">
+              <p>
+                Del bote han salido <strong>{formatEUR(bote.gastadoDelBote)}</strong> pero sólo se han puesto{" "}
+                <strong>{formatEUR(bote.totalAportado)}</strong>. Faltan <strong>{formatEUR(-bote.restante)}</strong> que no ha puesto nadie.
+              </p>
+              <button onClick={anadir} className="mt-1.5 font-medium text-(--color-link)">
+                Apuntar quién puso esos {formatEUR(-bote.restante)}
+              </button>
+            </div>
           )}
 
           <ul className="mt-3 space-y-1.5">

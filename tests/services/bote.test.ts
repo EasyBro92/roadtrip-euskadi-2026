@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calcularSaldos, estadoDelBote, type Aportacion } from "../../src/services/expenses/bote";
+import { calcularSaldos, detallePorViajero, estadoDelBote, type Aportacion } from "../../src/services/expenses/bote";
 import type { Expense } from "../../src/types";
 
 const VIAJEROS = ["ana", "luis"];
@@ -167,5 +167,59 @@ describe("gastos que no son de todos", () => {
   it("no se pierde dinero repartiendo entre algunos", () => {
     const gastos = [gasto(90, { paidByTravelerId: "luis", splitBetweenTravelerIds: ["ana"] }), gasto(40, { paidByTravelerId: "ana" })];
     expect(suma(calcularSaldos(gastos, [], VIAJEROS))).toBeCloseTo(0, 6);
+  });
+});
+
+describe("de dónde sale lo que puso cada uno", () => {
+  it("reparte el bote gastado entre quienes lo llenaron", () => {
+    /*
+     * Lo que no se entendía: si Ana pone 200 y Luis 100 y del bote salen los
+     * 300, leer "Ana puso 200" a secas parece que lo adelantó todo ella y que
+     * los otros 100 los puso la casa. Cada uno ha puesto lo suyo.
+     */
+    const d = detallePorViajero([gasto(300, { pagadoDelBote: true })], [aportacion("ana", 200), aportacion("luis", 100)], VIAJEROS);
+
+    expect(d.ana.porElBote).toBeCloseTo(200);
+    expect(d.luis.porElBote).toBeCloseTo(100);
+    expect(d.ana.deSuBolsillo).toBe(0);
+    expect(d.ana.puso).toBeCloseTo(200);
+
+    // Consumen 150 cada uno: Ana puso 50 de más y Luis 50 de menos.
+    expect(d.ana.saldo).toBeCloseTo(50);
+    expect(d.luis.saldo).toBeCloseTo(-50);
+  });
+
+  it("del bote sólo cuenta la parte ya gastada", () => {
+    // Ana pone 200 y salen 100: la otra mitad sigue siendo suya.
+    const d = detallePorViajero([gasto(100, { pagadoDelBote: true })], [aportacion("ana", 200)], VIAJEROS);
+
+    expect(d.ana.porElBote).toBeCloseTo(100);
+    expect(d.ana.puso).toBeCloseTo(100);
+  });
+
+  it("separa lo que pagó suelto de lo que puso en el bote", () => {
+    const gastos = [gasto(100, { pagadoDelBote: true }), gasto(60, { paidByTravelerId: "ana" })];
+    const d = detallePorViajero(gastos, [aportacion("ana", 100)], VIAJEROS);
+
+    expect(d.ana.deSuBolsillo).toBeCloseTo(60);
+    expect(d.ana.porElBote).toBeCloseTo(100);
+    expect(d.ana.puso).toBeCloseTo(160);
+  });
+
+  it("nadie figura poniendo más de lo que puso aunque el bote se quede corto", () => {
+    // 200 dentro y 300 fuera: esos 100 no los ha puesto nadie, y la app no
+    // puede apuntárselos a Ana para que le cuadre la resta.
+    const d = detallePorViajero([gasto(300, { pagadoDelBote: true })], [aportacion("ana", 200)], VIAJEROS);
+
+    expect(d.ana.porElBote).toBeCloseTo(200);
+    expect(d.ana.puso).toBeCloseTo(200);
+    expect(d.luis.puso).toBe(0);
+  });
+
+  it("lo que puso es siempre lo suelto más lo del bote", () => {
+    const gastos = [gasto(120, { pagadoDelBote: true }), gasto(45.5, { paidByTravelerId: "luis" })];
+    const d = detallePorViajero(gastos, [aportacion("ana", 90), aportacion("luis", 60)], VIAJEROS);
+
+    for (const id of VIAJEROS) expect(d[id].puso).toBeCloseTo(d[id].deSuBolsillo + d[id].porElBote);
   });
 });

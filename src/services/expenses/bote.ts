@@ -24,6 +24,10 @@ export interface EstadoBote {
 export interface DetalleViajero {
   /** Pagado de su bolsillo más su parte del bote ya gastada. */
   puso: number;
+  /** Sólo lo que pagó directamente él. */
+  deSuBolsillo: number;
+  /** Lo suyo del bote que ya se ha gastado. Lo que queda dentro no cuenta. */
+  porElBote: number;
   /** Su parte de todo lo consumido. */
   debe: number;
   saldo: number;
@@ -50,10 +54,12 @@ export interface DetalleViajero {
  * movido 20 € o 2.000 €.
  */
 export function detallePorViajero(gastos: Expense[], aportaciones: Aportacion[], viajeros: ID[]): Record<ID, DetalleViajero> {
-  const puso: Record<ID, number> = {};
+  const deSuBolsillo: Record<ID, number> = {};
+  const porElBote: Record<ID, number> = {};
   const debe: Record<ID, number> = {};
   for (const id of viajeros) {
-    puso[id] = 0;
+    deSuBolsillo[id] = 0;
+    porElBote[id] = 0;
     debe[id] = 0;
   }
 
@@ -74,14 +80,14 @@ export function detallePorViajero(gastos: Expense[], aportaciones: Aportacion[],
   const proporcionUsada = totalAportado > 0 ? Math.min(1, gastadoDelBote / totalAportado) : 0;
 
   for (const a of aportaciones) {
-    if (a.travelerId in puso) puso[a.travelerId] += a.amountEUR * proporcionUsada;
+    if (a.travelerId in porElBote) porElBote[a.travelerId] += a.amountEUR * proporcionUsada;
   }
 
   for (const g of gastos) {
     if (g.kind !== "actual") continue;
 
-    if (!g.pagadoDelBote && g.paidByTravelerId && g.paidByTravelerId in puso) {
-      puso[g.paidByTravelerId] += g.amountEUR;
+    if (!g.pagadoDelBote && g.paidByTravelerId && g.paidByTravelerId in deSuBolsillo) {
+      deSuBolsillo[g.paidByTravelerId] += g.amountEUR;
     }
 
     // Entre quiénes se reparte. Sin lista, entre todos: un gasto del bote es
@@ -95,7 +101,10 @@ export function detallePorViajero(gastos: Expense[], aportaciones: Aportacion[],
   }
 
   const detalle: Record<ID, DetalleViajero> = {};
-  for (const id of viajeros) detalle[id] = { puso: puso[id], debe: debe[id], saldo: puso[id] - debe[id] };
+  for (const id of viajeros) {
+    const puso = deSuBolsillo[id] + porElBote[id];
+    detalle[id] = { puso, deSuBolsillo: deSuBolsillo[id], porElBote: porElBote[id], debe: debe[id], saldo: puso - debe[id] };
+  }
   return detalle;
 }
 
