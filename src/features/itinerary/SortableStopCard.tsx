@@ -42,36 +42,56 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
     <div
       ref={setNodeRef}
       style={style}
-      className="relative flex items-center gap-2.5 rounded-(--radius-card) border bg-(--color-surface) p-3 shadow-(--shadow-card)"
+      className="relative flex items-center gap-2 rounded-(--radius-card) border bg-(--color-surface) p-2.5 shadow-(--shadow-card)"
     >
-      <button {...attributes} {...listeners} aria-label="Reordenar parada" className="-ml-1 shrink-0 touch-none p-1 text-(--color-text-muted)">
+      <button
+        {...attributes}
+        {...listeners}
+        aria-label="Reordenar parada"
+        className="control-compacto -ml-1 flex h-8 w-6 shrink-0 touch-none items-center justify-center text-(--color-text-muted)"
+      >
         <GripVertical size={18} aria-hidden="true" />
       </button>
 
-      {/* 56 px en vez de 48: casi todas las paradas acaban teniendo foto, y a
-          ese tamaño se reconoce el sitio antes de leer el nombre. */}
-      <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-14 w-14 rounded-2xl" iconSize={24} />
-
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1">
-          <p className="truncate text-[15px] font-semibold text-(--color-text)">{stop.name}</p>
-          {favorite && <Star size={12} className="shrink-0 text-(--color-gastronomy)" fill="currentColor" aria-hidden="true" />}
-        </div>
-        <p className="truncate text-xs capitalize text-(--color-text-muted)">
-          {stop.category}
-          {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
-          {stop.optional && <> · opcional</>}
-          {!stop.enabled && <> · desactivada</>}
-        </p>
         {/*
-         * Las estrellas sólo aparecen cuando hay algo que puntuar: al volver
-         * de la parada o si ya la puntuaste. Antes salían en las treinta y
-         * siete paradas del viaje, y treinta y siete filas de estrellas
-         * vacías es lo que hacía que la lista pareciese un formulario a medio
-         * rellenar en vez de un itinerario.
+         * La foto y el texto forman un botón: tocar la fila abre la parada en
+         * grande, que es lo que hace cualquier app con una lista. Antes no
+         * hacía nada y para ver de qué iba el sitio había que abrir el menú de
+         * los tres puntos.
+         *
+         * Arrastrar sigue siendo cosa del asa de la izquierda, así que tocar y
+         * mover no se pisan.
+         */}
+        <button
+          onClick={() => openModal({ type: "ficha-parada", stopId: stop.id })}
+          className="flex w-full items-center gap-2.5 text-left"
+          aria-label={`Abrir ${stop.name}`}
+        >
+          <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-16 w-16 rounded-2xl" iconSize={26} />
+
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-1">
+              <span className="truncate text-[15px] font-semibold text-(--color-text)">{stop.name}</span>
+              {favorite && <Star size={12} className="shrink-0 text-(--color-gastronomy)" fill="currentColor" aria-hidden="true" />}
+            </span>
+            <span className="block truncate text-xs capitalize text-(--color-text-muted)">
+              {stop.category}
+              {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
+              {stop.optional && <> · opcional</>}
+              {!stop.enabled && <> · desactivada</>}
+            </span>
+          </span>
+        </button>
+
+        {/*
+         * Las estrellas van fuera de ese botón —son botones ellas mismas— y
+         * sólo aparecen cuando hay algo que puntuar: al volver de la parada, o
+         * si ya la puntuaste. Saliendo en las treinta y siete paradas del
+         * viaje, la lista parecía un formulario a medio rellenar.
          */}
         {(stop.visited || puntuada) && (
-          <div className="mt-1 -ml-0.5 flex items-center gap-1.5">
+          <div className="mt-1 flex items-center gap-1.5 pl-[74px]">
             <StarRatingInput tipo="stop" targetId={stop.id} nombre={stop.name} size={15} etiqueta={false} />
             {!puntuada && <span className="text-xs text-(--color-text-muted)">¿Qué tal?</span>}
           </div>
@@ -84,13 +104,13 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
           setStopVisited(stop.id, !stop.visited);
           pushToast(stop.visited ? `${stop.name} marcada como pendiente` : `${stop.name} marcada como visitada`, "success");
         }}
-        className={`flex h-9 w-9 shrink-0 self-start items-center justify-center rounded-full ${stop.visited ? "bg-(--color-completed) text-white" : "border text-(--color-text-muted)"}`}
+        className={`control-compacto flex h-9 w-9 shrink-0 self-start items-center justify-center rounded-full ${stop.visited ? "bg-(--color-completed) text-white" : "border text-(--color-text-muted)"}`}
         style={!stop.visited ? { borderColor: "var(--color-border)" } : undefined}
       >
         <Check size={16} aria-hidden="true" />
       </button>
 
-      <button aria-label="Más opciones" onClick={() => setMenuOpen((v) => !v)} className="-mr-1 flex h-9 w-9 shrink-0 self-start items-center justify-center text-(--color-text-muted)">
+      <button aria-label="Más opciones" onClick={() => setMenuOpen((v) => !v)} className="control-compacto -mr-0.5 flex h-9 w-7 shrink-0 self-start items-center justify-center text-(--color-text-muted)">
         <MoreVertical size={18} aria-hidden="true" />
       </button>
 

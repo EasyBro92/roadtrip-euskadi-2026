@@ -13,6 +13,7 @@ export interface Toast {
 export type ModalState =
   | { type: "none" }
   | { type: "stop-editor"; stopId: string | null; dayId: string }
+  | { type: "ficha-parada"; stopId: string }
   /** Selector de día reutilizable: "¿a qué día lo añado?" */
   | { type: "day-picker"; title: string; message?: string; onPick: (dayId: string) => void }
   /** Biblioteca de lugares opcionales embebida, para añadir desde el itinerario. */

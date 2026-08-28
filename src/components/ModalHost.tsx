@@ -1,3 +1,4 @@
+import { FichaParadaModal } from "../features/itinerary/FichaParadaModal";
 import { PlaceLibraryModal } from "../features/itinerary/PlaceLibraryModal";
 import { StopEditorModal } from "../features/itinerary/StopEditorModal";
 import { EditarGastoModal } from "../features/expenses/EditarGastoModal";
@@ -16,6 +17,8 @@ export function ModalHost() {
   if (modal.type === "none") return null;
 
   if (modal.type === "stop-editor") return <StopEditorModal stopId={modal.stopId} dayId={modal.dayId} />;
+
+  if (modal.type === "ficha-parada") return <FichaParadaModal stopId={modal.stopId} />;
 
   if (modal.type === "day-picker") return <DayPickerModal title={modal.title} message={modal.message} onPick={modal.onPick} />;
 

@@ -94,6 +94,35 @@ a,
   inset: -10px -4px;
 }
 
+/*
+ * Botones de icono apretados en una fila.
+ *
+ * Lo mismo que arriba pero en las dos direcciones. En la tarjeta de una
+ * parada hay tres — asa de arrastrar, visitada y menú — y con 44 px de ancho
+ * mínimo cada uno se llevaban 132 px de los 335 de la tarjeta: al nombre le
+ * quedaban 82 y "Castillo de Loarre" salía como "Castillo d...".
+ *
+ * A 24-36 px se ven igual y el pseudo-elemento agranda la zona sensible por
+ * fuera: 44-48 px de alto y 32-44 de ancho, muy por encima del mínimo que
+ * pide la norma (24x24).
+ *
+ * Los 4 px de los lados no son un capricho: es justo la mitad del hueco que
+ * separa un botón del siguiente, así que las zonas se tocan pero no se
+ * pisan. Con más, la de un botón entraría en la del vecino y el dedo acabaría
+ * abriendo el menú al querer marcar la parada como visitada.
+ */
+.control-compacto {
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+}
+
+.control-compacto::after {
+  content: "";
+  position: absolute;
+  inset: -6px -4px;
+}
+
 :focus-visible {
   outline: 2px solid var(--color-navigation);
   outline-offset: 2px;
