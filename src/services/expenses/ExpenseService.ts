@@ -60,9 +60,45 @@ export const ExpenseService = {
     };
   },
 
-  toCSV(expenses: Expense[]): string {
-    const header = ["fecha", "hora", "importe_eur", "categoria", "lugar", "dia", "metodo_pago", "tipo", "notas"];
-    const rows = expenses.map((e) => [e.date, e.time, e.amountEUR.toFixed(2), e.category, e.place, e.dayId ?? "", e.paymentMethod, e.kind, e.notes.replace(/\n/g, " ")]);
+  /**
+   * Los gastos como CSV, para abrirlos en una hoja de cálculo.
+   *
+   * Llevan quién pagó y cómo se repartió porque en un viaje compartido eso es
+   * justamente para lo que se exporta: sin esas columnas la hoja dice cuánto
+   * se gastó pero no quién lo puso, que es la única cuenta que queda pendiente
+   * cuando el viaje acaba.
+   *
+   * Los nombres son opcionales: sin ellos salen los identificadores, que al
+   * menos siguen distinguiendo a una persona de otra.
+   */
+  toCSV(expenses: Expense[], travelers: { id: ID; name: string }[] = []): string {
+    const nombre = (id: ID | null | undefined) => travelers.find((t) => t.id === id)?.name ?? id ?? "";
+
+    const reparto = (e: Expense) =>
+      e.splitCustomEUR
+        ? Object.entries(e.splitCustomEUR)
+            .filter(([, importe]) => importe > 0)
+            .map(([id, importe]) => `${nombre(id)}: ${importe.toFixed(2)}`)
+            .join(" | ")
+        : e.splitBetweenTravelerIds.map((id) => nombre(id)).join(" | ");
+
+    // Las columnas nuevas van al final: así una hoja montada con la
+    // exportación de antes sigue encontrando las suyas donde estaban.
+    const header = ["fecha", "hora", "importe_eur", "categoria", "lugar", "dia", "metodo_pago", "tipo", "notas", "pagado_por", "del_bote", "repartido_entre"];
+    const rows = expenses.map((e) => [
+      e.date,
+      e.time,
+      e.amountEUR.toFixed(2),
+      e.category,
+      e.place,
+      e.dayId ?? "",
+      e.paymentMethod,
+      e.kind,
+      e.notes.replace(/\n/g, " "),
+      e.pagadoDelBote ? "" : nombre(e.paidByTravelerId),
+      e.pagadoDelBote ? "sí" : "",
+      reparto(e),
+    ]);
     return [header, ...rows].map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
   },
 };

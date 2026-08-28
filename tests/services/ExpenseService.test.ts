@@ -72,3 +72,38 @@ describe("ExpenseService.toCSV", () => {
     expect(lines[0]).toContain("categoria");
   });
 });
+
+describe("ExpenseService.toCSV: quién pagó y cómo se repartió", () => {
+  const VIAJEROS = [
+    { id: "ana", name: "Ana" },
+    { id: "luis", name: "Luis" },
+  ];
+
+  it("dice quién pagó, con su nombre", () => {
+    /*
+     * Sin esta columna la hoja decía cuánto se gastó pero no quién lo puso,
+     * que es la única cuenta que queda pendiente al volver de un viaje.
+     */
+    const csv = ExpenseService.toCSV([makeExpense({ paidByTravelerId: "ana" })], VIAJEROS);
+    expect(csv.split("\n")[0]).toContain("pagado_por");
+    expect(csv.split("\n")[1]).toContain("Ana");
+  });
+
+  it("un gasto del bote no se le apunta a nadie", () => {
+    // Lo pagó el bote; quién lo llenó está en las aportaciones, no aquí.
+    const csv = ExpenseService.toCSV([makeExpense({ pagadoDelBote: true, paidByTravelerId: "ana" })], VIAJEROS);
+    const fila = csv.split("\n")[1];
+    expect(fila).toContain("sí");
+    expect(fila).not.toContain("Ana");
+  });
+
+  it("el reparto a medida sale con los importes de cada uno", () => {
+    const csv = ExpenseService.toCSV([makeExpense({ splitCustomEUR: { ana: 70, luis: 30 } })], VIAJEROS);
+    expect(csv.split("\n")[1]).toContain("Ana: 70.00 | Luis: 30.00");
+  });
+
+  it("sin nombres se queda con los identificadores", () => {
+    // Peor que un nombre, pero sigue distinguiendo a una persona de otra.
+    expect(ExpenseService.toCSV([makeExpense({ paidByTravelerId: "ana" })])).toContain("ana");
+  });
+});
