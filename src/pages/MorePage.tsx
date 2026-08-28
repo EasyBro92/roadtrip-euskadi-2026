@@ -1,4 +1,4 @@
-import { Bookmark, Car, ChevronsUpDown, FileText, Globe2, HardDrive, CircleHelp, CloudDownload, Compass, CornerUpLeft, Flag, ListChecks, MapPinned, NotebookPen, Radar, Settings, Share2, Sparkles, Star, Trophy, type LucideIcon } from "lucide-react";
+import { BookImage, Bookmark, Car, ChevronsUpDown, FileText, Globe2, HardDrive, CircleHelp, CloudDownload, Compass, CornerUpLeft, Flag, ListChecks, MapPinned, NotebookPen, Radar, Settings, Share2, Sparkles, Star, Trophy, type LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useT } from "../hooks/useT";
 import { useTripStats } from "../hooks/useTripStats";
@@ -26,6 +26,7 @@ const GROUPS: { title: string; items: MoreItem[] }[] = [
   {
     title: "El viaje",
     items: [
+      { to: "/mas/album", label: "Álbum del viaje", description: "El viaje entero seguido, para enseñarlo o guardarlo", icon: BookImage },
       { to: "/resumen", label: "Resumen del viaje", description: "Estadísticas y celebración final", icon: Flag },
       { to: "/mas/lugares", label: "Lugares opcionales", description: "Añade paradas a cualquier día", icon: MapPinned },
       { to: "/mas/regreso", label: "Regreso a Girona", description: "Compara rutas de vuelta y su coste", icon: CornerUpLeft },

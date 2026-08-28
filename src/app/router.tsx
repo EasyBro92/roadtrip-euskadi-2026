@@ -31,6 +31,7 @@ const SavedPlacesPage = lazy(() => import("../pages/SavedPlacesPage").then((m) =
 const DocumentsPage = lazy(() => import("../pages/DocumentsPage").then((m) => ({ default: m.DocumentsPage })));
 const VisitedPage = lazy(() => import("../pages/VisitedPage").then((m) => ({ default: m.VisitedPage })));
 const MyReviewsPage = lazy(() => import("../pages/MyReviewsPage").then((m) => ({ default: m.MyReviewsPage })));
+const AlbumPage = lazy(() => import("../pages/AlbumPage").then((m) => ({ default: m.AlbumPage })));
 const PrepararPage = lazy(() => import("../pages/PrepararPage").then((m) => ({ default: m.PrepararPage })));
 const ImportarPage = lazy(() => import("../pages/ImportarPage").then((m) => ({ default: m.ImportarPage })));
 const NotesPage = lazy(() => import("../pages/NotesPage").then((m) => ({ default: m.NotesPage })));
@@ -86,6 +87,7 @@ export const router = createBrowserRouter([
       { path: "/mas/documentos", element: withSuspense(<DocumentsPage />) },
       { path: "/mas/visitados", element: withSuspense(<VisitedPage />) },
       { path: "/mas/valoraciones", element: withSuspense(<MyReviewsPage />) },
+      { path: "/mas/album", element: withSuspense(<AlbumPage />) },
       { path: "/mas/preparar", element: withSuspense(<PrepararPage />) },
       { path: "/mas/notas", element: withSuspense(<NotesPage />) },
       { path: "/mas/regreso", element: withSuspense(<ReturnTripPage />) },
