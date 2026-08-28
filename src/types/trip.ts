@@ -31,6 +31,15 @@ export interface Trip extends Timestamped {
   vehicle: Vehicle;
   days: TripDay[];
   returnTrip: ReturnTripOption;
+  /**
+   * Cuál de los viajeros eres tú.
+   *
+   * Sin esto, las cuentas sólo se pueden contar en abstracto ("Ana debe a
+   * Luis"). Sabiéndolo, se pueden contar desde ti — "te deben 125 €" — que es
+   * lo que de verdad vas a mirar. Opcional: sin él todo sigue funcionando en
+   * abstracto y no hace falta migrar nada.
+   */
+  miViajeroId?: ID;
   budgetEUR: number;
   /**
    * Tope por categoría de gasto. Opcional y parcial a propósito: puedes

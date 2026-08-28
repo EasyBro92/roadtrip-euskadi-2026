@@ -6,6 +6,7 @@ import { ListaGastos } from "../features/expenses/ListaGastos";
 import { PanelBote } from "../features/expenses/PanelBote";
 import { PanelPresupuesto } from "../features/expenses/PanelPresupuesto";
 import { PanelReparto } from "../features/expenses/PanelReparto";
+import { TuSaldo } from "../features/expenses/TuSaldo";
 import { ExportService } from "../services/export/ExportService";
 import { calcularSaldos } from "../services/expenses/bote";
 import { ExpenseService } from "../services/expenses/ExpenseService";
@@ -55,10 +56,14 @@ export function ExpensesPage() {
         </button>
       </div>
 
-      {/* Cuánto llevas y cuánto queda, que es lo que de verdad se mira. */}
+      {/* Primero lo tuyo, como hace Splitwise: si debes o te deben. El gasto
+          total del viaje es un dato del viaje, no tuyo, y va debajo. */}
+      <TuSaldo saldos={saldos} />
+
       <div className="mt-3 rounded-(--radius-card) border bg-(--color-surface) p-4 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+        <p className="text-xs text-(--color-text-muted)">Gastado en el viaje</p>
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-3xl font-medium tracking-tight text-(--color-text)">{formatEUR(stats.totalEUR)}</p>
+          <p className="text-2xl font-medium tracking-tight text-(--color-text)">{formatEUR(stats.totalEUR)}</p>
           {trip.budgetEUR > 0 && (
             <p className={`shrink-0 text-sm font-medium ${pasado ? "text-(--color-cancelled)" : "text-(--color-text-muted)"}`}>
               {pasado ? `${formatEUR(stats.totalEUR - trip.budgetEUR)} de más` : `${formatEUR(trip.budgetEUR - stats.totalEUR)} libres`}

@@ -122,6 +122,7 @@ interface TripStoreState {
   setEditLockMode: (mode: EditLockMode, pinHash?: string) => void;
   updateTripSettings: (patch: Partial<Trip["settings"]>) => void;
   setBudget: (totalEUR: number) => void;
+  setMiViajero: (travelerId: ID | null) => void;
   setCategoryBudget: (category: ExpenseCategory, amountEUR: number | null) => void;
   setReturnTrip: (patch: Partial<Trip["returnTrip"]>) => void;
   recalculateDatesFromStart: (newStartDate: string) => void;
@@ -287,6 +288,8 @@ export const useTripStore = create<TripStoreState>()(
       updateTripSettings: (patch) => set((state) => ({ trip: { ...state.trip, settings: { ...state.trip.settings, ...patch } } })),
 
       setBudget: (totalEUR) => set((state) => ({ trip: { ...state.trip, budgetEUR: Math.max(0, totalEUR) } })),
+
+      setMiViajero: (travelerId) => set((state) => ({ trip: { ...state.trip, miViajeroId: travelerId ?? undefined } })),
 
       setCategoryBudget: (category, amountEUR) =>
         set((state) => {

@@ -15,6 +15,7 @@ import { colorCategoria, etiquetaCategoria } from "./categorias";
 export function ListaGastos({ expenses }: { expenses: Expense[] }) {
   const stops = useTripStore((s) => s.stopsById);
   const travelers = useTripStore((s) => s.trip.travelers);
+  const yo = useTripStore((s) => s.trip.miViajeroId);
   const deleteExpense = useTripStore((s) => s.deleteExpense);
   const openModal = useUIStore((s) => s.openModal);
   const pushToast = useUIStore((s) => s.pushToast);
@@ -67,6 +68,7 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
                 // Sólo se dice cuando NO es de todos: lo normal no merece ruido.
                 const reparto = e.splitBetweenTravelerIds ?? [];
                 const soloAlgunos = travelers.length > 1 && reparto.length > 0 && reparto.length < travelers.length;
+                const relativo = calcularRelativo(e, yo, travelers.length);
                 const entre = soloAlgunos
                   ? reparto.map((id) => travelers.find((t) => t.id === id)?.name).filter(Boolean).join(" y ")
                   : undefined;
@@ -93,7 +95,16 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
                           {entre && <> · sólo {entre}</>}
                         </p>
                       </div>
-                      <span className="shrink-0 text-sm font-semibold text-(--color-text)">{formatEUR(e.amountEUR)}</span>
+                      <div className="shrink-0 text-right">
+                        <span className="block text-sm font-semibold text-(--color-text)">{formatEUR(e.amountEUR)}</span>
+                        {/* Lo mismo que hace Splitwise: cada línea dice qué
+                            significa para ti, no sólo lo que costó. */}
+                        {relativo && (
+                          <span className="block text-[11px]" style={{ color: relativo.color }}>
+                            {relativo.texto}
+                          </span>
+                        )}
+                      </div>
                     </button>
                   </SwipeToDelete>
                 );
@@ -104,4 +115,34 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
       })}
     </div>
   );
+}
+
+/**
+ * Qué significa un gasto para ti.
+ *
+ * Es lo que hace Splitwise en cada línea: no basta con lo que costó, importa
+ * si lo pusiste tú o te toca pagarlo. Sin saber cuál de los viajeros eres, no
+ * se dice nada — inventarlo invertiría el signo.
+ */
+function calcularRelativo(e: Expense, yo: string | undefined, cuantosViajeros: number): { texto: string; color: string } | null {
+  if (!yo || cuantosViajeros < 2) return null;
+
+  const reparto = e.splitBetweenTravelerIds?.length ? e.splitBetweenTravelerIds : null;
+  const meToca = reparto ? reparto.includes(yo) : true;
+  const miParte = e.amountEUR / (reparto?.length ?? cuantosViajeros);
+
+  if (e.pagadoDelBote) {
+    return meToca ? { texto: `te toca ${formatEUR(miParte)}`, color: "var(--color-text-muted)" } : { texto: "no va contigo", color: "var(--color-text-muted)" };
+  }
+
+  if (e.paidByTravelerId === yo) {
+    // Pusiste el dinero: lo que te deben es todo menos tu propia parte.
+    const adelantado = e.amountEUR - (meToca ? miParte : 0);
+    return adelantado > 0.005
+      ? { texto: `pusiste ${formatEUR(adelantado)}`, color: "var(--color-progress)" }
+      : { texto: "para ti", color: "var(--color-text-muted)" };
+  }
+
+  if (!meToca) return { texto: "no va contigo", color: "var(--color-text-muted)" };
+  return { texto: `te toca ${formatEUR(miParte)}`, color: "var(--color-cancelled)" };
 }
