@@ -7,7 +7,7 @@ import { db } from "../../services/storage/db";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore, type StopDetailTab } from "../../stores/useUIStore";
 import type { Stop } from "../../types";
-import { formatEUR } from "../../utils/format";
+import { fechaLocal, formatEUR } from "../../utils/format";
 import { openExternalUrl } from "../../utils/openExternal";
 import { estadoDeApertura } from "../../utils/openingHours";
 
@@ -279,7 +279,7 @@ function GastosTab({ stop }: { stop: Stop }) {
             if (!value || value <= 0) return;
             const now = new Date();
             addExpense({
-              date: now.toISOString().slice(0, 10),
+              date: fechaLocal(now),
               time: now.toTimeString().slice(0, 5),
               amountEUR: value,
               category: "otros",

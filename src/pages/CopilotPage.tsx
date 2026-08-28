@@ -5,6 +5,7 @@ import { CopilotService } from "../services/copilot/CopilotService";
 import { useLocationStore } from "../stores/useLocationStore";
 import { useTripStore } from "../stores/useTripStore";
 import type { CopilotEngineMode, CopilotSuggestion } from "../types";
+import { fechaLocal } from "../utils/format";
 
 const KIND_LABEL: Record<string, string> = {
   "next-stop": "Siguiente parada",
@@ -33,7 +34,7 @@ export function CopilotPage() {
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = fechaLocal();
     const spent = expenses.filter((e) => e.kind === "actual").reduce((sum, e) => sum + e.amountEUR, 0);
     const result = await CopilotService.getSuggestions({
       trip,

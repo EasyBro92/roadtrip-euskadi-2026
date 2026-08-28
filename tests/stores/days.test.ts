@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { useTripStore } from "../../src/stores/useTripStore";
+import { fechaLocal } from "../../src/utils/format";
 
 beforeEach(() => {
   useTripStore.getState().resetAllData();
@@ -72,5 +73,31 @@ describe("reorderDays", () => {
     const antes = dias().map((d) => d.id);
     useTripStore.getState().reorderDays([antes[0]]);
     expect(dias().map((d) => d.id)).toEqual(antes);
+  });
+});
+
+describe("sincronizarDiaDeHoy", () => {
+  it("abre en el día del viaje que toca hoy", () => {
+    /*
+     * El día actual sólo cambiaba a mano, así que el segundo día del viaje la
+     * app seguía abriendo en el primero y los gastos nuevos se apuntaban al
+     * día equivocado.
+     */
+    const [d1, d2] = dias();
+    useTripStore.getState().updateDay(d2.id, { date: fechaLocal() });
+    useTripStore.getState().setCurrentDay(d1.id);
+
+    useTripStore.getState().sincronizarDiaDeHoy();
+    expect(useTripStore.getState().trip.currentDayId).toBe(d2.id);
+  });
+
+  it("no toca nada si hoy no es del viaje", () => {
+    // Antes de salir, o al volver: se queda donde lo dejaste.
+    const [d1] = dias();
+    useTripStore.getState().setCurrentDay(d1.id);
+    for (const d of dias()) useTripStore.getState().updateDay(d.id, { date: "1999-01-01" });
+
+    useTripStore.getState().sincronizarDiaDeHoy();
+    expect(useTripStore.getState().trip.currentDayId).toBe(d1.id);
   });
 });

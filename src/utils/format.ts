@@ -38,3 +38,17 @@ export function percentage(part: number, total: number): number {
   if (total <= 0) return 0;
   return clamp(Math.round((part / total) * 100), 0, 100);
 }
+
+/**
+ * La fecha de hoy tal y como la ve quien mira el reloj, en formato ISO.
+ *
+ * `toISOString()` da la fecha en UTC, y en España en verano vamos dos horas
+ * por delante: entre las 00:00 y las 02:00 devuelve todavía el día anterior.
+ * Una cena apuntada a las 00:30 se guardaba con la fecha de ayer, y el día
+ * del viaje que sale al abrir la app tampoco sería el correcto a esa hora.
+ */
+export function fechaLocal(fecha: Date = new Date()): string {
+  const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+  const dia = String(fecha.getDate()).padStart(2, "0");
+  return `${fecha.getFullYear()}-${mes}-${dia}`;
+}

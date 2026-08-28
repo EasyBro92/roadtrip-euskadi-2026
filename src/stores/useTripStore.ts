@@ -6,6 +6,7 @@ import { SEED_CHECKLIST } from "../data/checklist.data";
 import { SEED_OPTIONAL_PLACES } from "../data/optionalPlaces.data";
 import { CIUDADES_POR_DIA, PLAN_POR_CIUDADES } from "../data/reorganizacion.data";
 import { createStop } from "../data/stopFactory";
+import { fechaLocal } from "../utils/format";
 import { createEmptyTrip, type NewTripInput } from "../data/tripFactory";
 import { SEED_STOPS } from "../data/stops.data";
 import { SEED_TRIP } from "../data/trip.data";
@@ -151,6 +152,7 @@ interface TripStoreState {
   moveStopToDay: (stopId: ID, targetDayId: ID, targetIndex: number) => void;
   setStopVisited: (id: ID, visited: boolean) => void;
   setCurrentDay: (dayId: ID) => void;
+  sincronizarDiaDeHoy: () => void;
   setCurrentStop: (id: ID | null) => void;
   restoreOriginalRoute: () => void;
 
@@ -436,6 +438,24 @@ export const useTripStore = create<TripStoreState>()(
         }),
 
       setCurrentDay: (dayId) => set((state) => ({ trip: { ...state.trip, currentDayId: dayId, currentStopId: null } })),
+
+      /*
+       * Abrir la app en el día que toca.
+       *
+       * El día actual sólo cambiaba tocándolo a mano, así que el segundo día
+       * del viaje la app seguía abriendo en el primero: el mapa, el diario y
+       * los gastos nuevos iban al día equivocado hasta que te dabas cuenta.
+       *
+       * Sólo al abrir, y sólo si hoy es uno de los días del viaje. Durante el
+       * día se puede mirar cualquier otro sin que la app te devuelva al de hoy
+       * a media consulta.
+       */
+      sincronizarDiaDeHoy: () =>
+        set((state) => {
+          const dia = state.trip.days.find((d) => d.date === fechaLocal());
+          if (!dia || state.trip.currentDayId === dia.id) return {};
+          return { trip: { ...state.trip, currentDayId: dia.id, currentStopId: null } };
+        }),
       setCurrentStop: (id) => set((state) => ({ trip: { ...state.trip, currentStopId: id } })),
 
       restoreOriginalRoute: () => {
@@ -555,7 +575,7 @@ export const useTripStore = create<TripStoreState>()(
               id: generateId("aportacion"),
               travelerId,
               amountEUR: Math.abs(amountEUR),
-              date: new Date().toISOString().slice(0, 10),
+              date: fechaLocal(),
               notes,
               createdAt: new Date().toISOString(),
             },

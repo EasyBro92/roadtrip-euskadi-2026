@@ -1,4 +1,5 @@
 import type { ID, ISODate } from "../../types";
+import { fechaLocal } from "../../utils/format";
 import { generateId } from "../../utils/id";
 import { db } from "../storage/db";
 
@@ -92,7 +93,7 @@ export const DocumentService = {
  * claro es mejor que un aviso que no llega.
  */
 export function proximos(documentos: Documento[], hoy = new Date()): Documento[] {
-  const dia = (d: Date) => d.toISOString().slice(0, 10);
+  const dia = (d: Date) => fechaLocal(d);
   const manana = new Date(hoy);
   manana.setDate(manana.getDate() + 1);
 

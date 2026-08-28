@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { VehicleService } from "../services/vehicle/VehicleService";
 import { useTripStore } from "../stores/useTripStore";
-import { formatEUR } from "../utils/format";
+import { fechaLocal, formatEUR } from "../utils/format";
 
 export function VehiclePage() {
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ export function VehiclePage() {
     const l = Number.parseFloat(liters);
     const price = Number.parseFloat(pricePerLiter);
     if (!km || !l || !price) return;
-    addRefuel({ vehicleId: vehicle.id, date: new Date().toISOString().slice(0, 10), place: place || "Sin especificar", odometerKm: km, liters: l, pricePerLiter: price, fullTank, notes: "" });
+    addRefuel({ vehicleId: vehicle.id, date: fechaLocal(), place: place || "Sin especificar", odometerKm: km, liters: l, pricePerLiter: price, fullTank, notes: "" });
     setOdometerKm("");
     setLiters("");
     setPricePerLiter("");

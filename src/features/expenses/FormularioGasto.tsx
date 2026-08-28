@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { ExpenseCategory } from "../../types";
+import { fechaLocal } from "../../utils/format";
 import { CATEGORIAS_GASTO } from "./categorias";
 import { useDuenoDelBote } from "./useDuenoDelBote";
 
@@ -47,7 +48,7 @@ export function FormularioGasto() {
     }
     const ahora = new Date();
     addExpense({
-      date: ahora.toISOString().slice(0, 10),
+      date: fechaLocal(ahora),
       time: ahora.toTimeString().slice(0, 5),
       amountEUR: valor,
       category: categoria,

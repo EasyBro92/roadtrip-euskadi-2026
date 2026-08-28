@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clamp, formatDuration, percentage } from "../../src/utils/format";
+import { clamp, fechaLocal, formatDuration, percentage } from "../../src/utils/format";
 
 describe("clamp", () => {
   it("returns the value unchanged when within range", () => {
@@ -48,5 +48,24 @@ describe("formatDuration", () => {
 
   it("rounds seconds to the nearest minute", () => {
     expect(formatDuration(90)).toBe("2 min");
+  });
+});
+
+describe("fechaLocal", () => {
+  it("da el día que marca el reloj de aquí, no el de Londres", () => {
+    /*
+     * El caso que rompía: con toISOString(), una cena apuntada a las 00:30 de
+     * un día de agosto en España se guardaba con la fecha del día anterior,
+     * porque en UTC todavía no había cambiado el día.
+     */
+    expect(fechaLocal(new Date(2026, 7, 30, 0, 30))).toBe("2026-08-30");
+  });
+
+  it("rellena mes y día con cero", () => {
+    expect(fechaLocal(new Date(2026, 0, 5, 14, 0))).toBe("2026-01-05");
+  });
+
+  it("aguanta el último instante del día", () => {
+    expect(fechaLocal(new Date(2026, 11, 31, 23, 59, 59))).toBe("2026-12-31");
   });
 });
