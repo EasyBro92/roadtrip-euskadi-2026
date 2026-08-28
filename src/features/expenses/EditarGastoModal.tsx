@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { ExpenseCategory } from "../../types";
+import { formatEUR } from "../../utils/format";
 import { CATEGORIAS_GASTO } from "./categorias";
 
 /**
@@ -26,6 +27,16 @@ export function EditarGastoModal({ expenseId }: { expenseId: string }) {
   const [fecha, setFecha] = useState(gasto?.date ?? "");
   const [delBote, setDelBote] = useState(Boolean(gasto?.pagadoDelBote));
   const [pagador, setPagador] = useState(gasto?.paidByTravelerId ?? travelers[0]?.id ?? "");
+  /**
+   * Entre quiénes se reparte.
+   *
+   * Por defecto todos, que es lo habitual, pero no siempre: si uno no cena,
+   * esa cena no es suya. Repartir siempre entre todos es lo que hace que las
+   * cuentas acaben sin cuadrar con la realidad.
+   */
+  const [entre, setEntre] = useState<string[]>(
+    gasto?.splitBetweenTravelerIds?.length ? gasto.splitBetweenTravelerIds : travelers.map((t) => t.id),
+  );
 
   if (!gasto) return null;
 
@@ -44,6 +55,8 @@ export function EditarGastoModal({ expenseId }: { expenseId: string }) {
       // Del bote no lo paga nadie en concreto; quien lo puso ya está contado
       // en las aportaciones, y dejar un pagador aquí lo contaría dos veces.
       paidByTravelerId: delBote ? null : pagador || null,
+      // Sin nadie marcado no se puede repartir: vuelve a ser de todos.
+      splitBetweenTravelerIds: entre.length > 0 ? entre : travelers.map((t) => t.id),
     });
     pushToast("Gasto actualizado.", "success");
     closeModal();
@@ -140,6 +153,33 @@ export function EditarGastoModal({ expenseId }: { expenseId: string }) {
             );
           })}
         </div>
+
+        {travelers.length > 1 && (
+          <>
+            <label className="mb-1 block text-xs font-medium text-(--color-text-muted)">Entre quiénes se reparte</label>
+            <div className="mb-5 flex flex-wrap gap-1.5">
+              {travelers.map((t) => {
+                const dentro = entre.includes(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setEntre((v) => (dentro ? v.filter((x) => x !== t.id) : [...v, t.id]))}
+                    aria-pressed={dentro}
+                    className={`rounded-full border px-3 py-1.5 text-sm ${dentro ? "border-(--color-progress) bg-(--color-progress) font-medium text-white" : "bg-(--color-surface) text-(--color-text-muted)"}`}
+                    style={!dentro ? { borderColor: "var(--color-border)" } : undefined}
+                  >
+                    {t.name}
+                  </button>
+                );
+              })}
+            </div>
+            {entre.length > 0 && entre.length < travelers.length && (
+              <p className="-mt-4 mb-5 text-xs text-(--color-text-muted)">
+                {formatEUR(valido ? valor / entre.length : 0)} cada uno, entre {entre.length} de {travelers.length}.
+              </p>
+            )}
+          </>
+        )}
 
         <button
           onClick={guardar}

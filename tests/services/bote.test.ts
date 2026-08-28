@@ -132,3 +132,40 @@ describe("qué significa la suma de los saldos", () => {
     expect(suma(s)).toBeCloseTo(-100, 6);
   });
 });
+
+describe("gastos que no son de todos", () => {
+  it("una cena de uno solo no la paga el otro", () => {
+    // Lo que hacen Splitwise y Tricount y aquí faltaba: si Luis cena solo,
+    // esa cena es suya entera, no a medias.
+    const s = calcularSaldos([gasto(40, { paidByTravelerId: "ana", splitBetweenTravelerIds: ["luis"] })], [], VIAJEROS);
+
+    expect(s.ana).toBeCloseTo(40);
+    expect(s.luis).toBeCloseTo(-40);
+  });
+
+  it("mezcla gastos de todos con gastos de uno", () => {
+    const gastos = [
+      gasto(100, { paidByTravelerId: "ana" }), // de los dos, 50 cada uno
+      gasto(30, { paidByTravelerId: "ana", splitBetweenTravelerIds: ["luis"] }), // sólo de Luis
+    ];
+    const s = calcularSaldos(gastos, [], VIAJEROS);
+
+    // Ana puso 130 y le tocan 50; Luis no puso nada y le tocan 80.
+    expect(s.ana).toBeCloseTo(80);
+    expect(s.luis).toBeCloseTo(-80);
+  });
+
+  it("del bote también se puede repartir entre algunos", () => {
+    const gastos = [gasto(60, { pagadoDelBote: true, splitBetweenTravelerIds: ["ana"] })];
+    const s = calcularSaldos(gastos, [aportacion("ana", 60)], VIAJEROS);
+
+    // Ana puso 60 del bote y el gasto es suyo entero: queda en paz.
+    expect(s.ana).toBeCloseTo(0);
+    expect(s.luis).toBeCloseTo(0);
+  });
+
+  it("no se pierde dinero repartiendo entre algunos", () => {
+    const gastos = [gasto(90, { paidByTravelerId: "luis", splitBetweenTravelerIds: ["ana"] }), gasto(40, { paidByTravelerId: "ana" })];
+    expect(suma(calcularSaldos(gastos, [], VIAJEROS))).toBeCloseTo(0, 6);
+  });
+});

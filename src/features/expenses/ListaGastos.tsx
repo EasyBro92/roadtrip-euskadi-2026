@@ -64,6 +64,12 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
               {[...delDia].reverse().map((e) => {
                 const parada = e.stopId ? stops[e.stopId]?.name : undefined;
                 const quien = travelers.length > 1 ? travelers.find((t) => t.id === e.paidByTravelerId)?.name : undefined;
+                // Sólo se dice cuando NO es de todos: lo normal no merece ruido.
+                const reparto = e.splitBetweenTravelerIds ?? [];
+                const soloAlgunos = travelers.length > 1 && reparto.length > 0 && reparto.length < travelers.length;
+                const entre = soloAlgunos
+                  ? reparto.map((id) => travelers.find((t) => t.id === id)?.name).filter(Boolean).join(" y ")
+                  : undefined;
                 return (
                   <SwipeToDelete
                     key={e.id}
@@ -84,6 +90,7 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
                           {e.time && <> · {e.time}</>}
                           {parada && <> · {parada}</>}
                           {e.pagadoDelBote ? <> · del bote</> : quien ? <> · pagó {quien}</> : null}
+                          {entre && <> · sólo {entre}</>}
                         </p>
                       </div>
                       <span className="shrink-0 text-sm font-semibold text-(--color-text)">{formatEUR(e.amountEUR)}</span>
