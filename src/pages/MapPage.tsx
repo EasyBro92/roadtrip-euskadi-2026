@@ -8,6 +8,7 @@ import { MapControls } from "../features/map/MapControls";
 import { MapSearchBar } from "../features/map/MapSearchBar";
 import { RoutePolylines } from "../features/map/RoutePolylines";
 import { StartRouteButton } from "../features/map/StartRouteButton";
+import { CocheMarker } from "../features/map/CocheMarker";
 import { NearbyMarkers } from "../features/map/NearbyMarkers";
 import { FichaPoi, PoiLayer } from "../features/map/PoiLayer";
 import { StopMarkers } from "../features/map/StopMarkers";
@@ -193,6 +194,7 @@ export function MapPage() {
         <RoutePolylines dayId={dayId} />
         <StopMarkers dayId={dayId} />
         <NearbyMarkers />
+        <CocheMarker />
         <PoiLayer />
         <VehicleMarker />
         <InvalidateSizeOnSheetChange />

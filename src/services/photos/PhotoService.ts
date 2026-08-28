@@ -63,6 +63,12 @@ export const PhotoService = {
     return stripBlob(photo);
   },
 
+  /** Una foto suelta por su id, con su miniatura. Sin el blob grande. */
+  async get(photoId: ID): Promise<Photo | null> {
+    const row = await db.photos.get(photoId);
+    return row ? stripBlob(row) : null;
+  },
+
   async listByStop(stopId: ID): Promise<Photo[]> {
     const rows = await db.photos.where("stopId").equals(stopId).toArray();
     return rows.map(stripBlob);

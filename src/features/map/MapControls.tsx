@@ -1,15 +1,17 @@
 import type L from "leaflet";
-import { Compass, Crosshair, Landmark, Layers, ListFilter, LocateFixed, Navigation2, Radar } from "lucide-react";
+import { Car, Compass, Crosshair, Landmark, Layers, ListFilter, LocateFixed, Navigation2, Radar } from "lucide-react";
 import { useState } from "react";
 import { useStopsOfDay } from "../../hooks/useStopsOfDay";
 import { useTap } from "../../hooks/useTap";
 import { MAP_LAYERS } from "../../services/map/MapService";
+import { useCocheStore } from "../../stores/useCocheStore";
 import { useLocationStore } from "../../stores/useLocationStore";
 import { useSettingsStore } from "../../stores/useSettingsStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { StopCategory } from "../../types";
 import { usePoiStore } from "../../stores/usePoiStore";
 import { PanelCerca } from "./PanelCerca";
+import { PanelCoche } from "./PanelCoche";
 
 const LOCATION_ERROR_MESSAGES: Record<string, string> = {
   denied: "Permiso de ubicación denegado. Actívalo en los ajustes del navegador para usar esta función.",
@@ -84,7 +86,9 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
   const stopTracking = useLocationStore((s) => s.stopTracking);
   const pushToast = useUIStore((s) => s.pushToast);
 
-  const [panel, setPanel] = useState<"none" | "layers" | "categories" | "legend" | "cerca">("none");
+  const [panel, setPanel] = useState<"none" | "layers" | "categories" | "legend" | "cerca" | "coche">("none");
+  const coche = useCocheStore((s) => s.coche);
+  const aparcar = useCocheStore((s) => s.aparcar);
   const capaPois = usePoiStore((s) => s.activa);
   const alternarPois = usePoiStore((s) => s.alternar);
   const poisCargando = usePoiStore((s) => s.cargando);
@@ -123,6 +127,34 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
     pushToast(LOCATION_ERROR_MESSAGES[reason] ?? LOCATION_ERROR_MESSAGES.unavailable, "error");
   }
 
+  /*
+   * Guardar dónde queda el coche, o volver a él si ya está guardado.
+   *
+   * Se pide la posición en el momento y no se usa la última conocida: puede
+   * ser de hace media hora y de otra calle, y un punto equivocado es peor que
+   * ninguno cuando lo estás buscando.
+   */
+  async function aparcarAqui() {
+    if (coche) {
+      setPanel(panel === "coche" ? "none" : "coche");
+      return;
+    }
+    if (warnInsecureContext()) return;
+
+    setLocating(true);
+    const position = await requestSinglePosition();
+    setLocating(false);
+
+    if (!position) {
+      const reason = useLocationStore.getState().error?.reason ?? "unavailable";
+      pushToast(LOCATION_ERROR_MESSAGES[reason] ?? LOCATION_ERROR_MESSAGES.unavailable, "error");
+      return;
+    }
+    aparcar(position);
+    setPanel("coche");
+    pushToast("Apuntado dónde queda el coche.", "success");
+  }
+
   function toggleFollow() {
     if (locationTracking) {
       stopTracking();
@@ -154,10 +186,12 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
           <ControlButton grouped icon={Crosshair} label="Ver ruta completa del día" onClick={fitToDay} />
           <ControlButton grouped icon={LocateFixed} label={locating ? "Buscando ubicación…" : "Mi ubicación"} onClick={centerOnMe} />
           <ControlButton grouped icon={Navigation2} label={locationTracking ? "Dejar de seguir" : "Seguir mi posición"} active={locationTracking} onClick={toggleFollow} />
+          <ControlButton grouped icon={Car} label={coche ? "Volver al coche" : "He aparcado aquí"} active={panel === "coche"} onClick={aparcarAqui} />
         </ControlGroup>
       </div>
 
       {panel === "cerca" && <PanelCerca map={map} onCerrar={() => setPanel("none")} />}
+      {panel === "coche" && <PanelCoche map={map} onCerrar={() => setPanel("none")} />}
 
       {/* Con la capa encendida, un botón para volver a buscar donde estés
           mirando. Recargar en cada arrastre sería una consulta por gesto. */}

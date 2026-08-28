@@ -44,6 +44,19 @@ export default defineConfig({
           { src: "icons/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
           { src: "icons/icon-maskable.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
         ],
+        /*
+         * Lo que sale al mantener pulsado el icono de la app en Android.
+         *
+         * Apuntar un gasto es lo que más veces al día se hace y estaba a tres
+         * toques desde el escritorio: abrir, esperar al mapa, ir a Gastos.
+         * Las rutas van relativas como start_url, por lo mismo: la app vive
+         * en /<repo>/ en GitHub Pages.
+         */
+        shortcuts: [
+          { name: "Apuntar un gasto", short_name: "Gasto", url: "gastos", icons: [{ src: "icons/icon.svg", sizes: "any", type: "image/svg+xml" }] },
+          { name: "El mapa de hoy", short_name: "Mapa", url: "mapa", icons: [{ src: "icons/icon.svg", sizes: "any", type: "image/svg+xml" }] },
+          { name: "Itinerario", short_name: "Itinerario", url: "itinerario", icons: [{ src: "icons/icon.svg", sizes: "any", type: "image/svg+xml" }] },
+        ],
       },
       workbox: {
         // Estrategia de caché del app shell (JS/CSS/HTML propios).

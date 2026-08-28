@@ -30,6 +30,17 @@ export interface Expense extends Timestamped {
    */
   pagadoDelBote?: boolean;
   splitBetweenTravelerIds: ID[];
+  /**
+   * Reparto a medida: cuánto le toca exactamente a cada uno, en euros.
+   *
+   * Manda sobre `splitBetweenTravelerIds`, que reparte a partes iguales. Es
+   * para cuando lo justo no es la mitad: dos noches de hotel de las que uno
+   * sólo duerme una, o una cena en la que uno pidió marisco. La suma tiene
+   * que dar el importe del gasto, y la pantalla no deja guardar si no.
+   *
+   * Opcional a propósito: los gastos de antes siguen valiendo sin migración.
+   */
+  splitCustomEUR?: Record<ID, number>;
   paymentMethod: PaymentMethod;
   notes: string;
   receiptPhotoId: ID | null;

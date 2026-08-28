@@ -269,3 +269,46 @@ describe("quienLlenaElBote", () => {
     expect(quienLlenaElBote([])).toBeNull();
   });
 });
+
+describe("repartos que no son a partes iguales", () => {
+  it("cada uno debe exactamente lo suyo", () => {
+    /*
+     * Dos noches de hotel de las que Luis sólo duerme una: 120 € que no se
+     * parten por la mitad. Antes había que apuntar dos gastos inventados para
+     * que las cuentas saliesen.
+     */
+    const gastos = [gasto(120, { paidByTravelerId: "ana", splitCustomEUR: { ana: 80, luis: 40 } })];
+    const s = calcularSaldos(gastos, [], VIAJEROS);
+
+    expect(s.ana).toBeCloseTo(40);
+    expect(s.luis).toBeCloseTo(-40);
+    expect(suma(s)).toBeCloseTo(0, 6);
+  });
+
+  it("manda sobre el reparto por cabezas", () => {
+    // Con los dos puestos gana el de los importes: es el que alguien escribió a mano.
+    const gastos = [gasto(100, { paidByTravelerId: "ana", splitBetweenTravelerIds: VIAJEROS, splitCustomEUR: { ana: 70, luis: 30 } })];
+    expect(calcularSaldos(gastos, [], VIAJEROS).luis).toBeCloseTo(-30);
+  });
+
+  it("también sirve para un gasto del bote", () => {
+    const gastos = [gasto(200, { pagadoDelBote: true, splitCustomEUR: { ana: 50, luis: 150 } })];
+    const s = calcularSaldos(gastos, [aportacion("ana", 200)], VIAJEROS);
+
+    // Ana puso los 200 del bote y le tocan 50: Luis le debe sus 150.
+    expect(s.ana).toBeCloseTo(150);
+    expect(s.luis).toBeCloseTo(-150);
+  });
+
+  it("un cero es un reparto válido, no un descuido", () => {
+    // La cena de Luis, que Ana pagó y no cenó.
+    const gastos = [gasto(40, { paidByTravelerId: "ana", splitCustomEUR: { ana: 0, luis: 40 } })];
+    expect(calcularSaldos(gastos, [], VIAJEROS).ana).toBeCloseTo(40);
+  });
+
+  it("ignora a quien ya no está en el viaje", () => {
+    // Si se borra un viajero, su parte no puede caerle a los demás por sorpresa.
+    const gastos = [gasto(90, { paidByTravelerId: "ana", splitCustomEUR: { ana: 45, fantasma: 45 } })];
+    expect(calcularSaldos(gastos, [], VIAJEROS).ana).toBeCloseTo(45);
+  });
+});

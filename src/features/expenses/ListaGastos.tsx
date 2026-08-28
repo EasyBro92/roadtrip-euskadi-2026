@@ -1,4 +1,4 @@
-import { Receipt } from "lucide-react";
+import { Paperclip, Receipt } from "lucide-react";
 import { SwipeToDelete } from "../../components/SwipeToDelete";
 import { Vacio } from "../../components/Vacio";
 import { useTripStore } from "../../stores/useTripStore";
@@ -97,6 +97,14 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
                           {parada && <> · {parada}</>}
                           {e.pagadoDelBote ? <> · del bote{dueno && <> de {dueno}</>}</> : quien ? <> · pagó {quien}</> : null}
                           {entre && <> · sólo {entre}</>}
+                          {e.splitCustomEUR && <> · a medida</>}
+                          {e.receiptPhotoId && (
+                            <>
+                              {" "}
+                              <Paperclip size={11} className="inline align-[-1px]" aria-hidden="true" />
+                              <span className="sr-only">con foto del ticket</span>
+                            </>
+                          )}
                         </p>
                       </div>
                       <div className="shrink-0 text-right">

@@ -100,6 +100,20 @@ export function detallePorViajero(gastos: Expense[], aportaciones: Aportacion[],
       deSuBolsillo[g.paidByTravelerId] += g.amountEUR;
     }
 
+    /*
+     * Reparto a medida: cada uno debe exactamente lo suyo, sin dividir nada.
+     *
+     * Va antes que el reparto por cabezas porque manda sobre él: si alguien se
+     * ha tomado el trabajo de decir los importes uno a uno, no hay nada que
+     * repartir.
+     */
+    if (g.splitCustomEUR) {
+      for (const [id, importe] of Object.entries(g.splitCustomEUR)) {
+        if (id in debe) debe[id] += importe;
+      }
+      continue;
+    }
+
     // Entre quiénes se reparte. Sin lista, entre todos: un gasto del bote es
     // de todos por definición.
     const entre = g.splitBetweenTravelerIds.filter((id) => id in debe);
