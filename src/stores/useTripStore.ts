@@ -477,7 +477,14 @@ export const useTripStore = create<TripStoreState>()(
           const stopsById = { ...state.stopsById };
           day.stopIds.forEach((id) => delete stopsById[id]);
           const days = state.trip.days.filter((d) => d.id !== dayId).map((d, index) => ({ ...d, index }));
-          return { stopsById, trip: { ...state.trip, days, currentDayId: state.trip.currentDayId === dayId ? (days[0]?.id ?? null) : state.trip.currentDayId } };
+          /*
+           * La fecha de fin se recalcula. `addDay` la movía al añadir pero
+           * esto no la devolvía al quitar, así que un viaje al que le quitabas
+           * el último día seguía diciendo que terminaba ese día: la cabecera,
+           * el álbum y la búsqueda de hotel daban una fecha que ya no existía.
+           */
+          const endDate = days.length > 0 ? days[days.length - 1].date : state.trip.endDate;
+          return { stopsById, trip: { ...state.trip, days, endDate, currentDayId: state.trip.currentDayId === dayId ? (days[0]?.id ?? null) : state.trip.currentDayId } };
         }),
 
       updateDay: (dayId, patch) =>

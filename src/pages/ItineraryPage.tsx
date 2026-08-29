@@ -39,6 +39,9 @@ export function ItineraryPage() {
   const canUndo = useTripStore((s) => s.canUndo());
   const pushSnapshot = useTripStore((s) => s.pushSnapshot);
   const openModal = useUIStore((s) => s.openModal);
+  const addDay = useTripStore((s) => s.addDay);
+  const removeDay = useTripStore((s) => s.removeDay);
+  const pushToast = useUIStore((s) => s.pushToast);
 
   // Las tarjetas del Resumen ("4 estadios") enlazan aquí con ?categoria=, y
   // entonces esto deja de ser la vista por días: enseña esas paradas
@@ -115,6 +118,29 @@ export function ItineraryPage() {
             Día {day.index + 1}
           </button>
         ))}
+
+        {/*
+         * Alargar el viaje un día.
+         *
+         * `addDay` estaba en el almacén desde siempre pero no lo llamaba nadie:
+         * no había forma de añadir un día desde la app. Y un viaje se alarga
+         * sobre la marcha — te quedas una noche más en un sitio que ha gustado
+         * — justo cuando ya no estás delante del ordenador.
+         *
+         * El día nuevo hereda la fecha siguiente a la última y la fecha de fin
+         * del viaje se mueve con él.
+         */}
+        <button
+          onClick={() => {
+            addDay();
+            pushToast(`Día ${days.length + 1} añadido. El viaje termina un día más tarde.`, "success");
+          }}
+          aria-label="Añadir un día al final del viaje"
+          className="control-compacto flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-(--color-text-muted)"
+          style={{ borderColor: "var(--color-border)" }}
+        >
+          <Plus size={16} aria-hidden="true" />
+        </button>
       </div>
 
       {/*
@@ -191,6 +217,28 @@ export function ItineraryPage() {
             <Plus size={16} aria-hidden="true" /> Buscar lugar
           </button>
         </div>
+
+        {/*
+         * Quitar el día, pero sólo si está vacío y es el último.
+         *
+         * Es la vuelta atrás de haber tocado el "+" sin querer. Vacío y el
+         * último son las dos condiciones que hacen que no se pueda perder
+         * nada: `removeDay` borra las paradas del día junto con él, y aquí no
+         * hay ninguna.
+         */}
+        {stops.length === 0 && activeDay.index === days.length - 1 && days.length > 1 && (
+          <button
+            onClick={() => {
+              const anterior = days[days.length - 2];
+              removeDay(activeDay.id);
+              setActiveDayId(anterior.id);
+              pushToast("Día quitado. El viaje vuelve a terminar antes.", "success");
+            }}
+            className="mt-2 w-full py-2 text-xs text-(--color-text-muted)"
+          >
+            Quitar este día vacío
+          </button>
+        )}
       </div>
     </div>
   );

@@ -110,3 +110,44 @@ describe("sincronizarDiaDeHoy", () => {
     expect(useTripStore.getState().trip.currentDayId).toBe(d1.id);
   });
 });
+
+describe("alargar y acortar el viaje", () => {
+  it("añadir un día lo pone al final y mueve la fecha de fin", () => {
+    const antes = dias().length;
+    const ultimaFecha = dias()[antes - 1].date;
+
+    useTripStore.getState().addDay();
+
+    const despues = dias();
+    expect(despues).toHaveLength(antes + 1);
+    expect(despues[antes].date).not.toBe(ultimaFecha);
+    expect(useTripStore.getState().trip.endDate).toBe(despues[antes].date);
+  });
+
+  it("quitar el último día devuelve la fecha de fin", () => {
+    /*
+     * `addDay` movía la fecha de fin al añadir y `removeDay` no la devolvía:
+     * un viaje al que le quitabas el último día seguía diciendo que terminaba
+     * ese día, y esa fecha salía en la cabecera, en el álbum y en la búsqueda
+     * de hotel.
+     */
+    const finOriginal = useTripStore.getState().trip.endDate;
+
+    useTripStore.getState().addDay();
+    const nuevo = dias()[dias().length - 1];
+    expect(useTripStore.getState().trip.endDate).not.toBe(finOriginal);
+
+    useTripStore.getState().removeDay(nuevo.id);
+    expect(useTripStore.getState().trip.endDate).toBe(finOriginal);
+  });
+
+  it("quitar un día se lleva sus paradas y renumera el resto", () => {
+    const [, d2] = dias();
+    const paradaDelDos = d2.stopIds[0];
+
+    useTripStore.getState().removeDay(d2.id);
+
+    expect(useTripStore.getState().stopsById[paradaDelDos]).toBeUndefined();
+    expect(dias().map((d) => d.index)).toEqual(dias().map((_, i) => i));
+  });
+});
