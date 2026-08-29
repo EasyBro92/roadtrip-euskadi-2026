@@ -61,32 +61,59 @@ export function MorePage() {
   const navigate = useNavigate();
   const stats = useTripStats();
   const trip = useTripStore((s) => s.trip);
+  const stopsById = useTripStore((s) => s.stopsById);
+
+  // La portada sale de la primera parada que tenga foto, en el orden del
+  // viaje: la primera de la primera etapa es la que mejor lo representa.
+  const portada = trip.days.flatMap((d) => d.stopIds).map((id) => stopsById[id]?.heroImage).find(Boolean);
   const openModal = useUIStore((s) => s.openModal);
 
   return (
     <div className="safe-x h-full overflow-y-auto bg-(--color-bg) px-4 pt-4 pb-8">
       <h1 className="mb-4 text-xl font-bold">Más</h1>
 
-      {/* Tarjeta de progreso, para que "Más" no sea solo un menú. */}
-      <div className="mb-5 rounded-(--radius-card) border bg-(--color-surface) p-4 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+      {/*
+       * La tarjeta del viaje, con su foto de portada.
+       *
+       * Era una línea de texto y una barra de progreso: la pantalla que abre
+       * el viaje no enseñaba el viaje. La foto sale de la primera parada que
+       * tenga una, que en un viaje montado son casi todas.
+       */}
+      <div className="mb-5 overflow-hidden rounded-(--radius-card) border bg-(--color-surface) shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
         {/* El nombre del viaje abre el selector: "Más" está a un toque desde
             cualquier pantalla, así que cambiar de viaje queda en dos. */}
         <button
           onClick={() => openModal({ type: "trip-switcher" })}
           aria-label={`Viaje actual: ${trip.name}. Cambiar de viaje`}
-          className="flex w-full items-center gap-2 text-left"
+          className={portada ? "relative block w-full text-left" : "flex w-full items-center gap-2 p-4 pb-0 text-left"}
         >
-          <Compass size={18} className="shrink-0 text-(--color-link)" aria-hidden="true" />
-          <p className="min-w-0 flex-1 truncate text-sm font-medium">{trip.name}</p>
-          <ChevronsUpDown size={16} className="shrink-0 text-(--color-text-muted)" aria-hidden="true" />
+          {portada ? (
+            <>
+              <img src={portada} alt="" className="h-28 w-full object-cover" />
+              <span className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-3 pt-10">
+                <Compass size={17} className="shrink-0 text-white" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate text-[15px] font-semibold text-white">{trip.name}</span>
+                <ChevronsUpDown size={16} className="shrink-0 text-white/80" aria-hidden="true" />
+              </span>
+            </>
+          ) : (
+            <>
+              <Compass size={18} className="shrink-0 text-(--color-link)" aria-hidden="true" />
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">{trip.name}</span>
+              <ChevronsUpDown size={16} className="shrink-0 text-(--color-text-muted)" aria-hidden="true" />
+            </>
+          )}
         </button>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-(--color-surface-muted)">
+
+        <div className="p-4 pt-3">
+        <div className="h-2 overflow-hidden rounded-full bg-(--color-surface-muted)">
           <div className="h-full rounded-full bg-(--color-progress) transition-all" style={{ width: `${stats.progressPercentage}%` }} />
         </div>
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--color-text-muted)">
           <span>{stats.progressPercentage}% completado</span>
           <span>{stats.visitedStops}/{stats.totalStops} paradas</span>
           <span>{formatEUR(stats.spentEUR)} de {formatEUR(stats.budgetEUR)}</span>
+        </div>
         </div>
       </div>
 

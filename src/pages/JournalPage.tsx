@@ -6,6 +6,7 @@ import { useAnadirFotos } from "../hooks/useAnadirFotos";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
 import { db } from "../services/storage/db";
 import { useTripStore } from "../stores/useTripStore";
+import { useUIStore } from "../stores/useUIStore";
 import type { TripDay } from "../types";
 import { CategoryThumb } from "../components/CategoryThumb";
 import { Vacio } from "../components/Vacio";
@@ -130,12 +131,25 @@ function DayEntry({ dayId }: { dayId: string }) {
   const updateNote = useTripStore((s) => s.updateNote);
   const setCurrentStop = useTripStore((s) => s.setCurrentStop);
   const setStopVisited = useTripStore((s) => s.setStopVisited);
+  const openModal = useUIStore((s) => s.openModal);
 
   const day = trip.days.find((d) => d.id === dayId)!;
   const dayStops = useStopsOfDay(dayId).filter((s) => s.enabled);
   const photos = useLiveQuery(() => db.photos.where("dayId").equals(dayId).toArray(), [dayId]);
   // Sin parada concreta: son fotos del día, no de un sitio.
   const { abrir: abrirFotos, input: inputFotos, subiendo: subiendoFotos } = useAnadirFotos({ stopId: null, dayId });
+
+  /** Las fotos tuyas de una parada concreta, para enseñarlas junto a ella. */
+  const fotosDeParada = (stopId: string) => (photos ?? []).filter((f) => f.stopId === stopId);
+
+  /*
+   * Las que no son de ninguna parada: la comida en la gasolinera, el atasco,
+   * la foto del día que no cuelga de un sitio del itinerario.
+   *
+   * Las de cada parada ya salen arriba, junto a su parada. Enseñarlas otra vez
+   * aquí abajo era ponerlas dos veces en la misma pantalla.
+   */
+  const fotosSueltas = (photos ?? []).filter((f) => !f.stopId);
 
   const note = notes.find((n) => n.targetType === "day" && n.targetId === dayId) ?? null;
   const [draft, setDraft] = useState(note?.text ?? "");
@@ -192,28 +206,63 @@ function DayEntry({ dayId }: { dayId: string }) {
               )}
             </button>
 
-            <div className="min-w-0 flex-1 rounded-2xl border bg-(--color-surface) p-2.5 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
-              <div className="flex gap-2.5">
-                <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-14 w-14 rounded-xl" iconSize={24} />
-                <div className="min-w-0 flex-1">
-                  <p className={`truncate text-sm font-medium ${stop.visited ? "text-(--color-text)" : "text-(--color-text-muted)"}`}>{stop.name}</p>
-                  <p className="truncate text-xs capitalize text-(--color-text-muted)">
+            {/*
+             * La tarjeta entera abre la parada, con la misma animación que en
+             * el itinerario. Antes no se podía tocar: para ver de qué iba un
+             * sitio del diario había que buscarlo en otra pantalla.
+             */}
+            <button
+              data-tarjeta-parada=""
+              onClick={(e) => {
+                const r = e.currentTarget.getBoundingClientRect();
+                openModal({ type: "ficha-parada", stopId: stop.id, origen: { x: r.x, y: r.y, w: r.width, h: r.height } });
+              }}
+              aria-label={`Abrir ${stop.name}`}
+              className="min-w-0 flex-1 rounded-2xl border bg-(--color-surface) p-2.5 text-left shadow-(--shadow-card)"
+              style={{ borderColor: "var(--color-border)" }}
+            >
+              <span className="flex gap-2.5">
+                <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-16 w-16 rounded-xl" iconSize={26} />
+                <span className="min-w-0 flex-1">
+                  <span className={`block truncate text-[15px] font-semibold ${stop.visited ? "text-(--color-text)" : "text-(--color-text-muted)"}`}>{stop.name}</span>
+                  <span className="block truncate text-xs capitalize text-(--color-text-muted)">
                     {stop.category}
                     {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
-                  </p>
-                  <p className="mt-0.5 line-clamp-2 text-xs text-(--color-text-muted)">{stop.shortDescription}</p>
-                </div>
-              </div>
-            </div>
+                  </span>
+                  <span className="mt-0.5 line-clamp-2 block text-xs text-(--color-text-muted)">{stop.shortDescription}</span>
+                </span>
+              </span>
+
+              {/*
+               * Tus fotos de esa parada, aquí y no sólo en el montón del final
+               * del día. Un diario que enseña la foto al lado del sitio donde
+               * la hiciste se lee como un diario; una cuadrícula suelta abajo
+               * es un carrete.
+               */}
+              {fotosDeParada(stop.id).length > 0 && (
+                <span className="mt-2 flex gap-1">
+                  {fotosDeParada(stop.id).slice(0, 4).map((f) => (
+                    <img key={f.id} src={f.thumbnailDataUrl} alt="" className="h-14 w-14 rounded-lg object-cover" />
+                  ))}
+                  {fotosDeParada(stop.id).length > 4 && (
+                    <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-(--color-surface-muted) text-xs font-medium text-(--color-text-muted)">
+                      +{fotosDeParada(stop.id).length - 4}
+                    </span>
+                  )}
+                </span>
+              )}
+            </button>
           </li>
         ))}
       </ol>
 
       {photos && photos.length > 0 ? (
         <div className="mt-2">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">Fotos del día ({photos.length})</p>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">
+            {fotosSueltas.length > 0 ? `Otras fotos del día (${fotosSueltas.length})` : "Añadir una foto del día"}
+          </p>
           <div className="grid grid-cols-4 gap-1.5">
-            {photos.map((p) => (
+            {fotosSueltas.map((p) => (
               <img key={p.id} src={p.thumbnailDataUrl} alt={p.description || "Foto del viaje"} className="aspect-square w-full rounded-lg object-cover" />
             ))}
             <button
