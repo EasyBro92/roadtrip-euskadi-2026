@@ -72,7 +72,10 @@ export function FormularioGasto() {
   }
 
   return (
-    <div className="mt-3 rounded-(--radius-card) border bg-(--color-surface) p-3 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+    // Sin tarjeta propia: va dentro de la del total, separado por una línea.
+    // Eran dos cajas seguidas diciendo lo mismo — cuánto llevas y cuánto
+    // añades — y la de arriba empujaba a ésta media pantalla abajo.
+    <div>
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <input

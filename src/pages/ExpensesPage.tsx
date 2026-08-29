@@ -56,11 +56,25 @@ export function ExpensesPage() {
         </button>
       </div>
 
-      {/* Quién ha puesto qué, con todos en igualdad. El gasto total del viaje
-          va debajo: importa menos que saber cómo está repartido. */}
-      <PanelPersonas detalle={detalle} />
-
-      <div className="mt-3 rounded-(--radius-card) border bg-(--color-surface) p-4 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+      {/*
+       * Arriba, el dinero: cuánto llevas y cómo apuntar más, en la misma
+       * tarjeta.
+       *
+       * Eran dos cajas seguidas diciendo lo mismo, y encima de ellas los saldos
+       * de cada uno: apuntar una cena empezaba a 430 px del principio, tres
+       * tarjetas más abajo. Es lo que se hace diez veces al día y ahora es lo
+       * primero. Quién debe a quién se mira una vez, y va después de la lista.
+       *
+       * `shrink-0` no es adorno: esta pantalla es una columna flex, y a un hijo
+       * con `overflow: hidden` el navegador le quita la altura mínima
+       * automática. Sin esto la tarjeta se aplastaba a 2 px — sólo los bordes —
+       * y el total y el formulario desaparecían recortados dentro.
+       */}
+      <div
+        className="mt-3 shrink-0 overflow-hidden rounded-(--radius-card) border bg-(--color-surface) shadow-(--shadow-card)"
+        style={{ borderColor: "var(--color-border)" }}
+      >
+        <div className="p-4">
         <p className="text-xs text-(--color-text-muted)">Gastado en el viaje</p>
         <div className="flex items-baseline justify-between gap-2">
           <p className="text-2xl font-medium tracking-tight text-(--color-text)">{formatEUR(stats.totalEUR)}</p>
@@ -96,13 +110,24 @@ export function ExpensesPage() {
             </span>
           )}
         </div>
+        </div>
+
+        <div className="border-t bg-(--color-bg)/40 p-3" style={{ borderColor: "var(--color-border)" }}>
+          <FormularioGasto />
+        </div>
       </div>
 
-      <FormularioGasto />
       <ListaGastos expenses={expenses} />
 
-      <PanelPresupuesto gastadoPorCategoria={stats.byCategory} />
+      {/*
+       * Las cuentas, juntas: quién ha puesto qué y el bote del que sale el
+       * dinero son el mismo asunto. El bote estaba al final de la pantalla,
+       * cinco tarjetas por debajo de los saldos que él mismo explica.
+       */}
+      <PanelPersonas detalle={detalle} />
       <PanelBote />
+
+      <PanelPresupuesto gastadoPorCategoria={stats.byCategory} />
       <Graficas porCategoria={stats.byCategory} porDia={stats.byDay} dias={trip.days} />
     </div>
   );
