@@ -118,33 +118,63 @@ export function BottomSheet({ dayId }: { dayId: string }) {
       </button>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-4">
-        {/* Foto grande de cabecera cuando el panel está abierto, como la
-            ficha de lugar de Google Maps; miniatura cuando está minimizado. */}
-        {sheetState !== "minimized" && stop.heroImage && (
-          <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="mx-4 mb-3 h-32 rounded-2xl" iconSize={44} />
-        )}
+        {/*
+         * Con el panel abierto, la foto a lo ancho y el nombre encima.
+         *
+         * Estaba metida en un recuadro de 128 px con márgenes a los lados y el
+         * título debajo, así que la foto era un adorno más de la ficha. En la
+         * ficha de lugar de Google Maps la foto es la cabecera y el nombre va
+         * sobre ella: se reconoce el sitio antes de leer nada, y es lo mismo
+         * que hace ya la ficha del itinerario.
+         *
+         * Minimizado, o sin foto, se queda la fila de siempre: ahí no hay
+         * altura para una cabecera y el dato manda sobre la imagen.
+         */}
+        {sheetState !== "minimized" && stop.heroImage ? (
+          <div className="relative shrink-0">
+            <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-44 w-full" iconSize={48} />
 
-        <div className="flex gap-3 px-4">
-          {(sheetState === "minimized" || !stop.heroImage) && (
-            <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-16 w-16 rounded-2xl" iconSize={28} />
-          )}
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate text-xl font-medium text-(--color-text)">{stop.name}</h2>
-            <div className="mt-0.5 flex items-center gap-1.5 text-sm">
-              <span className="font-medium text-(--color-text)">{stop.photographyRating.toFixed(1)}</span>
-              <StarRating value={stop.photographyRating} />
-            </div>
-            <p className="mt-0.5 text-sm capitalize text-(--color-text-muted)">
-              {stop.category}
-              {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
-            </p>
             {stop.visited && (
-              <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-(--color-completed)/12 px-2.5 py-0.5 text-xs font-medium text-(--color-completed)">
+              <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-(--color-completed) px-2.5 py-1 text-xs font-medium text-white">
                 <Check size={12} aria-hidden="true" /> Visitada
               </span>
             )}
+
+            {/* El degradado no es adorno: sin él el texto blanco desaparece
+                sobre el cielo, que es media foto de paisaje. */}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-4 pt-12">
+              <h2 className="truncate text-xl font-semibold text-white">{stop.name}</h2>
+              <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-sm text-white/90">
+                <span className="font-medium">{stop.photographyRating.toFixed(1)}</span>
+                <StarRating value={stop.photographyRating} sobreFoto />
+                <span className="capitalize">
+                  · {stop.category}
+                  {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex gap-3 px-4">
+            <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-16 w-16 rounded-2xl" iconSize={28} />
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate text-xl font-medium text-(--color-text)">{stop.name}</h2>
+              <div className="mt-0.5 flex items-center gap-1.5 text-sm">
+                <span className="font-medium text-(--color-text)">{stop.photographyRating.toFixed(1)}</span>
+                <StarRating value={stop.photographyRating} />
+              </div>
+              <p className="mt-0.5 text-sm capitalize text-(--color-text-muted)">
+                {stop.category}
+                {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
+              </p>
+              {stop.visited && (
+                <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-(--color-completed)/12 px-2.5 py-0.5 text-xs font-medium text-(--color-completed)">
+                  <Check size={12} aria-hidden="true" /> Visitada
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         {sheetState === "minimized" && (
           <p className="mt-2 truncate px-4 text-sm text-(--color-text-muted)">{stop.shortDescription}</p>
@@ -152,7 +182,15 @@ export function BottomSheet({ dayId }: { dayId: string }) {
 
         {sheetState !== "minimized" && (
           <div className="px-4">
-            <p className="mt-3 text-sm leading-relaxed text-(--color-text)">{stop.shortDescription}</p>
+            {/*
+             * Sólo a media altura.
+             *
+             * Del todo abierto, esta misma descripción sale otra vez en la
+             * pestaña Resumen de abajo, con su "Ver más": estaba dos veces en
+             * la misma pantalla. Pero a media altura no hay pestañas, así que
+             * quitarla del todo dejaba el sitio sin explicar.
+             */}
+            {sheetState === "mid" && <p className="mt-3 text-sm leading-relaxed text-(--color-text)">{stop.shortDescription}</p>}
 
             {/* Tu puntuación, separada de la valoración fotográfica de arriba:
                 aquella viene con los datos y esta la pones tú. */}
@@ -206,11 +244,23 @@ export function BottomSheet({ dayId }: { dayId: string }) {
 }
 
 /** Estrellas de valoración al estilo de las fichas de Google Maps. */
-function StarRating({ value }: { value: number }) {
+/**
+ * Las estrellas de la valoración fotográfica, que viene con los datos.
+ *
+ * `sobreFoto` cambia el color de las vacías: el gris del borde se pierde
+ * encima de una imagen, y en modo oscuro es casi negro sobre negro.
+ */
+function StarRating({ value, sobreFoto }: { value: number; sobreFoto?: boolean }) {
   return (
     <span className="flex items-center gap-0.5" aria-label={`${value} de 5`}>
       {[1, 2, 3, 4, 5].map((n) => (
-        <Star key={n} size={13} className={n <= value ? "text-(--color-gastronomy)" : "text-(--color-border)"} fill={n <= value ? "currentColor" : "none"} aria-hidden="true" />
+        <Star
+          key={n}
+          size={13}
+          className={n <= value ? "text-(--color-gastronomy)" : sobreFoto ? "text-white/45" : "text-(--color-border)"}
+          fill={n <= value ? "currentColor" : "none"}
+          aria-hidden="true"
+        />
       ))}
     </span>
   );
