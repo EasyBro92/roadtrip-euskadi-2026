@@ -63,3 +63,21 @@ describe("fotoDelDia", () => {
     expect(fotoDelDia([])).toBeUndefined();
   });
 });
+
+describe("empates de duración", () => {
+  it("manda el orden del día, no la nota de la foto", () => {
+    /*
+     * El día 1 del viaje de Euskadi: Huesca y el Castillo de Loarre, 90 min
+     * cada uno. Por nota ganaría el castillo (5/5 contra 3/5), pero el día es
+     * "Salida y Aragón" y Huesca va primero.
+     *
+     * Esta prueba está para que nadie "mejore" el desempate ordenando por nota
+     * y le cambie la portada a un viaje ya montado.
+     */
+    const dia = [
+      parada("Huesca", "gastronomia", 90, "huesca.jpg", { photographyRating: 3 }),
+      parada("Castillo de Loarre", "castillo", 90, "loarre.jpg", { photographyRating: 5 }),
+    ];
+    expect(fotoDelDia(dia)).toBe("huesca.jpg");
+  });
+});

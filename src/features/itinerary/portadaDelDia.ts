@@ -19,6 +19,12 @@ const NO_SON_PORTADA = new Set(["hotel", "aparcamiento"]);
  *
  * Con eso basta y no hace falta marcar nada: si a una parada le pones cero
  * minutos —pasas por ahí y ya—, deja de competir por la portada sola.
+ *
+ * Empatadas a tiempo manda el orden del día, que es el orden en que las vas a
+ * ver. No la nota fotográfica: en el viaje de Euskadi el día 1 tiene Huesca y
+ * el Castillo de Loarre a 90 minutos cada uno, y por nota ganaría el castillo
+ * — pero el día se llama "Salida y Aragón" y va primero Huesca. Ordenar por
+ * nota cambiaría portadas ya elegidas sin que nadie lo haya pedido.
  */
 export function fotoDelDia(stops: Stop[]): string | undefined {
   const candidatas = stops
