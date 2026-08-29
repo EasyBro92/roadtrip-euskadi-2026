@@ -2,6 +2,7 @@ import type { Expense, Note, Stop, Trip } from "../../types";
 import { formatDateLong, formatEUR } from "../../utils/format";
 import { triggerDownload } from "../../utils/download";
 import { nombreArchivo } from "../../utils/nombreArchivo";
+import { fotoDelDia } from "../../features/itinerary/portadaDelDia";
 import { db, type StoredPhoto } from "../storage/db";
 
 /*
@@ -119,7 +120,7 @@ export const AlbumService = {
         const paradas = dia.stopIds.map((id) => stopsById[id]).filter((s): s is Stop => Boolean(s) && s.enabled);
         const gasto = expenses.filter((e) => e.dayId === dia.id && e.kind === "actual").reduce((s, e) => s + e.amountEUR, 0);
         const fotosDelDia = porDia.get(dia.id) ?? [];
-        const original = fotosDelDia[0] ?? paradas.find((p) => p.heroImage)?.heroImage;
+        const original = fotosDelDia[0] ?? fotoDelDia(paradas);
         const portada = original ? await embeber(original) : null;
         if (portada && !portada.incrustada) sinIncrustar++;
 

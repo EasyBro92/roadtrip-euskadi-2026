@@ -9,6 +9,7 @@ import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
 import type { TripDay } from "../types";
 import { CategoryThumb } from "../components/CategoryThumb";
+import { fotoDelDia } from "../features/itinerary/portadaDelDia";
 import { Vacio } from "../components/Vacio";
 import { formatDateLong, formatDateShort, formatEUR, formatKm } from "../utils/format";
 import { haversineDistanceMeters } from "../utils/geo";
@@ -177,7 +178,7 @@ function DayEntry({ dayId }: { dayId: string }) {
     <article className="pb-2">
       {inputFotos}
 
-      <PortadaDia day={day} blob={portada?.blob} imagenStop={dayStops.find((s) => s.heroImage)?.heroImage} />
+      <PortadaDia day={day} blob={portada?.blob} imagenStop={fotoDelDia(dayStops)} />
 
       {/* Métricas del día en tarjetas, en vez de una línea de texto suelta. */}
       <div className="mt-3 grid grid-cols-4 gap-2">
