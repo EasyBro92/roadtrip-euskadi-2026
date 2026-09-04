@@ -1,6 +1,7 @@
 import type L from "leaflet";
 import { Car, Footprints, MapPin, RefreshCw, Trash2, X } from "lucide-react";
 import { useState } from "react";
+import { useTap } from "../../hooks/useTap";
 import { useCocheStore } from "../../stores/useCocheStore";
 import { useLocationStore } from "../../stores/useLocationStore";
 import { useUIStore } from "../../stores/useUIStore";
@@ -36,13 +37,40 @@ export function PanelCoche({ map, onCerrar, onActualizar }: { map: L.Map; onCerr
   const [nota, setNota] = useState(coche?.nota ?? "");
   const [actualizando, setActualizando] = useState(false);
 
-  if (!coche) return null;
-
   async function actualizar() {
     setActualizando(true);
     await onActualizar();
     setActualizando(false);
   }
+
+  function quitar() {
+    openModal({
+      type: "confirm",
+      title: "Ya lo he cogido",
+      message: "¿Quitar el coche del mapa? Volverás a guardarlo la próxima vez que aparques.",
+      onConfirm: () => {
+        olvidar();
+        onCerrar();
+        pushToast("Buen viaje.", "success");
+      },
+    });
+  }
+
+  /*
+   * `useTap` en vez de `onClick` a secas, y por eso antes del `return null`:
+   * son hooks, tienen que llamarse siempre, esté o no el coche.
+   *
+   * Este panel flota encima del mapa, en la misma zona donde ya se midió que
+   * algunos toques en Android se quedan en `pointerdown` y nunca llegan a
+   * `click` — es lo que obligó a construir `useTap` para los botones de la
+   * columna de controles. Estos dos botones son los que se tocan para
+   * quitar el coche o volver a marcarlo, así que si les pasaba lo mismo, el
+   * botón no estaba roto: sencillamente el toque no le llegaba.
+   */
+  const tapActualizar = useTap(actualizar);
+  const tapQuitar = useTap(quitar);
+
+  if (!coche) return null;
 
   const { latitude, longitude } = coche.coordinates;
   const distancia = posicion ? haversineDistanceMeters(posicion, coche.coordinates) : null;
@@ -113,7 +141,7 @@ export function PanelCoche({ map, onCerrar, onActualizar }: { map: L.Map; onCerr
          * sola cosa: "ahora está aquí".
          */}
         <button
-          onClick={actualizar}
+          {...tapActualizar}
           disabled={actualizando}
           className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-full border py-2 text-xs font-medium text-(--color-text) disabled:opacity-50"
           style={{ borderColor: "var(--color-border)" }}
@@ -123,18 +151,7 @@ export function PanelCoche({ map, onCerrar, onActualizar }: { map: L.Map; onCerr
         </button>
 
         <button
-          onClick={() =>
-            openModal({
-              type: "confirm",
-              title: "Ya lo he cogido",
-              message: "¿Quitar el coche del mapa? Volverás a guardarlo la próxima vez que aparques.",
-              onConfirm: () => {
-                olvidar();
-                onCerrar();
-                pushToast("Buen viaje.", "success");
-              },
-            })
-          }
+          {...tapQuitar}
           className="mt-3 flex w-full items-center justify-center gap-1.5 border-t py-2.5 text-xs text-(--color-text-muted)"
           style={{ borderColor: "var(--color-border)" }}
         >

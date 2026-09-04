@@ -2,6 +2,7 @@ import L from "leaflet";
 import { useMemo } from "react";
 import { Marker } from "react-leaflet";
 import { useCocheStore } from "../../stores/useCocheStore";
+import { useUIStore } from "../../stores/useUIStore";
 
 /**
  * El coche en el mapa.
@@ -29,11 +30,41 @@ function icono(): L.DivIcon {
   });
 }
 
+/**
+ * El coche en el mapa, con un marcador sin nada dentro.
+ *
+ * Todos los demás puntos del mapa hacen algo al tocarlos: una parada abre su
+ * ficha, un resultado de "qué hay cerca" se resalta. Éste no hacía nada, así
+ * que la única forma de quitar el coche era encontrar el botón del coche en
+ * la columna de controles — y si no sabías que estaba ahí, tocar el propio
+ * icono que tienes delante y que no responda se lee como "esto no se puede
+ * quitar".
+ *
+ * Tocarlo ahora ofrece justo lo que falta: quitarlo. Reposicionarlo sigue
+ * siendo cosa del botón de la barra —control fino con el resto de opciones
+ * del coche—, y el mensaje lo dice para quien no lo haya visto.
+ */
 export function CocheMarker() {
   const coche = useCocheStore((s) => s.coche);
+  const olvidar = useCocheStore((s) => s.olvidar);
+  const openModal = useUIStore((s) => s.openModal);
+  const pushToast = useUIStore((s) => s.pushToast);
   const marca = useMemo(() => icono(), []);
 
   if (!coche) return null;
+
+  function quitar() {
+    openModal({
+      type: "confirm",
+      title: "Tu coche",
+      message: "¿Quitarlo del mapa? Si lo has movido a otro sitio, vuelve a marcarlo desde el botón del coche en los controles del mapa.",
+      confirmLabel: "Quitar del mapa",
+      onConfirm: () => {
+        olvidar();
+        pushToast("Buen viaje.", "success");
+      },
+    });
+  }
 
   return (
     <Marker
@@ -41,6 +72,7 @@ export function CocheMarker() {
       icon={marca}
       alt="Dónde has dejado el coche"
       title="Tu coche"
+      eventHandlers={{ click: quitar }}
     />
   );
 }
