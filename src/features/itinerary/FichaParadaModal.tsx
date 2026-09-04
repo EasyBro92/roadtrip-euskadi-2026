@@ -20,6 +20,13 @@ import { StopDetailTabs } from "../map/StopDetailTabs";
  * ancho es lo que te dice si ese sitio te apetece. Debajo va la misma ficha
  * que ya se enseña desde el mapa, para no tener dos verdades distintas de la
  * misma parada.
+ *
+ * Es una tarjeta flotante, no una hoja a pantalla completa: con margen por
+ * los cuatro lados y redondeada por los cuatro lados, como una tarjeta de
+ * Google Wallet o Passbook al ampliarse. Antes ocupaba casi toda la pantalla
+ * y sólo el techo estaba redondeado —una hoja que sube, no una tarjeta que
+ * crece— y encima de eso la foto llevaba su propio margen aparte, dos marcos
+ * distintos para lo mismo.
  */
 export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: Origen }) {
   const stop = useTripStore((s) => s.stopsById[stopId]);
@@ -43,41 +50,42 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
   }
 
   return (
-    <div ref={fondo} className="fixed inset-0 z-[2000] flex items-end justify-center bg-black/40" onClick={cerrar}>
+    <div
+      ref={fondo}
+      className="safe-top safe-bottom fixed inset-0 z-[2000] flex items-center justify-center bg-black/55 p-5"
+      onClick={cerrar}
+    >
       <div
         ref={panel}
-        className="safe-bottom flex max-h-[88dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-(--radius-sheet) bg-(--color-surface)"
+        className="flex max-h-[75dvh] w-full max-w-sm flex-col overflow-hidden rounded-(--radius-card) bg-(--color-surface) shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         style={{ willChange: "transform, opacity" }}
       >
         <div className="min-h-0 flex-1 overflow-y-auto">
           {/*
-           * La foto, con margen y redondeada por los cuatro lados — no a
-           * sangre, a lo iPhone (una tarjeta flotante, no un cartel pegado a
-           * los bordes de la pantalla). Antes ocupaba todo el ancho y 192 px
-           * de alto: al tocar una parada, la foto "se ampliaba" de golpe hasta
-           * llenar la pantalla, que es justo lo que no se quería.
+           * La foto va a sangre dentro de la tarjeta, sin margen propio: el
+           * marco ya lo pone la tarjeta entera, que ahora es más pequeña y
+           * flota con su propio hueco alrededor. Ponerle además un margen a
+           * la foto era enmarcar dos veces lo mismo.
            */}
-          <div className="p-4 pb-0">
-            <div className="relative h-40 overflow-hidden rounded-2xl">
-              <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-40 w-full" iconSize={44} />
+          <div className="relative">
+            <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-40 w-full" iconSize={44} />
 
-              <button
-                aria-label="Cerrar"
-                onClick={cerrar}
-                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm"
-              >
-                <X size={16} aria-hidden="true" />
-              </button>
+            <button
+              aria-label="Cerrar"
+              onClick={cerrar}
+              className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm"
+            >
+              <X size={16} aria-hidden="true" />
+            </button>
 
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-3 pt-10">
-                <h2 className="truncate text-lg font-semibold text-white">{stop.name}</h2>
-                <p className="truncate text-xs capitalize text-white/85">
-                  {stop.category}
-                  {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
-                  {stop.optional && <> · opcional</>}
-                </p>
-              </div>
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-3 pt-10">
+              <h2 className="truncate text-lg font-semibold text-white">{stop.name}</h2>
+              <p className="truncate text-xs capitalize text-white/85">
+                {stop.category}
+                {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
+                {stop.optional && <> · opcional</>}
+              </p>
             </div>
           </div>
 

@@ -20,31 +20,41 @@ const SALIDA_MS = 250;
  */
 const CURVA = "cubic-bezier(0.32, 0.72, 0, 1)";
 
-/** El redondeo de la tarjeta de parada y el de la hoja, para que uno lleve al otro. */
+/*
+ * El redondeo de la tarjeta pequeña y el de la grande: el mismo número.
+ *
+ * Es lo que hace que se lea como "la misma tarjeta, ahora más grande" — el
+ * efecto de Google Wallet o Passbook al tocar una tarjeta de la pila — y no
+ * como "una pantalla nueva que se ha tragado la tarjeta". Con dos radios
+ * distintos la esquina "salta" justo al terminar de crecer; con el mismo,
+ * no hay nada que saltar.
+ */
 const RADIO_TARJETA = 22;
-const RADIO_HOJA = 32;
 
 function reduceMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 /**
- * Abrir una ficha creciendo desde el sitio que se ha tocado, y cerrarla
+ * Abrir una ficha creciendo desde la tarjeta que se ha tocado, y cerrarla
  * volviendo ahí.
  *
- * Es lo que hace el iPhone al abrir una aplicación: el icono se estira hasta
- * llenar la pantalla, así sabes de dónde ha salido lo que estás viendo y
- * dónde volverá al cerrarlo. Una hoja que sube desde abajo no dice nada de
- * eso: podría venir de cualquier fila de la lista.
+ * Es el efecto de Google Wallet o Passbook al tocar una tarjeta de la pila:
+ * crece, pero se queda siendo una tarjeta —flotando sobre lo demás, con sus
+ * cuatro esquinas redondeadas—, no una pantalla nueva que se traga la
+ * tarjeta entera. Así se sabe de dónde ha salido lo que se ve y dónde
+ * volverá al cerrarlo; una hoja que sube desde abajo no dice nada de eso,
+ * podría venir de cualquier fila de la lista.
  *
  * El truco es recortar, no estirar. La ficha se dibuja desde el principio a
- * su tamaño final y lo que se anima es la ventana por la que se ve, que
- * empieza siendo exactamente el rectángulo de la tarjeta y se abre hasta
- * ocuparlo todo. Escalando de verdad, el texto y la foto se deforman mientras
- * dura la animación y se nota mucho; así nada se estira, sólo se destapa.
+ * su tamaño final —el que le den sus propias clases, sea del tamaño que
+ * sea— y lo que se anima es la ventana por la que se ve, que empieza siendo
+ * exactamente el rectángulo de la tarjeta pequeña y se abre hasta ocuparlo
+ * todo. Escalando de verdad, el texto y la foto se deforman mientras dura la
+ * animación y se nota mucho; así nada se estira, sólo se destapa.
  *
- * El punto de crecimiento se ancla al centro de la tarjeta, de modo que el
- * movimiento sale de donde estaba tu dedo.
+ * El punto de crecimiento se ancla al centro de la tarjeta pequeña, de modo
+ * que el movimiento sale de donde estaba el dedo.
  */
 export function useAperturaDesde(origen: Origen | undefined, onCerrar: () => void) {
   const panel = useRef<HTMLDivElement>(null);
@@ -100,7 +110,7 @@ export function useAperturaDesde(origen: Origen | undefined, onCerrar: () => voi
       enCurso.current = el.animate(
         [
           { clipPath: desde.clip, transform: "scale(0.94)", opacity: 0.6 },
-          { clipPath: `inset(0px 0px 0px 0px round ${RADIO_HOJA}px)`, transform: "none", opacity: 1 },
+          { clipPath: `inset(0px 0px 0px 0px round ${RADIO_TARJETA}px)`, transform: "none", opacity: 1 },
         ],
         { duration: ENTRADA_MS, easing: CURVA },
       );
@@ -128,7 +138,7 @@ export function useAperturaDesde(origen: Origen | undefined, onCerrar: () => voi
 
     const vuelta = el.animate(
       [
-        { clipPath: `inset(0px 0px 0px 0px round ${RADIO_HOJA}px)`, transform: "none", opacity: 1 },
+        { clipPath: `inset(0px 0px 0px 0px round ${RADIO_TARJETA}px)`, transform: "none", opacity: 1 },
         { clipPath: hasta.clip, transform: "scale(0.94)", opacity: 0.6 },
       ],
       { duration: SALIDA_MS, easing: CURVA, fill: "forwards" },
