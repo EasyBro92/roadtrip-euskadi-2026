@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { debeCerrarse, opacidadDelVelo } from "../../src/hooks/useArrastrarParaCerrar";
+import { debeCerrarse, opacidadDelVelo } from "../../src/hooks/useGestosDeTarjeta";
 
 describe("debeCerrarse", () => {
   it("un arrastre largo cierra, por lento que sea", () => {

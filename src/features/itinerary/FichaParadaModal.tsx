@@ -2,7 +2,7 @@ import { ArrowLeft, Check, Info, MapPin, Navigation, Pencil, X } from "lucide-re
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAperturaDesde, type Origen } from "../../hooks/useAperturaDesde";
-import { useArrastrarParaCerrar } from "../../hooks/useArrastrarParaCerrar";
+import { useGestosDeTarjeta } from "../../hooks/useGestosDeTarjeta";
 import { CategoryThumb } from "../../components/CategoryThumb";
 import { StarRatingInput } from "../../components/StarRatingInput";
 import { useTripStore } from "../../stores/useTripStore";
@@ -45,10 +45,10 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
   const navigate = useNavigate();
 
   const { panel, fondo, cerrar } = useAperturaDesde(origen, closeModal);
-  const arrastre = useArrastrarParaCerrar(panel, fondo, closeModal);
 
   const [dorso, setDorso] = useState(false);
   const girando = useRef(false);
+  const gestos = useGestosDeTarjeta(panel, fondo, closeModal, () => girar());
 
   if (!stop) return null;
 
@@ -133,14 +133,24 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
       onClick={cerrar}
       style={{ perspective: "1400px" }}
     >
+      {/*
+       * Cada cara mide lo que ocupa lo suyo, hasta el tope.
+       *
+       * En Wallet un pase mide lo mismo por delante que por detrás, y se
+       * probó a imitarlo con un alto mínimo para las dos caras. Quedó mal: el
+       * dorso lleva tres cosas —valoración, reseña y editar— y forzarlo al
+       * alto de la cara lo dejaba con medio panel en blanco. Un hueco vacío
+       * de ese tamaño es peor defecto que dos caras de distinto alto, sobre
+       * todo cuando el cambio de alto ocurre con la tarjeta de canto y no se
+       * llega a ver.
+       */}
       <div
         ref={panel}
-        className="flex max-h-[75dvh] w-full max-w-sm flex-col overflow-hidden rounded-(--radius-card) bg-(--color-surface) shadow-2xl"
+        className="flex max-h-[80dvh] w-full max-w-sm flex-col overflow-hidden rounded-(--radius-card) bg-(--color-surface) shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         style={{ willChange: "transform, opacity" }}
       >
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          {dorso ? (
+        {dorso ? (
             <>
               {/*
                * El dorso también se puede arrastrar para cerrar, y por eso
@@ -149,9 +159,9 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
                * arrastrando y el gesto sería una cosa que a veces está.
                */}
               <div
-                className="flex items-center gap-2 border-b bg-(--color-surface-muted) p-3"
+                className="flex shrink-0 items-center gap-2 border-b bg-(--color-surface-muted) p-3"
                 style={{ borderColor: "var(--color-border)", touchAction: "none" }}
-                {...arrastre}
+                {...gestos}
               >
                 <button
                   onClick={girar}
@@ -165,7 +175,9 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
                 {botonCerrar}
               </div>
 
-              <div className="px-4 pb-4">
+              {/* Lo que se desplaza es esto, no la tarjeta: la cabecera se
+                  queda fija arriba y el dorso se recorre por dentro. */}
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
                 {/* Tu nota del sitio, que es distinta de la valoración fotográfica
                     que viene con los datos. */}
                 <div className="mt-3 rounded-xl border p-2.5" style={{ borderColor: "var(--color-border)" }}>
@@ -174,10 +186,6 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
                     <StarRatingInput tipo="stop" targetId={stop.id} nombre={stop.name} size={20} />
                   </div>
                   <BotonResena tipo="stop" targetId={stop.id} nombre={stop.name} />
-                </div>
-
-                <div className="mt-3">
-                  <StopDetailTabs stop={stop} />
                 </div>
 
                 <button
@@ -192,16 +200,15 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
           ) : (
             <>
               {/*
-               * El gesto de arrastrar vive en la foto, y no en toda la
-               * tarjeta: lo de abajo se desplaza solo, y un arrastre que
-               * empiece ahí tiene que mover el contenido, no llevarse la
-               * ficha. La foto no se desplaza, así que ahí el gesto no
-               * significa dos cosas.
+               * Los gestos viven en la foto, y no en toda la tarjeta: lo de
+               * abajo puede desplazarse, y un arrastre que empiece ahí tiene
+               * que mover el contenido, no llevarse la ficha. La foto no se
+               * desplaza, así que ahí el gesto no significa dos cosas.
                *
                * `touch-action: none` es lo que impide que el navegador se
                * quede el gesto antes de que llegue aquí.
                */}
-              <div className="relative" style={{ touchAction: "none" }} {...arrastre}>
+              <div className="relative shrink-0" style={{ touchAction: "none" }} {...gestos}>
                 <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-40 w-full" iconSize={44} />
 
                 {/* La pista de que se puede arrastrar. Sin ella el gesto
@@ -220,7 +227,7 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
                 </div>
               </div>
 
-              <div className="px-4 pb-4">
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
                 {/* Las tres acciones en una fila, la principal en azul. */}
                 <div className="mt-3 flex gap-2">
                   <a
@@ -264,10 +271,18 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
                 >
                   <Check size={15} aria-hidden="true" /> {stop.visited ? "Visitada" : "Marcar como visitada"}
                 </button>
+
+                {/* Las pestañas se quedan en la cara, no en el dorso.
+                    Llevárselas dejó la ficha con menos información de la que
+                    tenía: lo que se aparta al dorso es lo tuyo —la
+                    valoración, la reseña, editarla—, no lo que cuenta qué es
+                    este sitio, que es a lo que se viene. */}
+                <div className="mt-3">
+                  <StopDetailTabs stop={stop} />
+                </div>
               </div>
             </>
           )}
-        </div>
       </div>
     </div>
   );

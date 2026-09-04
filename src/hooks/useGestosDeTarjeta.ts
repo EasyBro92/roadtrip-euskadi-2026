@@ -15,6 +15,10 @@ const VELOCIDAD_CIERRE = 0.5;
 const MINIMO_GOLPE = 40;
 /** Movimiento mínimo antes de decidir si el gesto es hacia abajo o de lado. */
 const UMBRAL_GESTO = 6;
+/** Por debajo de esto no ha sido un arrastre, ha sido un toque. */
+const TOQUE_MAXIMO = 8;
+/** Lo que hay que barrer de lado para que la tarjeta se dé la vuelta. */
+const UMBRAL_GIRO = 45;
 
 const VUELTA_MS = 260;
 const CAIDA_MS = 220;
@@ -47,17 +51,24 @@ export function debeCerrarse(dy: number, ms: number): boolean {
 }
 
 /**
- * Arrastrar la tarjeta hacia abajo para cerrarla.
+ * Los tres gestos de la tarjeta: bajarla para cerrarla, tocarla o barrerla de
+ * lado para darle la vuelta.
  *
- * Es como se descartan las tarjetas en Google Wallet: el dedo la acompaña, y
- * si sueltas a media altura vuelve a su sitio en vez de irse. Soltar a medias
- * y que la tarjeta decida quedarse es lo que hace que el gesto se pueda
- * probar sin miedo.
+ * Bajarla es como se descartan las tarjetas en Google Wallet: el dedo la
+ * acompaña, y si sueltas a media altura vuelve a su sitio en vez de irse.
+ * Soltar a medias y que la tarjeta decida quedarse es lo que hace que el
+ * gesto se pueda probar sin miedo.
  *
- * El gesto se coge sólo desde la cabecera —la foto—, no desde todo el panel.
- * Debajo hay una zona que se desplaza sola, y un arrastre que empieza ahí
- * tiene que desplazar el contenido, no llevarse la tarjeta: son el mismo
- * movimiento del dedo queriendo decir dos cosas distintas. La foto no se
+ * Tocarla o barrerla de lado la gira. Es lo que se intenta hacer con una
+ * tarjeta que tiene dorso, y hacía falta decirlo: con el giro sólo en el
+ * botón de la ⓘ, quien tocaba la tarjeta esperando que girase se encontraba
+ * con que no pasaba nada. El botón sigue estando, porque un gesto que hay que
+ * adivinar no lo encuentra todo el mundo, pero ya no es el único camino.
+ *
+ * Los gestos viven en la cabecera —la foto, o la barra del dorso—, no en todo
+ * el panel. Debajo hay una zona que se desplaza sola, y un arrastre que
+ * empiece ahí tiene que mover el contenido, no llevarse la tarjeta: es el
+ * mismo movimiento del dedo queriendo decir dos cosas. La cabecera no se
  * desplaza, así que ahí no hay ambigüedad que resolver.
  *
  * Irse arrastrada y cerrarse con el botón no se animan igual a propósito. Con
@@ -65,10 +76,11 @@ export function debeCerrarse(dy: number, ms: number): boolean {
  * es de donde vino; arrastrada, sigue hacia abajo y desaparece por donde la
  * estabas empujando. Cada salida termina donde el gesto apuntaba.
  */
-export function useArrastrarParaCerrar(
+export function useGestosDeTarjeta(
   panel: RefObject<HTMLDivElement | null>,
   fondo: RefObject<HTMLDivElement | null>,
   onCerrado: () => void,
+  onGirar: () => void,
 ) {
   const gesto = useRef<{ x0: number; y0: number; t0: number; eje: "indeciso" | "vertical" | "otro"; dy: number } | null>(null);
   const yendose = useRef(false);
@@ -119,6 +131,17 @@ export function useArrastrarParaCerrar(
   return {
     onPointerDown: (e: React.PointerEvent) => {
       if (yendose.current) return;
+      /*
+       * Un gesto que empieza sobre un botón es de ese botón.
+       *
+       * En la cabecera viven la X de cerrar y, en el dorso, la flecha de
+       * volver. Sin esto, tocar la X contaba además como "toque en la
+       * cabecera" y giraba la tarjeta justo mientras se cerraba.
+       */
+      if ((e.target as HTMLElement).closest("button, a")) {
+        gesto.current = null;
+        return;
+      }
       gesto.current = { x0: e.clientX, y0: e.clientY, t0: e.timeStamp, eje: "indeciso", dy: 0 };
     },
 
@@ -144,10 +167,22 @@ export function useArrastrarParaCerrar(
     onPointerUp: (e: React.PointerEvent) => {
       const g = gesto.current;
       gesto.current = null;
-      if (!g || g.eje !== "vertical" || yendose.current) return;
+      if (!g || yendose.current) return;
 
-      if (debeCerrarse(g.dy, e.timeStamp - g.t0)) irse(g.dy);
-      else volverASuSitio(g.dy);
+      const dx = e.clientX - g.x0;
+      const dy = e.clientY - g.y0;
+
+      if (g.eje === "vertical") {
+        if (debeCerrarse(g.dy, e.timeStamp - g.t0)) irse(g.dy);
+        else volverASuSitio(g.dy);
+        return;
+      }
+
+      // Un toque: ni ha bajado ni se ha ido de lado.
+      if (Math.abs(dx) < TOQUE_MAXIMO && Math.abs(dy) < TOQUE_MAXIMO) return onGirar();
+
+      // Un barrido de lado, en cualquiera de los dos sentidos.
+      if (Math.abs(dx) > UMBRAL_GIRO && Math.abs(dx) > Math.abs(dy)) onGirar();
     },
 
     onPointerCancel: () => {
