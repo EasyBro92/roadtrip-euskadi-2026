@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { TripDay } from "../../types";
@@ -12,10 +12,13 @@ import { formatDateLong } from "../../utils/format";
  * son huecos fijos en orden. Adelantar el día 3 significa hacer esos planes
  * un día antes, no correr el calendario del viaje.
  */
-export function DayHeader({ day, totalDays }: { day: TripDay; totalDays: number }) {
+export function DayHeader({ day, totalDays, onEliminado }: { day: TripDay; totalDays: number; onEliminado: (siguienteDayId: string) => void }) {
   const updateDay = useTripStore((s) => s.updateDay);
   const reorderDays = useTripStore((s) => s.reorderDays);
+  const removeDay = useTripStore((s) => s.removeDay);
   const days = useTripStore((s) => s.trip.days);
+  const stopsById = useTripStore((s) => s.stopsById);
+  const openModal = useUIStore((s) => s.openModal);
   const pushToast = useUIStore((s) => s.pushToast);
 
   const posicion = days.findIndex((d) => d.id === day.id);
@@ -27,6 +30,34 @@ export function DayHeader({ day, totalDays }: { day: TripDay; totalDays: number 
     [orden[posicion], orden[destino]] = [orden[destino], orden[posicion]];
     reorderDays(orden);
     pushToast(`Día movido a la posición ${destino + 1}.`, "success");
+  }
+
+  /*
+   * Eliminar el día, con confirmación.
+   *
+   * Antes sólo se podía quitar un día vacío y último de la lista — la vuelta
+   * atrás de tocar el "+" sin querer. Pero un día se añade sobre todo para
+   * planificarlo, y una vez tiene paradas no había forma de deshacerlo: había
+   * que borrar cada parada una a una antes de que aquel botón apareciera. El
+   * aviso dice cuántas paradas se perderían, para que borrar no sea sorpresa.
+   */
+  function eliminar() {
+    const numParadas = day.stopIds.filter((id) => stopsById[id]).length;
+    openModal({
+      type: "confirm",
+      title: `Eliminar día ${posicion + 1}`,
+      message:
+        numParadas > 0
+          ? `Se perderán las ${numParadas} ${numParadas === 1 ? "parada apuntada" : "paradas apuntadas"} en este día. No se puede deshacer.`
+          : "Este día está vacío. No se puede deshacer.",
+      confirmLabel: "Eliminar",
+      onConfirm: () => {
+        const siguiente = days[posicion - 1] ?? days[posicion + 1];
+        removeDay(day.id);
+        if (siguiente) onEliminado(siguiente.id);
+        pushToast("Día eliminado.", "success");
+      },
+    });
   }
 
   return (
@@ -59,6 +90,18 @@ export function DayHeader({ day, totalDays }: { day: TripDay; totalDays: number 
         >
           <ChevronRight size={16} aria-hidden="true" />
         </button>
+
+        {/* Un viaje siempre necesita al menos un día. */}
+        {totalDays > 1 && (
+          <button
+            onClick={eliminar}
+            aria-label={`Eliminar día ${posicion + 1}`}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-(--color-cancelled)"
+            style={{ borderColor: "var(--color-border)" }}
+          >
+            <Trash2 size={15} aria-hidden="true" />
+          </button>
+        )}
       </div>
 
       {/*

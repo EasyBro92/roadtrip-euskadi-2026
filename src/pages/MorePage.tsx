@@ -49,6 +49,12 @@ const GROUPS: { title: string; items: MoreItem[] }[] = [
   {
     title: "Ajustes y datos",
     items: [
+      {
+        to: "/viajes",
+        label: "Mis viajes",
+        description: "Todos tus viajes, y crear uno nuevo",
+        icon: Compass,
+      },
       { to: "/mas/compartir", label: "Compartir y exportar", description: "JSON, GPX, GeoJSON y QR", icon: Share2 },
       { to: "/mas/configuracion", label: "Configuración", description: "Fechas, tema, ubicación y privacidad", icon: Settings },
       { to: "/mas/ayuda", label: "Ayuda", description: "Preguntas frecuentes", icon: CircleHelp },

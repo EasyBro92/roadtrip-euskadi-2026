@@ -128,17 +128,16 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
   }
 
   /*
-   * Guardar dónde queda el coche, o volver a él si ya está guardado.
+   * Guardar dónde queda el coche ahora mismo, sobrescribiendo lo que hubiera.
    *
    * Se pide la posición en el momento y no se usa la última conocida: puede
    * ser de hace media hora y de otra calle, y un punto equivocado es peor que
-   * ninguno cuando lo estás buscando.
+   * ninguno cuando lo estás buscando. Se usa tanto para guardarlo la primera
+   * vez como para volver a marcarlo si has movido el coche: antes, con el
+   * coche ya guardado, el botón sólo abría o cerraba el panel y no había
+   * forma de apuntar la nueva posición sin "olvidar" el coche primero.
    */
-  async function aparcarAqui() {
-    if (coche) {
-      setPanel(panel === "coche" ? "none" : "coche");
-      return;
-    }
+  async function marcarCocheAqui() {
     if (warnInsecureContext()) return;
 
     setLocating(true);
@@ -153,6 +152,14 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
     aparcar(position);
     setPanel("coche");
     pushToast("Apuntado dónde queda el coche.", "success");
+  }
+
+  function aparcarAqui() {
+    if (coche) {
+      setPanel(panel === "coche" ? "none" : "coche");
+      return;
+    }
+    void marcarCocheAqui();
   }
 
   function toggleFollow() {
@@ -191,7 +198,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
       </div>
 
       {panel === "cerca" && <PanelCerca map={map} onCerrar={() => setPanel("none")} />}
-      {panel === "coche" && <PanelCoche map={map} onCerrar={() => setPanel("none")} />}
+      {panel === "coche" && <PanelCoche map={map} onCerrar={() => setPanel("none")} onActualizar={marcarCocheAqui} />}
 
       {/* Con la capa encendida, un botón para volver a buscar donde estés
           mirando. Recargar en cada arrastre sería una consulta por gesto. */}

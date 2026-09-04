@@ -51,26 +51,33 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
         style={{ willChange: "transform, opacity" }}
       >
         <div className="min-h-0 flex-1 overflow-y-auto">
-          {/* La foto y el nombre, juntos. El degradado no es adorno: sin él el
-              blanco desaparece sobre el cielo, que es media foto de paisaje. */}
-          <div className="relative">
-            <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-48 w-full" iconSize={52} />
+          {/*
+           * La foto, con margen y redondeada por los cuatro lados — no a
+           * sangre, a lo iPhone (una tarjeta flotante, no un cartel pegado a
+           * los bordes de la pantalla). Antes ocupaba todo el ancho y 192 px
+           * de alto: al tocar una parada, la foto "se ampliaba" de golpe hasta
+           * llenar la pantalla, que es justo lo que no se quería.
+           */}
+          <div className="p-4 pb-0">
+            <div className="relative h-40 overflow-hidden rounded-2xl">
+              <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-40 w-full" iconSize={44} />
 
-            <button
-              aria-label="Cerrar"
-              onClick={cerrar}
-              className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm"
-            >
-              <X size={18} aria-hidden="true" />
-            </button>
+              <button
+                aria-label="Cerrar"
+                onClick={cerrar}
+                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm"
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
 
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-4 pt-14">
-              <h2 className="text-xl font-semibold text-white">{stop.name}</h2>
-              <p className="text-sm capitalize text-white/85">
-                {stop.category}
-                {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
-                {stop.optional && <> · opcional</>}
-              </p>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-3 pt-10">
+                <h2 className="truncate text-lg font-semibold text-white">{stop.name}</h2>
+                <p className="truncate text-xs capitalize text-white/85">
+                  {stop.category}
+                  {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
+                  {stop.optional && <> · opcional</>}
+                </p>
+              </div>
             </div>
           </div>
 

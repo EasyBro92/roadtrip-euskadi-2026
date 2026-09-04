@@ -1,9 +1,11 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { ArrowLeft, Download, ImageOff, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Download, ImageOff, Loader2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Vacio } from "../components/Vacio";
+import { useDaySwipe } from "../hooks/useDaySwipe";
 import { AlbumService } from "../services/album/AlbumService";
+import { fotosDelAlbum } from "../services/album/flatFotos";
 import { db } from "../services/storage/db";
 import { useRatingsStore } from "../stores/useRatingsStore";
 import { useTripStore } from "../stores/useTripStore";
@@ -59,6 +61,27 @@ export function AlbumPage() {
   const fotosDe = (dayId: string) => (fotos ?? []).filter((f) => f.dayId === dayId).map((f) => urls.get(f.id)).filter((u): u is string => Boolean(u));
 
   const totalFotos = urls.size;
+
+  /*
+   * El mismo orden en que se pinta la página, aplanado en una sola lista.
+   *
+   * Antes tocar una foto no hacía nada: para verla más grande no había ni
+   * dónde tocar. Con esta lista, cualquier foto del álbum —portada o de la
+   * cuadrícula— abre el visor exactamente donde estaba, y deslizar pasa a la
+   * siguiente sin volver atrás para elegirla.
+   */
+  const flatFotos = useMemo(() => {
+    return fotosDelAlbum(
+      trip.days.map((dia) => {
+        const paradas = dia.stopIds.map((id) => stopsById[id]).filter((s) => s?.enabled);
+        const fotosDelDia = fotosDe(dia.id);
+        return { portada: fotosDelDia[0] ?? paradas.find((p) => p?.heroImage)?.heroImage, extras: fotosDelDia.slice(1) };
+      }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trip.days, stopsById, urls]);
+
+  const [indiceAbierto, setIndiceAbierto] = useState<number | null>(null);
 
   async function guardar() {
     setGuardando(true);
@@ -129,7 +152,15 @@ export function AlbumPage() {
                 className="overflow-hidden rounded-(--radius-card) border bg-(--color-surface) shadow-(--shadow-card)"
                 style={{ borderColor: "var(--color-border)" }}
               >
-                {portada && <img src={portada} alt="" className="h-40 w-full object-cover" />}
+                {portada && (
+                  <button
+                    onClick={() => setIndiceAbierto(flatFotos.indexOf(portada))}
+                    aria-label={`Ver la foto de portada del día ${dia.index + 1} en grande`}
+                    className="block w-full"
+                  >
+                    <img src={portada} alt="" className="h-40 w-full object-cover" />
+                  </button>
+                )}
 
                 <div className="p-4">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-(--color-text-muted)">
@@ -167,7 +198,9 @@ export function AlbumPage() {
                 {fotosDelDia.length > 1 && (
                   <div className="grid grid-cols-2 gap-0.5">
                     {fotosDelDia.slice(1).map((url) => (
-                      <img key={url} src={url} alt="" className="h-32 w-full object-cover" />
+                      <button key={url} onClick={() => setIndiceAbierto(flatFotos.indexOf(url))} aria-label="Ver foto en grande">
+                        <img src={url} alt="" className="h-32 w-full object-cover" />
+                      </button>
                     ))}
                   </div>
                 )}
@@ -176,6 +209,90 @@ export function AlbumPage() {
           })}
         </div>
       )}
+
+      {indiceAbierto !== null && (
+        <VisorFotos
+          fotos={flatFotos}
+          indice={indiceAbierto}
+          onCerrar={() => setIndiceAbierto(null)}
+          onCambiar={setIndiceAbierto}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * El visor a pantalla completa: una foto detrás de otra, como una galería de
+ * verdad.
+ *
+ * Antes no había ningún sitio del álbum donde tocar una foto la hiciera más
+ * grande: la única forma de verla entera era salir de la app y buscarla en
+ * la galería del móvil. Aquí se desliza para pasar a la siguiente sin volver
+ * a la lista a elegir otra — el mismo gesto que ya usa el Diario para
+ * cambiar de día, reutilizado para pasar de foto.
+ */
+function VisorFotos({
+  fotos,
+  indice,
+  onCerrar,
+  onCambiar,
+}: {
+  fotos: string[];
+  indice: number;
+  onCerrar: () => void;
+  onCambiar: (indice: number) => void;
+}) {
+  const swipe = useDaySwipe({
+    onPrev: () => indice > 0 && onCambiar(indice - 1),
+    onNext: () => indice < fotos.length - 1 && onCambiar(indice + 1),
+  });
+
+  return (
+    <div className="fixed inset-0 z-[2200] flex flex-col bg-black" onClick={onCerrar}>
+      <div className="safe-top flex shrink-0 items-center justify-between px-4 py-3">
+        <span className="text-sm font-medium text-white/70">
+          {indice + 1} / {fotos.length}
+        </span>
+        <button
+          aria-label="Cerrar"
+          onClick={onCerrar}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white"
+        >
+          <X size={18} aria-hidden="true" />
+        </button>
+      </div>
+
+      {/* Deslizar cambia de foto; tocar la imagen no cierra el visor, sólo
+          tocar fuera (el fondo) o la X. Así no se pierde una foto a medio
+          ver por un toque de más mientras se desliza. */}
+      <div
+        className="relative flex min-h-0 flex-1 items-center justify-center"
+        style={{ touchAction: "pan-y" }}
+        onClick={(e) => e.stopPropagation()}
+        {...swipe}
+      >
+        <img src={fotos[indice]} alt="" className="max-h-full max-w-full object-contain" />
+
+        {indice > 0 && (
+          <button
+            aria-label="Foto anterior"
+            onClick={() => onCambiar(indice - 1)}
+            className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white"
+          >
+            <ChevronLeft size={22} aria-hidden="true" />
+          </button>
+        )}
+        {indice < fotos.length - 1 && (
+          <button
+            aria-label="Foto siguiente"
+            onClick={() => onCambiar(indice + 1)}
+            className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white"
+          >
+            <ChevronRight size={22} aria-hidden="true" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }

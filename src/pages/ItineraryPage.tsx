@@ -40,7 +40,6 @@ export function ItineraryPage() {
   const pushSnapshot = useTripStore((s) => s.pushSnapshot);
   const openModal = useUIStore((s) => s.openModal);
   const addDay = useTripStore((s) => s.addDay);
-  const removeDay = useTripStore((s) => s.removeDay);
   const pushToast = useUIStore((s) => s.pushToast);
 
   // Las tarjetas del Resumen ("4 estadios") enlazan aquí con ?categoria=, y
@@ -157,7 +156,7 @@ export function ItineraryPage() {
        */}
       <div key={activeDay.id} className={`safe-x mt-2 flex-1 space-y-2 overflow-y-auto px-4 pb-24 ${claseEntrada}`} style={{ touchAction: "pan-y" }} {...swipe}>
         <div>
-          <DayHeader day={activeDay} totalDays={days.length} />
+          <DayHeader day={activeDay} totalDays={days.length} onEliminado={setActiveDayId} />
           {/*
            * Los cuatro avisos del día en una misma fila, y lo que no cabe pasa
            * a la siguiente.
@@ -218,27 +217,6 @@ export function ItineraryPage() {
           </button>
         </div>
 
-        {/*
-         * Quitar el día, pero sólo si está vacío y es el último.
-         *
-         * Es la vuelta atrás de haber tocado el "+" sin querer. Vacío y el
-         * último son las dos condiciones que hacen que no se pueda perder
-         * nada: `removeDay` borra las paradas del día junto con él, y aquí no
-         * hay ninguna.
-         */}
-        {stops.length === 0 && activeDay.index === days.length - 1 && days.length > 1 && (
-          <button
-            onClick={() => {
-              const anterior = days[days.length - 2];
-              removeDay(activeDay.id);
-              setActiveDayId(anterior.id);
-              pushToast("Día quitado. El viaje vuelve a terminar antes.", "success");
-            }}
-            className="mt-2 w-full py-2 text-xs text-(--color-text-muted)"
-          >
-            Quitar este día vacío
-          </button>
-        )}
       </div>
     </div>
   );

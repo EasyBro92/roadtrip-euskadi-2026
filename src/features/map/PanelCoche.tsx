@@ -1,5 +1,5 @@
 import type L from "leaflet";
-import { Car, Footprints, MapPin, Trash2, X } from "lucide-react";
+import { Car, Footprints, MapPin, RefreshCw, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { useCocheStore } from "../../stores/useCocheStore";
 import { useLocationStore } from "../../stores/useLocationStore";
@@ -25,7 +25,7 @@ function hace(iso: string): string {
  * en un casco viejo, andando siempre es más. Prometer "180 m" cuando son
  * cuatro calles con cuestas sería peor que no decir nada.
  */
-export function PanelCoche({ map, onCerrar }: { map: L.Map; onCerrar: () => void }) {
+export function PanelCoche({ map, onCerrar, onActualizar }: { map: L.Map; onCerrar: () => void; onActualizar: () => Promise<void> }) {
   const coche = useCocheStore((s) => s.coche);
   const ponerNota = useCocheStore((s) => s.ponerNota);
   const olvidar = useCocheStore((s) => s.olvidar);
@@ -34,8 +34,15 @@ export function PanelCoche({ map, onCerrar }: { map: L.Map; onCerrar: () => void
   const pushToast = useUIStore((s) => s.pushToast);
 
   const [nota, setNota] = useState(coche?.nota ?? "");
+  const [actualizando, setActualizando] = useState(false);
 
   if (!coche) return null;
+
+  async function actualizar() {
+    setActualizando(true);
+    await onActualizar();
+    setActualizando(false);
+  }
 
   const { latitude, longitude } = coche.coordinates;
   const distancia = posicion ? haversineDistanceMeters(posicion, coche.coordinates) : null;
@@ -99,6 +106,22 @@ export function PanelCoche({ map, onCerrar }: { map: L.Map; onCerrar: () => void
           </a>
         </div>
 
+        {/*
+         * Volver a marcarlo aquí, para cuando has movido el coche a otro
+         * sitio. Antes la única forma era "Ya lo he cogido" y luego apuntarlo
+         * de nuevo desde el botón del mapa — dos pasos para lo que es una
+         * sola cosa: "ahora está aquí".
+         */}
+        <button
+          onClick={actualizar}
+          disabled={actualizando}
+          className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-full border py-2 text-xs font-medium text-(--color-text) disabled:opacity-50"
+          style={{ borderColor: "var(--color-border)" }}
+        >
+          <RefreshCw size={13} className={actualizando ? "animate-spin" : undefined} aria-hidden="true" />
+          {actualizando ? "Buscando tu posición…" : "He movido el coche: marcarlo aquí"}
+        </button>
+
         <button
           onClick={() =>
             openModal({
@@ -112,9 +135,10 @@ export function PanelCoche({ map, onCerrar }: { map: L.Map; onCerrar: () => void
               },
             })
           }
-          className="mt-2 flex w-full items-center justify-center gap-1.5 py-1.5 text-xs text-(--color-text-muted)"
+          className="mt-3 flex w-full items-center justify-center gap-1.5 border-t py-2.5 text-xs text-(--color-text-muted)"
+          style={{ borderColor: "var(--color-border)" }}
         >
-          <Trash2 size={12} aria-hidden="true" /> Ya lo he cogido
+          <Trash2 size={12} aria-hidden="true" /> Ya lo he cogido: quitar del mapa
         </button>
       </div>
     </div>
