@@ -201,7 +201,7 @@ interface TripStoreState {
   canRedo: () => boolean;
 
   // --- Import / reset ---
-  importTripData: (data: { trip: Trip; stops: Stop[]; expenses: Expense[]; refuels: Refuel[]; favorites: Favorite[]; notes: Note[]; checklist: ChecklistItem[]; achievementsState: AchievementState[] }) => void;
+  importTripData: (data: { trip: Trip; stops: Stop[]; expenses: Expense[]; refuels: Refuel[]; favorites: Favorite[]; notes: Note[]; checklist: ChecklistItem[]; achievementsState: AchievementState[]; aportaciones?: Aportacion[] }) => void;
   resetAllData: () => void;
 }
 
@@ -463,10 +463,18 @@ export const useTripStore = create<TripStoreState>()(
         set(() => ({ ...initialState() }));
       },
 
+      /*
+       * El título va vacío, no "Nuevo día".
+       *
+       * Al volver del viaje, el día que se añadió sobre la marcha seguía
+       * llamándose "Nuevo día" en el diario y en el álbum. Vacío, la cabecera
+       * enseña "Día 6" de marcador de posición y el álbum también, así que se
+       * lee bien sin escribir nada y se ve que falta por poner.
+       */
       addDay: () =>
         set((state) => {
           const lastDay = state.trip.days[state.trip.days.length - 1];
-          const newDay = { id: generateId("day"), index: state.trip.days.length, date: shiftISODate(lastDay.date, 1), title: "Nuevo día", stopIds: [], isOverloaded: false, rainModeActive: false, notes: "" };
+          const newDay = { id: generateId("day"), index: state.trip.days.length, date: shiftISODate(lastDay.date, 1), title: "", stopIds: [], isOverloaded: false, rainModeActive: false, notes: "" };
           return { trip: { ...state.trip, days: [...state.trip.days, newDay], endDate: newDay.date } };
         }),
 
@@ -667,6 +675,13 @@ export const useTripStore = create<TripStoreState>()(
           notes: data.notes,
           checklist: data.checklist,
           achievementsState: data.achievementsState,
+          /*
+           * El bote se quedaba fuera y los gastos pagados de él se importaban
+           * huérfanos: nadie los había puesto. Vacío si la copia es de antes
+           * de que se exportara, que es mejor que dejar el bote del viaje
+           * anterior mezclado con los gastos del nuevo.
+           */
+          aportaciones: data.aportaciones ?? [],
         })),
 
       resetAllData: () => set(() => ({ ...initialState(), history: { past: [], future: [] }, newlyUnlockedAchievementIds: [] })),

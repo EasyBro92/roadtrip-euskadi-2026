@@ -43,6 +43,8 @@ interface RatingsState {
   valorar: (tipo: TipoValorado, targetId: ID, estrellas: Estrellas, comentario?: string) => void;
   guardarResena: (tipo: TipoValorado, targetId: ID, estrellas: Estrellas, campos: CamposResena) => void;
   quitarValoracion: (tipo: TipoValorado, targetId: ID) => void;
+  /** Sustituye todas las puntuaciones. Sólo para restaurar una copia. */
+  reemplazarTodas: (valoraciones: Record<string, Valoracion>) => void;
   valoracionDe: (tipo: TipoValorado, targetId: ID) => Valoracion | undefined;
   listarPorTipo: (tipo: TipoValorado) => Valoracion[];
 }
@@ -118,6 +120,8 @@ export const useRatingsStore = create<RatingsState>()(
             },
           };
         }),
+
+      reemplazarTodas: (valoraciones) => set({ valoraciones }),
 
       quitarValoracion: (tipo, targetId) =>
         set((state) => {

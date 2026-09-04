@@ -13,6 +13,12 @@ export interface ExportableState {
   checklist: ChecklistItem[];
   achievementsState: AchievementState[];
   settings: AppSettings;
+  /** El bote: sin esto, los gastos pagados de él no los pone nadie al restaurar. */
+  aportaciones?: unknown[];
+  /** Tus estrellas y reseñas, que viven en su propio almacén. */
+  valoraciones?: Record<string, unknown>;
+  /** Las listas de "Quiero ir" y sus sitios. */
+  sitiosGuardados?: { listas: unknown[]; lugares: unknown[] };
 }
 
 export const ExportService = {
@@ -29,6 +35,9 @@ export const ExportService = {
       checklist: state.checklist as unknown as ExportedState["checklist"],
       achievementsState: state.achievementsState as unknown as ExportedState["achievementsState"],
       settings: state.settings as unknown as ExportedState["settings"],
+      aportaciones: state.aportaciones as ExportedState["aportaciones"],
+      valoraciones: state.valoraciones as ExportedState["valoraciones"],
+      sitiosGuardados: state.sitiosGuardados as ExportedState["sitiosGuardados"],
     };
   },
 

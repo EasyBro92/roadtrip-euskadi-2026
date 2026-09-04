@@ -43,3 +43,43 @@ describe("validateExportedState", () => {
     expect(({} as Record<string, unknown>).polluted).toBeUndefined();
   });
 });
+
+describe("la copia completa lleva lo que no está en ningún otro sitio", () => {
+  const aportaciones = [{ id: "ap-1", travelerId: "yulia", amountEUR: 292.97, date: "2026-08-29", notes: "", createdAt: "" }];
+  const valoraciones = { "stop:gaztelugatxe": { tipo: "stop", targetId: "gaztelugatxe", estrellas: 5, fecha: "2026-09-01" } };
+  const sitiosGuardados = { listas: [{ id: "l1", nombre: "Quiero ir", createdAt: "" }], lugares: [{ id: "s1", listaId: "l1", nombre: "Bayona" }] };
+
+  it("exporta el bote, las puntuaciones y los sitios guardados", () => {
+    /*
+     * Lo que hizo falta arreglar después del viaje de Euskadi: la copia
+     * "completa" no traía nada de esto. Con 292,97 € de gastos pagados del
+     * bote, restaurarla dejaba ese dinero sin que lo hubiera puesto nadie.
+     */
+    const exportado = ExportService.buildExportedState({ ...exportable, aportaciones, valoraciones, sitiosGuardados } as never);
+
+    expect(exportado.aportaciones).toHaveLength(1);
+    expect(exportado.valoraciones).toEqual(valoraciones);
+    expect(exportado.sitiosGuardados?.lugares).toHaveLength(1);
+  });
+
+  it("y sobrevive a la validación de la vuelta", () => {
+    const exportado = ExportService.buildExportedState({ ...exportable, aportaciones, valoraciones, sitiosGuardados } as never);
+    const leido = validateExportedState(JSON.parse(JSON.stringify(exportado)));
+
+    expect(leido.success).toBe(true);
+    if (leido.success) {
+      expect(leido.data.aportaciones).toHaveLength(1);
+      expect(leido.data.sitiosGuardados?.listas).toHaveLength(1);
+    }
+  });
+
+  it("una copia antigua, sin nada de esto, sigue valiendo", () => {
+    // Los ficheros que ya se hayan guardado tienen que poder restaurarse.
+    const antiguo = ExportService.buildExportedState(exportable as never);
+    delete (antiguo as Record<string, unknown>).aportaciones;
+    delete (antiguo as Record<string, unknown>).valoraciones;
+    delete (antiguo as Record<string, unknown>).sitiosGuardados;
+
+    expect(validateExportedState(JSON.parse(JSON.stringify(antiguo))).success).toBe(true);
+  });
+});

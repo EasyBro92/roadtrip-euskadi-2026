@@ -108,6 +108,26 @@ export const exportedStateSchema = z.object({
   checklist: z.array(z.record(z.string(), z.unknown())),
   achievementsState: z.array(z.record(z.string(), z.unknown())),
   settings: z.record(z.string(), z.unknown()),
+
+  /*
+   * Lo que faltaba, y era justo lo que no está en ningún otro sitio.
+   *
+   * La copia "completa" se dejaba fuera el bote, tus puntuaciones con sus
+   * reseñas y los sitios guardados: viven en almacenes propios y nadie los
+   * añadió aquí. En el viaje de Euskadi había 292,97 € de gastos pagados del
+   * bote, así que al restaurar esa copia esos euros no los habría puesto
+   * nadie y las cuentas salían mal.
+   *
+   * Opcionales para que las copias hechas antes sigan valiendo.
+   */
+  aportaciones: z.array(z.record(z.string(), z.unknown())).optional(),
+  valoraciones: z.record(z.string(), z.unknown()).optional(),
+  sitiosGuardados: z
+    .object({
+      listas: z.array(z.record(z.string(), z.unknown())),
+      lugares: z.array(z.record(z.string(), z.unknown())),
+    })
+    .optional(),
 });
 
 export type ExportedState = z.infer<typeof exportedStateSchema>;

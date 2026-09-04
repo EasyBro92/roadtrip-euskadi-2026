@@ -7,6 +7,7 @@ import { useUIStore } from "../../stores/useUIStore";
 import type { ExpenseCategory } from "../../types";
 import { formatEUR } from "../../utils/format";
 import { CATEGORIAS_GASTO } from "./categorias";
+import { diaDeLaFecha } from "./diaDelGasto";
 import { useDuenoDelBote } from "./useDuenoDelBote";
 
 /**
@@ -19,6 +20,7 @@ import { useDuenoDelBote } from "./useDuenoDelBote";
 export function EditarGastoModal({ expenseId }: { expenseId: string }) {
   const gasto = useTripStore((s) => s.expenses.find((e) => e.id === expenseId));
   const travelers = useTripStore((s) => s.trip.travelers);
+  const dias = useTripStore((s) => s.trip.days);
   const aportaciones = useTripStore((s) => s.aportaciones);
   const updateExpense = useTripStore((s) => s.updateExpense);
   const closeModal = useUIStore((s) => s.closeModal);
@@ -118,6 +120,9 @@ export function EditarGastoModal({ expenseId }: { expenseId: string }) {
       category: categoria,
       place: lugar.trim() || CATEGORIAS_GASTO.find((c) => c.id === categoria)!.etiqueta,
       date: fecha,
+      // Cambiar la fecha mueve el gasto al día que le toca: si no, corregir la
+      // fecha lo dejaba contando en el día equivocado del Diario.
+      dayId: diaDeLaFecha(dias, fecha, gasto?.dayId ?? null),
       pagadoDelBote: delBote,
       receiptPhotoId: fotoId,
       // Del bote no lo paga nadie en concreto; quien lo puso ya está contado

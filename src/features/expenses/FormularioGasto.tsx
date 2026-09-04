@@ -5,6 +5,7 @@ import { useUIStore } from "../../stores/useUIStore";
 import type { ExpenseCategory } from "../../types";
 import { fechaLocal } from "../../utils/format";
 import { CATEGORIAS_GASTO } from "./categorias";
+import { diaDeLaFecha } from "./diaDelGasto";
 import { useDuenoDelBote } from "./useDuenoDelBote";
 
 /**
@@ -47,13 +48,16 @@ export function FormularioGasto() {
       return;
     }
     const ahora = new Date();
+    const fecha = fechaLocal(ahora);
     addExpense({
-      date: fechaLocal(ahora),
+      date: fecha,
       time: ahora.toTimeString().slice(0, 5),
       amountEUR: valor,
       category: categoria,
       place: lugar.trim() || CATEGORIAS_GASTO.find((c) => c.id === categoria)!.etiqueta,
-      dayId: trip.currentDayId,
+      // El día lo pone la fecha, no el que tengas abierto: apuntando el
+      // repostaje mientras mirabas el día siguiente, el gasto se iba a ese día.
+      dayId: diaDeLaFecha(trip.days, fecha, trip.currentDayId),
       stopId: trip.currentStopId,
       // Del bote no lo paga nadie en concreto: quien puso ese dinero ya está
       // contado en las aportaciones, y apuntar además un pagador lo contaría

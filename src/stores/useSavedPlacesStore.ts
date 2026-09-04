@@ -24,6 +24,9 @@ interface SavedPlacesState {
   listas: Lista[];
   lugares: LugarGuardado[];
 
+  /** Sustituye listas y sitios. Sólo para restaurar una copia. */
+  reemplazarTodo: (listas: Lista[], lugares: LugarGuardado[]) => void;
+
   crearLista: (nombre: string) => ID;
   renombrarLista: (id: ID, nombre: string) => void;
   borrarLista: (id: ID) => void;
@@ -66,6 +69,8 @@ export const useSavedPlacesStore = create<SavedPlacesState>()(
     (set, get) => ({
       listas: [],
       lugares: [],
+
+      reemplazarTodo: (listas, lugares) => set({ listas, lugares }),
 
       crearLista: (nombre) => {
         const id = generateId();

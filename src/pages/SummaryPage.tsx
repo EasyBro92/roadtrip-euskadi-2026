@@ -6,6 +6,8 @@ import { ExportService } from "../services/export/ExportService";
 import { VehicleService } from "../services/vehicle/VehicleService";
 import { db } from "../services/storage/db";
 import { useTripStats } from "../hooks/useTripStats";
+import { useRatingsStore } from "../stores/useRatingsStore";
+import { useSavedPlacesStore } from "../stores/useSavedPlacesStore";
 import { useSettingsStore } from "../stores/useSettingsStore";
 import { useTripStore } from "../stores/useTripStore";
 import { formatEUR } from "../utils/format";
@@ -21,6 +23,7 @@ export function SummaryPage() {
   const notes = useTripStore((s) => s.notes);
   const checklist = useTripStore((s) => s.checklist);
   const settings = useSettingsStore((s) => s.settings);
+  const aportaciones = useTripStore((s) => s.aportaciones);
   const stats = useTripStats();
   const totalPhotos = useLiveQuery(() => db.photos.count(), []) ?? 0;
   const vehicleStats = useMemo(() => VehicleService.computeStats(trip.vehicle, refuels), [trip.vehicle, refuels]);
@@ -61,7 +64,20 @@ export function SummaryPage() {
          */}
         <button
           onClick={() =>
-            ExportService.downloadJSON({ trip, stops: Object.values(stopsById), expenses, refuels, favorites, notes, checklist, achievementsState, settings })
+            ExportService.downloadJSON({
+              trip,
+              stops: Object.values(stopsById),
+              expenses,
+              refuels,
+              favorites,
+              notes,
+              checklist,
+              achievementsState,
+              settings,
+              aportaciones,
+              valoraciones: useRatingsStore.getState().valoraciones,
+              sitiosGuardados: { listas: useSavedPlacesStore.getState().listas, lugares: useSavedPlacesStore.getState().lugares },
+            })
           }
           className="rounded-(--radius-control) border py-3 text-sm font-medium text-(--color-text)"
           style={{ borderColor: "var(--color-border)" }}

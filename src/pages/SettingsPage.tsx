@@ -5,6 +5,8 @@ import { db } from "../services/storage/db";
 import { validateExportedState } from "../services/storage/schema";
 import { StorageService } from "../services/storage/StorageService";
 import { ETIQUETA_IDIOMA, IDIOMAS } from "../i18n";
+import { useRatingsStore } from "../stores/useRatingsStore";
+import { useSavedPlacesStore } from "../stores/useSavedPlacesStore";
 import { useSettingsStore } from "../stores/useSettingsStore";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
@@ -42,8 +44,29 @@ export function SettingsPage() {
         notes: result.data.notes as never,
         checklist: result.data.checklist as never,
         achievementsState: result.data.achievementsState as never,
+        aportaciones: result.data.aportaciones as never,
       });
-      pushToast("Viaje importado correctamente.", "success");
+
+      /*
+       * Lo que vive en almacenes aparte y antes se perdía al restaurar.
+       *
+       * Sólo se sustituye lo que venga en el fichero: una copia hecha antes
+       * de que esto se exportara no debe borrar las puntuaciones que ya
+       * tengas. Las puntuaciones y los sitios guardados no son de un viaje
+       * concreto, son tuyos.
+       */
+      if (result.data.valoraciones) useRatingsStore.getState().reemplazarTodas(result.data.valoraciones as never);
+      if (result.data.sitiosGuardados) {
+        useSavedPlacesStore.getState().reemplazarTodo(result.data.sitiosGuardados.listas as never, result.data.sitiosGuardados.lugares as never);
+      }
+
+      const faltaba = !result.data.aportaciones && (result.data.expenses as { pagadoDelBote?: boolean }[]).some((e) => e.pagadoDelBote);
+      pushToast(
+        faltaba
+          ? "Viaje importado, pero la copia es antigua y no traía el bote: los gastos pagados de él se quedan sin quién los puso."
+          : "Viaje importado correctamente.",
+        faltaba ? "info" : "success",
+      );
     } catch (error) {
       pushToast(`No se pudo importar: ${(error as Error).message}`, "error");
     }

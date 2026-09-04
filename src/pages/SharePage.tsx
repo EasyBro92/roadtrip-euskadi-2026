@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { ExportService } from "../services/export/ExportService";
 import { PhotoExportService } from "../services/export/PhotoExportService";
 import { SharingService } from "../services/sharing/SharingService";
+import { useRatingsStore } from "../stores/useRatingsStore";
+import { useSavedPlacesStore } from "../stores/useSavedPlacesStore";
 import { useSettingsStore } from "../stores/useSettingsStore";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
@@ -27,6 +29,14 @@ export function SharePage() {
     checklist: state.checklist,
     achievementsState: state.achievementsState,
     settings,
+    // El bote, las puntuaciones y los sitios guardados viven en almacenes
+    // aparte y se quedaban fuera de la copia "completa".
+    aportaciones: state.aportaciones,
+    valoraciones: useRatingsStore.getState().valoraciones,
+    sitiosGuardados: {
+      listas: useSavedPlacesStore.getState().listas,
+      lugares: useSavedPlacesStore.getState().lugares,
+    },
   };
 
   const [empaquetando, setEmpaquetando] = useState(false);
