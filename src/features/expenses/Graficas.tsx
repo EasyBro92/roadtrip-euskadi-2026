@@ -1,9 +1,29 @@
-import { ChevronDown } from "lucide-react";
-import { useState } from "react";
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { lazy, Suspense, useState } from "react";
 import type { ExpenseCategory, TripDay } from "../../types";
-import { formatEUR } from "../../utils/format";
-import { CATEGORIAS_GASTO, colorCategoria, etiquetaCategoria } from "./categorias";
+import { CATEGORIAS_GASTO } from "./categorias";
+
+export interface PorcionCategoria {
+  name: ExpenseCategory;
+  etiqueta: string;
+  value: number;
+}
+
+export interface BarraDia {
+  name: string;
+  gasto: number;
+}
+
+/*
+ * Las gráficas de verdad se piden aparte, y no al abrir Gastos.
+ *
+ * `recharts` pesa más de 100 KB comprimidos —más que el resto de la
+ * pantalla de Gastos junta— y antes se descargaba entera cada vez que se
+ * abría la pestaña, aunque nadie tocase el desplegable: "se miran una vez y
+ * se apuntan gastos veinte", así que la mayoría de esas veces ese peso no
+ * servía para nada. Ahora sólo se pide al desplegar, con `import()`.
+ */
+const GraficasContenido = lazy(() => import("./GraficasContenido"));
 
 /**
  * Las gráficas, al final y plegadas.
@@ -41,48 +61,15 @@ export function Graficas({
       </button>
 
       {abierto && (
-        <>
-          <div className="mt-2 flex h-64 flex-col rounded-(--radius-card) border bg-(--color-surface) p-3" style={{ borderColor: "var(--color-border)" }}>
-            <p className="mb-2 shrink-0 text-xs font-semibold uppercase text-(--color-text-muted)">En qué se va</p>
-            {/* min-h-0 y flex-1: sin esto flexbox aplastaba la gráfica a 50px,
-                porque una gráfica no aporta altura propia. */}
-            <div className="min-h-0 flex-1">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={tarta} dataKey="value" nameKey="etiqueta" innerRadius={45} outerRadius={80}>
-                    {tarta.map((d) => (
-                      <Cell key={d.name} fill={colorCategoria(d.name)} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(v, n) => [formatEUR(Number(v)), String(n)]} />
-                </PieChart>
-              </ResponsiveContainer>
+        <Suspense
+          fallback={
+            <div className="mt-2 flex h-64 items-center justify-center rounded-(--radius-card) border bg-(--color-surface)" style={{ borderColor: "var(--color-border)" }}>
+              <Loader2 size={20} className="animate-spin text-(--color-text-muted)" aria-hidden="true" />
             </div>
-            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
-              {tarta.map((d) => (
-                <span key={d.name} className="flex items-center gap-1 text-[11px] text-(--color-text-muted)">
-                  <span className="h-2 w-2 rounded-full" style={{ background: colorCategoria(d.name) }} aria-hidden="true" />
-                  {etiquetaCategoria(d.name)}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-2 flex h-56 flex-col rounded-(--radius-card) border bg-(--color-surface) p-3" style={{ borderColor: "var(--color-border)" }}>
-            <p className="mb-2 shrink-0 text-xs font-semibold uppercase text-(--color-text-muted)">Día a día</p>
-            <div className="min-h-0 flex-1">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barras} margin={{ top: 4, right: 4, bottom: 0, left: -18 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                  <XAxis dataKey="name" fontSize={11} />
-                  <YAxis fontSize={11} />
-                  <Tooltip formatter={(v) => formatEUR(Number(v))} />
-                  <Bar dataKey="gasto" fill="var(--color-navigation)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </>
+          }
+        >
+          <GraficasContenido tarta={tarta} barras={barras} />
+        </Suspense>
       )}
     </div>
   );
