@@ -9,6 +9,16 @@ interface SwipeToDeleteProps {
   onDelete: () => void;
   /** Se lee en voz alta: describe qué se borra, no solo "borrar". */
   deleteLabel: string;
+  /**
+   * El redondeo, que tiene que ser el mismo que el de lo que va dentro.
+   *
+   * Este envoltorio recorta, y el botón rojo de borrar vive debajo. Si él
+   * redondea menos que su contenido, por la diferencia entre las dos curvas
+   * asoma un hilo rojo en cada esquina, con la fila cerrada y sin tocar nada.
+   * Pasaba en las tarjetas de viaje, que redondean a 22 px contra los 12 de
+   * aquí.
+   */
+  radio?: string;
   children: ReactNode;
 }
 
@@ -20,7 +30,7 @@ interface SwipeToDeleteProps {
  * El botón existe siempre en el DOM aunque esté oculto tras la fila, así que
  * también se alcanza con teclado o lector de pantalla, sin gesto.
  */
-export function SwipeToDelete({ onDelete, deleteLabel, children }: SwipeToDeleteProps) {
+export function SwipeToDelete({ onDelete, deleteLabel, radio = "rounded-xl", children }: SwipeToDeleteProps) {
   const [desplazamiento, setDesplazamiento] = useState(0);
   const inicio = useRef<{ x: number; y: number } | null>(null);
   const direccion = useRef<"indecisa" | "horizontal" | "vertical">("indecisa");
@@ -59,7 +69,7 @@ export function SwipeToDelete({ onDelete, deleteLabel, children }: SwipeToDelete
   const abierta = desplazamiento <= -ANCHO_BOTON / 2;
 
   return (
-    <div className="relative overflow-hidden rounded-xl">
+    <div className={`relative overflow-hidden ${radio}`}>
       <div className="absolute inset-y-0 right-0 flex">
         <button
           onClick={() => {

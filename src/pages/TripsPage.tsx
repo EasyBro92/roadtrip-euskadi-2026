@@ -1,19 +1,14 @@
-import { CalendarDays, Compass, MapPin, Plus, Search, Wallet, Wand2 } from "lucide-react";
+import { Compass, Plus, Search, Wand2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SwipeToDelete } from "../components/SwipeToDelete";
 import { WorldMapBackdrop } from "../components/WorldMapBackdrop";
+import { PilaDeViajes } from "../features/trips/PilaDeViajes";
+import { repartirViajes } from "../features/trips/repartirViajes";
+import { TarjetaViaje } from "../features/trips/TarjetaViaje";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
-import { formatEUR } from "../utils/format";
 import { toISODate } from "../utils/dates";
-
-function formatRango(inicio: string, fin: string): string {
-  const opciones: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
-    const desde = new Date(`${inicio}T00:00:00`).toLocaleDateString("es-ES", opciones);
-  const hasta = new Date(`${fin}T00:00:00`).toLocaleDateString("es-ES", { ...opciones, year: "numeric" });
-  return `${desde} — ${hasta}`;
-}
 
 /** Formulario mínimo para arrancar un viaje: lo demás se edita ya dentro. */
 function NuevoViaje({ onCerrar }: { onCerrar: () => void }) {
@@ -103,6 +98,7 @@ export function TripsPage() {
 
   const [creando, setCreando] = useState(false);
   const trips = listTrips();
+  const { activo, proximos, terminados } = repartirViajes(trips, toISODate(new Date()));
 
   function abrir(id: string, activo: boolean) {
     if (!activo) switchTrip(id);
@@ -170,64 +166,32 @@ export function TripsPage() {
         </div>
       )}
 
-      <ul className="mt-4 flex flex-col gap-3">
-        {trips.map((t) => (
-          <li key={t.id}>
-            {/* Se borra deslizando, igual que los gastos. Antes cada tarjeta
-                llevaba su botón de Borrar en rojo: mucho ruido para una acción
-                que casi nunca se usa, y en la portada de la app. */}
-            <SwipeToDelete deleteLabel={`Borrar el viaje ${t.name}`} onDelete={() => borrar(t.id, t.name)}>
-              <button
-                onClick={() => abrir(t.id, t.isActive)}
-                className="relative flex h-44 w-full flex-col justify-end overflow-hidden rounded-(--radius-card) text-left shadow-(--shadow-card)"
-                style={t.isActive ? { outline: "2px solid var(--color-navigation)", outlineOffset: "-2px" } : undefined}
-              >
-                {/* Sin fotos todavía (viaje recién creado) queda el degradado,
-                    que es mejor que un hueco gris. */}
-                <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={
-                    t.heroImage
-                      ? { backgroundImage: `url("${t.heroImage}")` }
-                      : { background: "linear-gradient(160deg, #1A73E8 0%, #0B4FCC 45%, #16A34A 100%)" }
-                  }
-                  aria-hidden="true"
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.05) 100%)" }}
-                  aria-hidden="true"
-                />
+      {/* El que está en marcha, grande y solo: es el que se abre el 95% de
+          las veces que se entra aquí. */}
+      {activo && (
+        <div className="mt-4">
+          <SwipeToDelete deleteLabel={`Borrar el viaje ${activo.name}`} onDelete={() => borrar(activo.id, activo.name)} radio="rounded-(--radius-card)">
+            <TarjetaViaje viaje={activo} alAbrir={() => abrir(activo.id, activo.isActive)} />
+          </SwipeToDelete>
+        </div>
+      )}
 
-                {t.isActive && (
-                  <span className="absolute right-3 top-3 rounded-full bg-white/25 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
-                    En curso
-                  </span>
-                )}
+      {proximos.length > 0 && (
+        <ul className="mt-3 flex flex-col gap-3">
+          {proximos.map((t) => (
+            <li key={t.id}>
+              {/* Se borra deslizando, igual que los gastos. Antes cada tarjeta
+                  llevaba su botón de Borrar en rojo: mucho ruido para una acción
+                  que casi nunca se usa, y en la portada de la app. */}
+              <SwipeToDelete deleteLabel={`Borrar el viaje ${t.name}`} onDelete={() => borrar(t.id, t.name)} radio="rounded-(--radius-card)">
+                <TarjetaViaje viaje={t} alAbrir={() => abrir(t.id, t.isActive)} />
+              </SwipeToDelete>
+            </li>
+          ))}
+        </ul>
+      )}
 
-                <div className="relative p-4 text-white">
-                  <h2 className="truncate text-lg font-semibold">{t.name}</h2>
-                  <p className="mt-0.5 text-sm opacity-90">{formatRango(t.startDate, t.endDate)}</p>
-
-                  <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-xs opacity-90">
-                    <span className="flex items-center gap-1.5">
-                      <CalendarDays size={13} aria-hidden="true" /> {t.dayCount} {t.dayCount === 1 ? "día" : "días"}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <MapPin size={13} aria-hidden="true" /> {t.stopCount} {t.stopCount === 1 ? "parada" : "paradas"}
-                    </span>
-                    {t.budgetEUR > 0 && (
-                      <span className="flex items-center gap-1.5">
-                        <Wallet size={13} aria-hidden="true" /> {formatEUR(t.budgetEUR)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </button>
-            </SwipeToDelete>
-          </li>
-        ))}
-      </ul>
+      <PilaDeViajes viajes={terminados} alAbrir={abrir} alBorrar={borrar} />
     </div>
   );
 }
