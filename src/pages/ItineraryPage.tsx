@@ -3,6 +3,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { BedDouble, Clock, MapPinned, Plus, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { TarjetaHoy } from "../features/itinerary/TarjetaHoy";
 import { useDaySwipe } from "../hooks/useDaySwipe";
 import { DayHeader } from "../features/itinerary/DayHeader";
 import { FilteredStopList } from "../features/itinerary/FilteredStopList";
@@ -11,6 +12,7 @@ import { ChipAviso } from "../features/itinerary/ChipAviso";
 import { LocationBreak } from "../features/itinerary/LocationBreak";
 import { SortableStopCard } from "../features/itinerary/SortableStopCard";
 import { AvisoTiempo } from "../features/itinerary/AvisoTiempo";
+import { toISODate } from "../utils/dates";
 import { openExternalUrl } from "../utils/openExternal";
 import { diaSiguiente, urlBooking } from "../utils/reservas";
 import { nochesPorDia, nochesSinAlojamiento } from "../features/itinerary/alojamiento";
@@ -31,7 +33,22 @@ const DISTANCIA_OTRA_LOCALIDAD_M = 2000;
 export function ItineraryPage() {
   const days = useTripStore((s) => s.trip.days);
   const [params] = useSearchParams();
-  const [activeDayId, setActiveDayId] = useState(days[0].id);
+  /*
+   * Abre en el día de hoy, no en el primero.
+   *
+   * La app ya sabía qué día del viaje es hoy —`sincronizarDiaDeHoy` lo guarda
+   * al arrancar— pero esta pantalla lo ignoraba y empezaba siempre por el
+   * día 1. Estando de viaje, eso es abrir el itinerario por donde ya has
+   * pasado y tener que buscar dónde estás. Se vio al poner la tarjeta de Hoy:
+   * decía "Día 2 de 4" con el chip del Día 1 marcado justo debajo.
+   *
+   * Fuera de las fechas del viaje no hay día de hoy, y entonces sí manda el
+   * primero.
+   */
+  const [activeDayId, setActiveDayId] = useState(() => {
+    const hoy = toISODate(new Date());
+    return (days.find((d) => d.date === hoy) ?? days[0]).id;
+  });
   const stops = useStopsOfDay(activeDayId);
   const reorderStopsInDay = useTripStore((s) => s.reorderStopsInDay);
   const restoreOriginalRoute = useTripStore((s) => s.restoreOriginalRoute);
@@ -104,6 +121,14 @@ export function ItineraryPage() {
             Restaurar original
           </button>
         </div>
+      </div>
+
+      {/* Arriba del todo y sólo durante el viaje: es lo que se viene a mirar
+          estando en la carretera, y fuera de esas fechas no dice nada. El
+          margen lo lleva la propia tarjeta, para que los días no lo pierdan
+          los días que no se dibuja. */}
+      <div className="safe-x px-4">
+        <TarjetaHoy onIrAlDia={cambiarDia} />
       </div>
 
       <div className="safe-x mt-3 flex gap-2 overflow-x-auto px-4 pb-2 scrollbar-none">
