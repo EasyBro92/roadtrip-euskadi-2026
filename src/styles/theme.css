@@ -51,39 +51,53 @@
   --shadow-sheet: 0 -4px 24px rgba(32, 33, 36, 0.14);
 }
 
+/*
+ * La noche, en un solo bloque.
+ *
+ * Antes estaba copiada dos veces —una para `[data-theme="dark"]` y otra
+ * dentro de un `@media` para `[data-theme="auto"]`— y la segunda no llegaba
+ * a aplicarse nunca: en automático el JS **quitaba** el atributo, así que
+ * `[data-theme="auto"]` no casaba con nada. Comprobado en el navegador con
+ * el sistema en oscuro: el fondo se quedaba en `#fafaf7`. Ahora "auto" se
+ * resuelve en JS a "dark" o "light" (ver `resolveAndApplyTheme`), y aquí
+ * sólo hace falta este bloque.
+ *
+ * El aspecto es el de Wallet de noche, no el "mapa nocturno" de Google que
+ * había: el fondo baja a casi negro y las superficies suben, de modo que la
+ * separación entre una tarjeta y el fondo la hace la propia luz de la
+ * tarjeta. En un gris azulado medio como el anterior, las sombras no se ven
+ * —una sombra negra sobre gris oscuro no existe— y todo quedaba plano.
+ *
+ * --color-navigation NO se sobreescribe a propósito: se usa tanto de fondo
+ * sólido con texto blanco encima (botones) como de color de texto suelto
+ * sobre superficies oscuras, y un azul más claro revienta el contraste del
+ * primer caso — el texto blanco queda casi invisible sobre un azul claro.
+ * Para el texto está --color-link, que sí se aclara.
+ */
 :root[data-theme="dark"] {
-  /*
-   * Tonos de "Mapa nocturno" de Google: azul marino muy oscuro, no gris
-   * neutro. --color-navigation NO se sobreescribe aquí a propósito: se usa
-   * tanto de fondo sólido con texto blanco encima (botones) como de color
-   * de texto suelto sobre superficies oscuras, y un azul más claro (el que
-   * usa Google para texto/iconos en modo oscuro) revienta el contraste del
-   * primer caso — el texto blanco queda casi invisible sobre un azul claro.
-   * Mismo azul en los dos temas, ya probado con buen contraste en ambos.
-   */
-  --color-bg: #0f1419;
-  --color-surface: #17212b;
-  --color-surface-muted: #1e2a35;
-  --color-text: #e8eaed;
-  --color-text-muted: #9aa5b1;
-  --color-border: #2c3a47;
+  /* Que los controles nativos —selectores, barras de scroll— vayan a juego. */
+  color-scheme: dark;
+
+  --color-bg: #08090c;
+  --color-surface: #16181d;
+  --color-surface-muted: #21242c;
+  --color-text: #f1f3f5;
+  --color-text-muted: #a1a8b3;
+  --color-border: #2f333c;
   --color-link: #8ab4f8;
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.45);
-  --shadow-sheet: 0 -4px 24px rgba(0, 0, 0, 0.55);
+
+  /*
+   * Tres capas: un filo claro que dibuja el borde de la tarjeta contra el
+   * casi negro, y dos sombras que la despegan. El filo es lo que hace que
+   * la tarjeta parezca tener luz propia; sin él, a este nivel de negro, una
+   * sombra sola no separa nada.
+   */
+  --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.5), 0 12px 28px rgba(0, 0, 0, 0.55);
+  --shadow-sheet: 0 -1px 0 rgba(255, 255, 255, 0.06), 0 -8px 32px rgba(0, 0, 0, 0.65);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root[data-theme="auto"] {
-    --color-bg: #0f1419;
-    --color-surface: #17212b;
-    --color-surface-muted: #1e2a35;
-    --color-text: #e8eaed;
-    --color-text-muted: #9aa5b1;
-    --color-border: #2c3a47;
-  --color-link: #8ab4f8;
-    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.45);
-    --shadow-sheet: 0 -4px 24px rgba(0, 0, 0, 0.55);
-  }
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 .category-naturaleza,
