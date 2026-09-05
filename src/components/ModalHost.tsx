@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import { useModalAccesible } from "../hooks/useModalAccesible";
 import { FichaParadaModal } from "../features/itinerary/FichaParadaModal";
 import { PlaceLibraryModal } from "../features/itinerary/PlaceLibraryModal";
 import { StopEditorModal } from "../features/itinerary/StopEditorModal";
@@ -9,11 +11,33 @@ import { DayPickerModal } from "./DayPickerModal";
 import { PromptModal } from "./PromptModal";
 import { TripSwitcherModal } from "./TripSwitcherModal";
 
-/** Punto único de renderizado de modales (sección 17/25), controlado por useUIStore.modal. */
+/**
+ * Punto único de renderizado de modales (sección 17/25), controlado por
+ * useUIStore.modal.
+ *
+ * Y por eso también el único sitio donde hace falta resolver el teclado y el
+ * lector de pantalla: envolviendo aquí, los diez modales ganan a la vez el
+ * foco que entra al abrir y vuelve al cerrar, la tecla Escape y el tabulador
+ * encerrado. Ver `useModalAccesible` para lo que se midió que fallaba.
+ */
 export function ModalHost() {
   const modal = useUIStore((s) => s.modal);
   const closeModal = useUIStore((s) => s.closeModal);
+  const caja = useRef<HTMLDivElement>(null);
 
+  useModalAccesible(caja, modal.type !== "none", closeModal);
+
+  if (modal.type === "none") return null;
+
+  return (
+    // El div no estorba: los modales de dentro son `position: fixed`, que se
+    // colocan contra la ventana y no contra este contenedor.
+    <div ref={caja} role="dialog" aria-modal="true" tabIndex={-1}>
+      {contenido()}
+    </div>
+  );
+
+  function contenido() {
   if (modal.type === "none") return null;
 
   if (modal.type === "stop-editor") return <StopEditorModal stopId={modal.stopId} dayId={modal.dayId} />;
@@ -63,5 +87,6 @@ export function ModalHost() {
     );
   }
 
-  return null;
+    return null;
+  }
 }
