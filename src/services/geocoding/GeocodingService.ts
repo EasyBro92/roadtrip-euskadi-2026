@@ -1,6 +1,7 @@
 import { StorageService } from "../storage/StorageService";
 import type { Coordinates } from "../../types";
 import { esperarTurnoNominatim } from "./nominatimGate";
+import { textoRecuadro, type Recuadro } from "./zonaDelViaje";
 
 export interface GeocodingResult {
   displayName: string;
@@ -49,17 +50,33 @@ const throttle = esperarTurnoNominatim;
  * Cachea por consulta y aplica throttling para no abusar del servicio.
  */
 export const GeocodingService = {
-  async search(query: string, opts?: { limit?: number; signal?: AbortSignal }): Promise<GeocodingResult[]> {
+  async search(query: string, opts?: { limit?: number; signal?: AbortSignal; cerca?: Recuadro | null }): Promise<GeocodingResult[]> {
     const trimmed = query.trim();
     if (trimmed.length < 3) return [];
 
-    const cacheKey = trimmed.toLowerCase();
+    /*
+     * La zona forma parte de la clave de caché.
+     *
+     * "Catedral" cerca de Euskadi y "catedral" a secas no son la misma
+     * pregunta ni dan la misma respuesta. Con una sola clave, la primera
+     * búsqueda que se hiciera dejaría cacheados sus resultados para la otra.
+     * Sin zona la clave se queda como estaba, así que lo ya guardado sigue
+     * sirviendo.
+     */
+    const zona = opts?.cerca ? textoRecuadro(opts.cerca) : "";
+    const cacheKey = zona ? `${trimmed.toLowerCase()}@${zona}` : trimmed.toLowerCase();
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     await throttle();
 
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(trimmed)}&format=jsonv2&limit=${opts?.limit ?? 5}&addressdetails=0`;
+    /*
+     * `viewbox` sin `bounded=1`: la zona es una preferencia, no una jaula.
+     * Lo de fuera del viaje sigue apareciendo —a veces el sitio que buscas
+     * está lejos y lo sabes—, sólo que después de lo que te pilla de camino.
+     */
+    const zonaUrl = opts?.cerca ? `&viewbox=${textoRecuadro(opts.cerca)}` : "";
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(trimmed)}&format=jsonv2&limit=${opts?.limit ?? 5}&addressdetails=0${zonaUrl}`;
 
     const response = await fetch(url, { signal: opts?.signal });
     if (!response.ok) throw new Error(`Nominatim respondió ${response.status}`);
@@ -82,11 +99,14 @@ export const GeocodingService = {
   },
 };
 
-/** Debounce genérico usado por el input de búsqueda del editor (sección 26). */
-export function debounce<Args extends unknown[]>(fn: (...args: Args) => void, delayMs: number): (...args: Args) => void {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-  return (...args: Args) => {
-    if (timeoutId) clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn(...args), delayMs);
-  };
-}
+/*
+ * Aquí vivía un `debounce()` genérico, y se ha quitado a propósito.
+ *
+ * Dentro de un componente de React no debounce nada: cada render fabrica una
+ * función nueva, con su temporizador a estrenar, que no puede cancelar al de
+ * la anterior. El editor de paradas lo usaba así y lanzaba una petición por
+ * tecla. Dejarlo aquí era dejar la trampa puesta para la próxima vez.
+ *
+ * Lo que hay que usar es `useBusquedaDeLugares`, que además cancela la
+ * petición que ya no interesa y descarta las respuestas que llegan tarde.
+ */

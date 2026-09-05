@@ -1,8 +1,10 @@
 import type L from "leaflet";
 import { Loader2, MapPin, Plus, Search, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+import { useBusquedaDeLugares } from "../../hooks/useBusquedaDeLugares";
 import { useStopsOfDay } from "../../hooks/useStopsOfDay";
-import { GeocodingService, type GeocodingResult } from "../../services/geocoding/GeocodingService";
+import type { GeocodingResult } from "../../services/geocoding/GeocodingService";
+import { recuadroDe } from "../../services/geocoding/zonaDelViaje";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { Stop } from "../../types";
@@ -16,8 +18,6 @@ import type { Stop } from "../../types";
 export function MapSearchBar({ dayId, map }: { dayId: string; map: L.Map }) {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
-  const [remoteResults, setRemoteResults] = useState<GeocodingResult[]>([]);
-  const [searching, setSearching] = useState(false);
 
   const allStops = useTripStore((s) => s.stopsById);
   const dayStops = useStopsOfDay(dayId);
@@ -35,32 +35,16 @@ export function MapSearchBar({ dayId, map }: { dayId: string; map: L.Map }) {
       .slice(0, 6);
   }, [query, allStops]);
 
-  // Búsqueda remota con retardo. El temporizador vive en un ref para que no
-  // se recree en cada pulsación (si no, el "debounce" no debounce nada y se
-  // dispara una petición por tecla).
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    const q = query.trim();
-    if (q.length < 3) {
-      setRemoteResults([]);
-      setSearching(false);
-      return;
-    }
-    setSearching(true);
-    timerRef.current = setTimeout(async () => {
-      try {
-        setRemoteResults(await GeocodingService.search(q, { limit: 4 }));
-      } catch {
-        setRemoteResults([]);
-      } finally {
-        setSearching(false);
-      }
-    }, 500);
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [query]);
+  /*
+   * La búsqueda remota vive ahora en `useBusquedaDeLugares`, compartida con el
+   * editor de paradas. Aquí ya estaba bien —el temporizador en un `ref`, con
+   * su comentario explicando por qué— pero allí no, y tener el mismo problema
+   * resuelto en un sitio y sin resolver en otro es lo que hizo falta arreglar
+   * dos veces. Ahora hay una sola implementación, y encima cancela la petición
+   * que ya no interesa, cosa que ésta no hacía.
+   */
+  const zona = useMemo(() => recuadroDe(Object.values(allStops).map((s) => s.coordinates)), [allStops]);
+  const { resultados: remoteResults, buscando: searching } = useBusquedaDeLugares(query, { limite: 4, cerca: zona });
 
   function goToStop(stop: Stop) {
     setCurrentDay(stop.dayId);
@@ -79,8 +63,9 @@ export function MapSearchBar({ dayId, map }: { dayId: string; map: L.Map }) {
   }
 
   function close() {
+    // Vaciar la consulta ya vacía los resultados: el hook los limpia solo en
+    // cuanto baja del mínimo de letras.
     setQuery("");
-    setRemoteResults([]);
     setFocused(false);
   }
 

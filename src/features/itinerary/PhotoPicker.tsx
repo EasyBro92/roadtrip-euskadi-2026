@@ -81,13 +81,13 @@ export function PhotoPicker({ coordinates, name, value, onChange }: PhotoPickerP
           onChange={(e) => setConsulta(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && buscarPorTexto()}
           placeholder={`Buscar otra cosa (por defecto: ${name || "la parada"})`}
-          className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm"
+          className="min-w-0 flex-1 rounded-(--radius-control) border bg-(--color-bg) px-3 py-2 text-sm text-(--color-text)"
           style={{ borderColor: "var(--color-border)" }}
         />
         <button
           onClick={buscarPorTexto}
           aria-label="Buscar fotos por nombre"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-(--radius-control) border"
           style={{ borderColor: "var(--color-border)" }}
         >
           <Search size={16} aria-hidden="true" />
