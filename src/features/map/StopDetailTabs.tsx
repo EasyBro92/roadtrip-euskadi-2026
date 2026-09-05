@@ -1,6 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { BedDouble, CloudRain, Globe, Info, ParkingCircle, Phone, Plus, UtensilsCrossed } from "lucide-react";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { usePlaceDetails } from "../../hooks/usePlaceDetails";
 import { PhotoService } from "../../services/photos/PhotoService";
 import { db } from "../../services/storage/db";
@@ -224,7 +224,24 @@ function AparcamientoTab({ stop }: { stop: Stop }) {
 }
 
 function NotasTab({ stop }: { stop: Stop }) {
-  const notes = useTripStore((s) => s.notes.filter((n) => n.targetType === "stop" && n.targetId === stop.id));
+  /*
+   * Filtrar FUERA del selector, no dentro.
+   *
+   * `useTripStore((s) => s.notes.filter(...))` devuelve un array nuevo cada
+   * vez que se le pregunta, y Zustand compara por identidad: como nunca es el
+   * mismo objeto, cree que el estado ha cambiado, vuelve a renderizar, vuelve
+   * a filtrar... Abrir esta pestaña tiraba la app entera con "Maximum update
+   * depth exceeded", a cuatro toques del mapa.
+   *
+   * Seleccionando el array tal cual —que sí es el mismo objeto mientras no se
+   * toquen las notas— y filtrando en un `useMemo`, no hay identidad nueva que
+   * confundir.
+   */
+  const todasLasNotas = useTripStore((s) => s.notes);
+  const notes = useMemo(
+    () => todasLasNotas.filter((n) => n.targetType === "stop" && n.targetId === stop.id),
+    [todasLasNotas, stop.id],
+  );
   const addNote = useTripStore((s) => s.addNote);
   const deleteNote = useTripStore((s) => s.deleteNote);
   const [draft, setDraft] = useState("");
@@ -257,7 +274,10 @@ function NotasTab({ stop }: { stop: Stop }) {
 }
 
 function GastosTab({ stop }: { stop: Stop }) {
-  const expenses = useTripStore((s) => s.expenses.filter((e) => e.stopId === stop.id));
+  // Mismo caso que en las notas: el filtro va fuera del selector, o cada
+  // render fabrica un array nuevo y Zustand entra en bucle.
+  const todosLosGastos = useTripStore((s) => s.expenses);
+  const expenses = useMemo(() => todosLosGastos.filter((e) => e.stopId === stop.id), [todosLosGastos, stop.id]);
   const addExpense = useTripStore((s) => s.addExpense);
   const [amount, setAmount] = useState("");
 

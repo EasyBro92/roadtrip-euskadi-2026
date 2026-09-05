@@ -45,10 +45,14 @@ etiqueta "Demo" en la ficha de la parada:
   DECISIONS.md).
 - **Excel de gastos**: `xlsx` está instalado y preparado; la exportación CSV
   está completa y funcional ahora mismo como alternativa inmediata.
-- **Playwright E2E**: los 15 escenarios de la sección 51 están escritos en
-  `e2e/main-flows.spec.ts` y listos para ejecutar, pero no se han corrido
-  navegadores de Playwright en este entorno (`npx playwright install` la
-  primera vez).
+- ~~**Playwright E2E**: escritos pero nunca ejecutados.~~ **Resuelto el
+  05/09/2026.** Al ejecutarlos por primera vez fallaban 8 de los 15: la
+  interfaz se había movido debajo (favoritos pasaron del itinerario a la
+  ficha del mapa, la bienvenida dejó de estar en `/`, desactivar una parada
+  dejó de ser una casilla…) y nadie se enteró porque las pruebas no se
+  corrían. Reescritos contra la interfaz real, van los 15 en verde y ahora se
+  ejecutan en CI en cada push, así que no pueden volver a pudrirse en
+  silencio.
 
 ## Aproximaciones geográficas
 

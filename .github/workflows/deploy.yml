@@ -26,6 +26,16 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test
+
+      # Las E2E, en CI y no "listas para ejecutar".
+      #
+      # Estaban escritas desde el principio pero nunca se habían corrido, y
+      # cuando por fin se corrieron fallaban 8 de 15: la interfaz se había
+      # movido debajo sin que nadie se enterara. Unas pruebas que no se
+      # ejecutan no protegen nada; sólo aparentan que sí.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
       - run: npm run build
         env:
           # GitHub Pages sirve desde /<repo>/, no desde la raíz.

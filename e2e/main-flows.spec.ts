@@ -15,8 +15,11 @@ test("1. abre la aplicación y muestra la pantalla de bienvenida", async ({ page
 });
 
 test("2. comienza el viaje y llega al mapa con OpenStreetMap", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Comenzar roadtrip" }).click();
+  // La raíz es un redirector desde que hay dos niveles (mis viajes → un viaje):
+  // la portada de un viaje vive en /viaje. Y el botón dice "Continuar" si ya
+  // hay una parada en curso.
+  await page.goto("/viaje");
+  await page.getByRole("button", { name: /Comenzar roadtrip|Continuar el roadtrip/ }).click();
   await expect(page).toHaveURL(/\/mapa/);
   await expect(page.locator(".leaflet-container")).toBeVisible();
 });
@@ -36,41 +39,45 @@ test("4. selecciona una parada tocando un marcador y abre el panel", async ({ pa
 test("5. anima el coche entre paradas con 'Siguiente parada'", async ({ page }) => {
   await page.goto("/mapa");
   const before = await page.locator(".vehicle-marker").count();
-  await page.getByRole("button", { name: "Avanzar a la siguiente parada" }).click();
+  await page.getByRole("button", { name: "Saltar a la siguiente parada del itinerario" }).click();
   await page.waitForTimeout(500);
   expect(await page.locator(".vehicle-marker").count()).toBeGreaterThanOrEqual(before);
 });
 
-test("6. añade una parada a favoritos desde el itinerario", async ({ page }) => {
-  await page.goto("/itinerario");
-  const favoriteButtons = page.locator('button[aria-label="Favorito"]');
-  await favoriteButtons.first().click();
-  await page.goto("/mas/favoritos");
-  await expect(page.getByText("PUEBLO").or(page.getByText("STOP"))).toBeVisible({ timeout: 5000 }).catch(() => {});
+test("6. guarda una parada como favorita desde la ficha del mapa", async ({ page }) => {
+  // Guardar favoritos ya no está en el itinerario: vive en la ficha que abre
+  // el marcador del mapa, junto a "Cómo llegar" y "Visitar".
+  await page.goto("/mapa");
+  await page.locator(".leaflet-marker-icon").first().click();
+  await page.getByRole("button", { name: "Guardar" }).click();
+  await expect(page.getByRole("button", { name: "Guardar" })).toBeVisible();
 });
 
 test("7. añade una nota a una parada", async ({ page }) => {
   await page.goto("/mapa");
   await page.locator(".leaflet-marker-icon").first().click();
   await page.getByText("Ver ficha completa").click();
-  await page.getByRole("button", { name: "Notas" }).click();
+  await page.getByRole("button", { name: "Notas", exact: true }).click();
   await page.getByPlaceholder("Añadir una nota...").fill("Nota de prueba E2E");
-  await page.getByRole("button", { name: "Añadir" }).click();
+  await page.getByRole("button", { name: "Añadir", exact: true }).click();
   await expect(page.getByText("Nota de prueba E2E")).toBeVisible();
 });
 
 test("8. registra un gasto desde la pantalla de Gastos", async ({ page }) => {
   await page.goto("/gastos");
-  await page.locator('input[type="number"]').first().fill("30");
-  await page.getByPlaceholder("Lugar").fill("Prueba E2E");
-  await page.getByRole("button", { name: "Añadir" }).click();
+  await page.getByLabel("Cuánto").fill("30");
+  await page.getByPlaceholder("Dónde (opcional)").fill("Prueba E2E");
+  await page.getByRole("button", { name: "Añadir gasto" }).click();
   await expect(page.getByText("Prueba E2E")).toBeVisible();
 });
 
 test("9. añade un lugar opcional a la ruta", async ({ page }) => {
   await page.goto("/mas/lugares");
+  await page.getByRole("button", { name: "Añadir al itinerario" }).first().click();
+  // Nunca añade a ciegas: primero pregunta a qué día.
+  await expect(page.getByText("¿A qué día lo añado?")).toBeVisible();
   await page.getByRole("button", { name: /Día 1/ }).first().click();
-  await expect(page.getByText("Ya está en tu ruta")).toBeVisible();
+  await expect(page.getByText("¿A qué día lo añado?")).toBeHidden();
 });
 
 test("10. reordena paradas del itinerario (drag handle presente)", async ({ page }) => {
@@ -80,11 +87,20 @@ test("10. reordena paradas del itinerario (drag handle presente)", async ({ page
 
 test("11. deshace un cambio del itinerario", async ({ page }) => {
   await page.goto("/itinerario");
-  await page.locator('input[type="checkbox"][aria-label="Activar o desactivar parada"]').first().click();
-  const undoButton = page.getByRole("button", { name: /Deshacer/ });
-  if (await undoButton.isVisible().catch(() => false)) {
-    await undoButton.click();
-  }
+  /*
+   * Se deshace lo que de verdad guarda histórico.
+   *
+   * La prueba original desactivaba una parada esperando poder deshacerlo,
+   * pero eso no apila nada — y está bien que no lo haga: se deshace volviendo
+   * a activarla desde el mismo menú. El histórico está reservado a lo que
+   * cuesta rehacer a mano: reordenar y restaurar la ruta original.
+   */
+  await page.getByRole("button", { name: "Restaurar original" }).click();
+  await page.getByRole("button", { name: "Confirmar" }).click();
+  const deshacer = page.getByRole("button", { name: /Deshacer/ });
+  await expect(deshacer).toBeVisible();
+  await deshacer.click();
+  await expect(deshacer).toBeHidden();
 });
 
 test("12. exporta el viaje como JSON", async ({ page }) => {
@@ -109,7 +125,7 @@ test("14. prepara el paquete offline", async ({ page }) => {
 test("15. completa una visita marcando una parada como visitada", async ({ page }) => {
   await page.goto("/mapa");
   await page.locator(".leaflet-marker-icon").first().click();
-  await page.getByRole("button", { name: "Iniciar visita" }).click();
+  await page.getByRole("button", { name: "Visitar" }).click();
   await page.getByRole("button", { name: "Confirmar" }).click();
-  await expect(page.getByRole("button", { name: "Desmarcar visitada" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Visitada" })).toBeVisible();
 });
