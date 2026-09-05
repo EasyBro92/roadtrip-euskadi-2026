@@ -81,7 +81,19 @@ export function useGestosDeTarjeta(
   fondo: RefObject<HTMLDivElement | null>,
   onCerrado: () => void,
   onGirar: () => void,
+  opciones?: {
+    /**
+     * Sólo el barrido de lado para girar: ni bajar para cerrar, ni tocar.
+     *
+     * Es lo que se pone en la zona de texto. Ahí el arrastre vertical ya
+     * significa "desplaza el contenido", así que no puede significar además
+     * "cierra la ficha"; y el toque tiene que quedar libre para leer y pulsar
+     * sin que la tarjeta se dé la vuelta sola a media lectura.
+     */
+    soloGiro?: boolean;
+  },
 ) {
+  const soloGiro = opciones?.soloGiro ?? false;
   const gesto = useRef<{ x0: number; y0: number; t0: number; eje: "indeciso" | "vertical" | "otro"; dy: number } | null>(null);
   const yendose = useRef(false);
 
@@ -154,8 +166,9 @@ export function useGestosDeTarjeta(
 
       if (g.eje === "indeciso") {
         if (Math.abs(dx) < UMBRAL_GESTO && Math.abs(dy) < UMBRAL_GESTO) return;
-        // Sólo hacia abajo: hacia arriba no hay nada a lo que ir.
-        g.eje = dy > 0 && dy > Math.abs(dx) ? "vertical" : "otro";
+        // Sólo hacia abajo: hacia arriba no hay nada a lo que ir. Y en la zona
+        // de texto, nunca: ahí bajar es desplazar lo que estás leyendo.
+        g.eje = !soloGiro && dy > 0 && dy > Math.abs(dx) ? "vertical" : "otro";
         if (g.eje === "vertical") e.currentTarget.setPointerCapture(e.pointerId);
       }
 
@@ -178,8 +191,9 @@ export function useGestosDeTarjeta(
         return;
       }
 
-      // Un toque: ni ha bajado ni se ha ido de lado.
-      if (Math.abs(dx) < TOQUE_MAXIMO && Math.abs(dy) < TOQUE_MAXIMO) return onGirar();
+      // Un toque: ni ha bajado ni se ha ido de lado. En la zona de texto no
+      // cuenta: leyendo se toca la tarjeta constantemente.
+      if (!soloGiro && Math.abs(dx) < TOQUE_MAXIMO && Math.abs(dy) < TOQUE_MAXIMO) return onGirar();
 
       // Un barrido de lado, en cualquiera de los dos sentidos.
       if (Math.abs(dx) > UMBRAL_GIRO && Math.abs(dx) > Math.abs(dy)) onGirar();

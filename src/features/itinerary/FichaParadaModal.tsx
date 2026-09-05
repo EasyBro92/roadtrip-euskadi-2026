@@ -48,7 +48,16 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
 
   const [dorso, setDorso] = useState(false);
   const girando = useRef(false);
+  /*
+   * Dos juegos de gestos, según dónde pongas el dedo.
+   *
+   * En la cabecera —la foto, o la barra del dorso— cabe todo: bajar para
+   * cerrar, tocar o barrer para girar. En la zona de texto sólo el barrido
+   * de lado: ahí bajar ya significa desplazar lo que estás leyendo, y tocar
+   * es lo que haces para pulsar una pestaña o un enlace.
+   */
   const gestos = useGestosDeTarjeta(panel, fondo, closeModal, () => girar());
+  const gestosTexto = useGestosDeTarjeta(panel, fondo, closeModal, () => girar(), { soloGiro: true });
 
   if (!stop) return null;
 
@@ -104,14 +113,31 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
      */
     setTimeout(() => {
       setDorso((v) => !v);
+
+      /*
+       * Soltar el `fill` de la ida y el pestillo va aquí, con el reloj, y NO
+       * dentro del `requestAnimationFrame`.
+       *
+       * Estaban ahí, y `requestAnimationFrame` tampoco se ejecuta cuando la
+       * pestaña no se pinta. O sea: cambiabas de app a media vuelta y al
+       * volver `girando` seguía puesto para siempre, así que la tarjeta no
+       * volvía a girar nunca más hasta cerrarla y abrirla de nuevo. Y la ida
+       * se quedaba sin cancelar, con su `fill: forwards` a 90°, lista para
+       * dejar la tarjeta de canto —invisible— en cuanto el reloj arrancase.
+       *
+       * Es el mismo fallo que ya obligó a mover el cambio de cara a un
+       * temporizador; esto era la mitad que se quedó colgando del pintado.
+       */
+      ida.cancel();
+      girando.current = false;
+
+      // El rAF sólo para el adorno: que la vuelta de entrada empiece con la
+      // cara nueva ya pintada. Si no llega, no pasa nada — no hay animación.
       requestAnimationFrame(() => {
-        // Quitar el `fill` de la ida: si no, deja la tarjeta fijada de canto.
-        ida.cancel();
         el.animate([{ transform: "rotateY(90deg)" }, { transform: "rotateY(0deg)" }], {
           duration: VUELTA_ENTERA_MS,
           easing: "cubic-bezier(0, 0, 0.2, 1)",
         });
-        girando.current = false;
       });
     }, MEDIA_VUELTA_MS);
   }
@@ -146,7 +172,7 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
        */}
       <div
         ref={panel}
-        className="flex max-h-[80dvh] w-full max-w-sm flex-col overflow-hidden rounded-(--radius-card) bg-(--color-surface) shadow-2xl"
+        className="flex max-h-[84dvh] w-full max-w-[20.5rem] flex-col overflow-hidden rounded-(--radius-card) bg-(--color-surface) shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         style={{ willChange: "transform, opacity" }}
       >
@@ -177,7 +203,7 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
 
               {/* Lo que se desplaza es esto, no la tarjeta: la cabecera se
                   queda fija arriba y el dorso se recorre por dentro. */}
-              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4" style={{ touchAction: "pan-y" }} {...gestosTexto}>
                 {/* Tu nota del sitio, que es distinta de la valoración fotográfica
                     que viene con los datos. */}
                 <div className="mt-3 rounded-xl border p-2.5" style={{ borderColor: "var(--color-border)" }}>
@@ -209,7 +235,9 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
                * quede el gesto antes de que llegue aquí.
                */}
               <div className="relative shrink-0" style={{ touchAction: "none" }} {...gestos}>
-                <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-40 w-full" iconSize={44} />
+                {/* La foto más alta: es lo que estira la tarjeta y le da
+                    proporción de tarjeta en vez de la de una caja. */}
+                <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-56 w-full" iconSize={52} />
 
                 {/* La pista de que se puede arrastrar. Sin ella el gesto
                     existe pero no lo encuentra nadie. */}
@@ -227,7 +255,7 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
                 </div>
               </div>
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4" style={{ touchAction: "pan-y" }} {...gestosTexto}>
                 {/* Las tres acciones en una fila, la principal en azul. */}
                 <div className="mt-3 flex gap-2">
                   <a
