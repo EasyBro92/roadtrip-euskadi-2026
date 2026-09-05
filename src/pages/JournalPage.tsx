@@ -1,4 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
+import { etiquetaParada } from "../features/itinerary/etiquetaParada";
 import { TituloPantalla } from "../components/TituloPantalla";
 import { Camera, CheckCircle2, Circle, Clock, Gauge, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -107,7 +108,7 @@ function PortadaDia({ day, blob, imagenStop }: { day: TripDay; blob?: Blob; imag
     return (
       <header className="pt-1">
         <h2 className="text-lg font-medium text-(--color-text)">{day.title}</h2>
-        <p className="text-sm capitalize text-(--color-text-muted)">{formatDateLong(day.date)}</p>
+        <p className="text-sm text-(--color-text-muted)">{formatDateLong(day.date)}</p>
       </header>
     );
   }
@@ -119,7 +120,7 @@ function PortadaDia({ day, blob, imagenStop }: { day: TripDay; blob?: Blob; imag
           un cielo claro, que es la mitad superior de casi cualquier foto. */}
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3.5 pt-12">
         <h2 className="text-lg font-semibold text-white">{day.title}</h2>
-        <p className="text-sm capitalize text-white/85">{formatDateLong(day.date)}</p>
+        <p className="text-sm text-white/85">{formatDateLong(day.date)}</p>
       </div>
     </div>
   );
@@ -227,8 +228,8 @@ function DayEntry({ dayId }: { dayId: string }) {
                 <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-16 w-16 rounded-xl" iconSize={26} />
                 <span className="min-w-0 flex-1">
                   <span className={`block truncate text-[15px] font-semibold ${stop.visited ? "text-(--color-text)" : "text-(--color-text-muted)"}`}>{stop.name}</span>
-                  <span className="block truncate text-xs capitalize text-(--color-text-muted)">
-                    {stop.category}
+                  <span className="block truncate text-xs text-(--color-text-muted)">
+                    {etiquetaParada(stop.category)}
                     {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
                   </span>
                   <span className="mt-0.5 line-clamp-2 block text-xs text-(--color-text-muted)">{stop.shortDescription}</span>

@@ -1,4 +1,5 @@
 import { useSortable } from "@dnd-kit/sortable";
+import { etiquetaParada } from "./etiquetaParada";
 import { CSS } from "@dnd-kit/utilities";
 import { CalendarArrowDown, Camera, Check, Copy, EyeOff, GripVertical, MoreVertical, Pencil, PenLine, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -83,8 +84,8 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
               <span className="truncate text-[15px] font-semibold text-(--color-text)">{stop.name}</span>
               {favorite && <Star size={12} className="shrink-0 text-(--color-gastronomy)" fill="currentColor" aria-hidden="true" />}
             </span>
-            <span className="block truncate text-xs capitalize text-(--color-text-muted)">
-              {stop.category}
+            <span className="block truncate text-xs text-(--color-text-muted)">
+              {etiquetaParada(stop.category)}
               {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
               {stop.optional && <> · opcional</>}
               {!stop.enabled && <> · desactivada</>}

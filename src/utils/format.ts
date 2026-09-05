@@ -15,12 +15,24 @@ export function formatDuration(seconds: number): string {
   return `${hours} h ${minutes} min`;
 }
 
+/**
+ * "Sábado, 29 de agosto" — con mayúscula sólo al principio.
+ *
+ * En español el día y el mes van en minúscula, y el sistema los devuelve así
+ * ("sábado, 29 de agosto"). Quien lo pintaba le ponía un `capitalize` de CSS
+ * encima para arreglar la inicial, pero eso pone mayúscula a **cada palabra**
+ * y salía "Sábado, 29 De Agosto", con un "De" en mitad de la frase.
+ *
+ * Poniéndola aquí, en el texto y no en el estilo, sólo sube la primera letra
+ * y quien lo use no tiene que acordarse de nada.
+ */
 export function formatDateLong(isoDate: string): string {
-  return new Date(`${isoDate}T00:00:00`).toLocaleDateString("es-ES", {
+  const texto = new Date(`${isoDate}T00:00:00`).toLocaleDateString("es-ES", {
     weekday: "long",
     day: "numeric",
     month: "long",
   });
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 export function formatDateShort(isoDate: string): string {

@@ -1,4 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
+import { etiquetaParada } from "../features/itinerary/etiquetaParada";
 import { ArrowLeft, ChevronLeft, ChevronRight, Download, ImageOff, Loader2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -184,8 +185,8 @@ export function AlbumPage() {
                             {p.name}
                             {p.visited && <span className="text-(--color-completed)"> ✓</span>}
                           </p>
-                          <p className="text-xs capitalize text-(--color-text-muted)">
-                            {p.category}
+                          <p className="text-xs text-(--color-text-muted)">
+                            {etiquetaParada(p.category)}
                             {estrellas > 0 && <span className="ml-1.5 tracking-widest text-(--color-gastronomy)">{ESTRELLAS(estrellas)}</span>}
                           </p>
                           {nota && <p className="mt-1 whitespace-pre-wrap text-xs text-(--color-text-muted)">{nota}</p>}

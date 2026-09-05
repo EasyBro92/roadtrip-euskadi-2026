@@ -1,4 +1,5 @@
 import { Camera, Check, ChevronDown, ChevronUp, Heart, Navigation, Star } from "lucide-react";
+import { etiquetaParada } from "../itinerary/etiquetaParada";
 import { useMemo, useRef, useState } from "react";
 import { StarRatingInput } from "../../components/StarRatingInput";
 import { BotonResena } from "../reviews/BotonResena";
@@ -147,8 +148,8 @@ export function BottomSheet({ dayId }: { dayId: string }) {
               <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-sm text-white/90">
                 <span className="font-medium">{stop.photographyRating.toFixed(1)}</span>
                 <StarRating value={stop.photographyRating} sobreFoto />
-                <span className="capitalize">
-                  · {stop.category}
+                <span>
+                  · {etiquetaParada(stop.category)}
                   {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
                 </span>
               </div>
@@ -163,8 +164,8 @@ export function BottomSheet({ dayId }: { dayId: string }) {
                 <span className="font-medium text-(--color-text)">{stop.photographyRating.toFixed(1)}</span>
                 <StarRating value={stop.photographyRating} />
               </div>
-              <p className="mt-0.5 text-sm capitalize text-(--color-text-muted)">
-                {stop.category}
+              <p className="mt-0.5 text-sm text-(--color-text-muted)">
+                {etiquetaParada(stop.category)}
                 {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
               </p>
               {stop.visited && (

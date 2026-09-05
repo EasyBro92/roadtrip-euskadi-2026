@@ -1,6 +1,7 @@
 import type L from "leaflet";
 import { Loader2, MapPin, Plus, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { etiquetaParada } from "../itinerary/etiquetaParada";
 import { useBusquedaDeLugares } from "../../hooks/useBusquedaDeLugares";
 import { useStopsOfDay } from "../../hooks/useStopsOfDay";
 import type { GeocodingResult } from "../../services/geocoding/GeocodingService";
@@ -108,7 +109,7 @@ export function MapSearchBar({ dayId, map }: { dayId: string; map: L.Map }) {
                     <MapPin size={17} className="shrink-0 text-(--color-link)" aria-hidden="true" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm text-(--color-text)">{stop.name}</span>
-                      <span className="block truncate text-xs capitalize text-(--color-text-muted)">{stop.category}</span>
+                      <span className="block truncate text-xs text-(--color-text-muted)">{etiquetaParada(stop.category)}</span>
                     </span>
                   </button>
                 ))}

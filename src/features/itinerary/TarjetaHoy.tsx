@@ -1,6 +1,7 @@
 import { AlertTriangle, Car, Check, ChevronRight, Navigation } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CategoryThumb } from "../../components/CategoryThumb";
+import { etiquetaParada } from "./etiquetaParada";
 import { useCocheStore } from "../../stores/useCocheStore";
 import { useTripStore } from "../../stores/useTripStore";
 import { estadoDeHoy } from "./estadoDeHoy";
@@ -62,11 +63,11 @@ export function TarjetaHoy({ onIrAlDia }: { onIrAlDia: (dayId: string) => void }
             <span className="min-w-0 flex-1">
               <span className="block text-[11px] font-medium uppercase tracking-wide text-(--color-text-muted)">Siguiente parada</span>
               <span className="block truncate text-sm font-semibold text-(--color-text)">{siguiente.name}</span>
-              {/* El `capitalize` sólo en la categoría: puesto en toda la línea
-                  salía "20 Min · Quedan 7", con mayúsculas en medio de la
-                  frase. */}
+              {/* La categoría ya viene escrita de `etiquetaParada`, sin
+                  `capitalize` de CSS: esa regla sube la inicial de cada
+                  palabra y aquí salía "20 Min · Quedan 7". */}
               <span className="block truncate text-xs text-(--color-text-muted)">
-                <span className="capitalize">{siguiente.category}</span>
+                {etiquetaParada(siguiente.category)}
                 {siguiente.recommendedDurationMinutes > 0 && <> · {siguiente.recommendedDurationMinutes} min</>}
                 {pendientes > 1 && <> · quedan {pendientes}</>}
               </span>

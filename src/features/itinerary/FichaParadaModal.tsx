@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAperturaDesde, type Origen } from "../../hooks/useAperturaDesde";
 import { useGestosDeTarjeta } from "../../hooks/useGestosDeTarjeta";
+import { etiquetaParada } from "./etiquetaParada";
 import { CategoryThumb } from "../../components/CategoryThumb";
 import { StarRatingInput } from "../../components/StarRatingInput";
 import { useTripStore } from "../../stores/useTripStore";
@@ -247,8 +248,8 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
 
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-3 pt-10">
                   <h2 className="truncate text-lg font-semibold text-white">{stop.name}</h2>
-                  <p className="truncate text-xs capitalize text-white/85">
-                    {stop.category}
+                  <p className="truncate text-xs text-white/85">
+                    {etiquetaParada(stop.category)}
                     {stop.recommendedDurationMinutes > 0 && <> · {stop.recommendedDurationMinutes} min</>}
                     {stop.optional && <> · opcional</>}
                   </p>
