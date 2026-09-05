@@ -71,8 +71,8 @@ export function PanelPersonas({ detalle }: { detalle: Record<ID, DetalleViajero>
   }
 
   return (
-    <div className="mt-3 rounded-(--radius-card) border bg-(--color-surface) p-4 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
-      <div className="flex items-center justify-between gap-2">
+    <section className="mt-3">
+      <div className="flex items-center justify-between gap-2 px-1">
         <h2 className="text-sm font-semibold text-(--color-text)">Quién ha puesto qué</h2>
         <button
           onClick={() =>
@@ -90,7 +90,17 @@ export function PanelPersonas({ detalle }: { detalle: Record<ID, DetalleViajero>
         </button>
       </div>
 
-      <ul className="mt-3 space-y-3">
+      {/*
+       * Una tarjeta por persona, no una fila más en una lista.
+       *
+       * Antes las tres cifras de cada uno vivían pegadas dentro de una única
+       * tarjeta compartida, todas al mismo tamaño de letra: el saldo —lo
+       * primero que se busca— pesaba igual que el desglose de quién puso qué.
+       * Separadas, cada una es su propio bloque flotante, como el pase de un
+       * viajero en Wallet, y el saldo puede ser lo más grande sin que se lo
+       * coma el resto del texto.
+       */}
+      <ul className="mt-2 flex flex-col gap-2.5">
         {travelers.map((t) => {
           const d = detalle[t.id] ?? VACIO;
           const enPaz = Math.abs(d.saldo) < CENTIMO;
@@ -98,65 +108,73 @@ export function PanelPersonas({ detalle }: { detalle: Record<ID, DetalleViajero>
 
           return (
             <li key={t.id}>
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="min-w-0 truncate text-sm font-medium text-(--color-text)">
-                  {t.name}
-                  {t.id === yo && <span className="font-normal text-(--color-text-muted)"> · tú</span>}
-                </span>
-                <span
-                  className="shrink-0 text-sm font-semibold"
-                  style={{ color: enPaz ? "var(--color-text-muted)" : aFavor ? "var(--color-progress)" : "var(--color-cancelled)" }}
-                >
-                  {enPaz ? "en paz" : `${aFavor ? "+" : "−"}${formatEUR(Math.abs(d.saldo))}`}
-                </span>
-              </div>
+              <div
+                className="rounded-(--radius-card) border bg-(--color-surface) p-3.5 shadow-(--shadow-card)"
+                style={{ borderColor: "var(--color-border)" }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <p className="min-w-0 truncate text-sm font-medium text-(--color-text)">
+                    {t.name}
+                    {t.id === yo && <span className="font-normal text-(--color-text-muted)"> · tú</span>}
+                  </p>
+                  <p
+                    className="shrink-0 text-xl font-semibold tracking-tight"
+                    style={{ color: enPaz ? "var(--color-text-muted)" : aFavor ? "var(--color-progress)" : "var(--color-cancelled)" }}
+                  >
+                    {enPaz ? "en paz" : `${aFavor ? "+" : "−"}${formatEUR(Math.abs(d.saldo))}`}
+                  </p>
+                </div>
 
-              {/* La barra compara de un vistazo cuánto ha adelantado cada uno,
-                  que es lo que el saldo neto esconde. */}
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-(--color-surface-muted)">
-                <div className="h-full rounded-full bg-(--color-navigation)" style={{ width: `${(d.puso / masAlto) * 100}%` }} />
-              </div>
+                {/* La barra compara de un vistazo cuánto ha adelantado cada
+                    uno, que es lo que el saldo neto esconde. */}
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-(--color-surface-muted)">
+                  <div className="h-full rounded-full bg-(--color-navigation)" style={{ width: `${(d.puso / masAlto) * 100}%` }} />
+                </div>
 
-              {/* De dónde viene lo que puso: sin desglosar, con bote de por
-                  medio no se ve quién financió qué parte. */}
-              <p className="mt-1 text-xs text-(--color-text-muted)">
-                puso {formatEUR(d.puso)}
-                {d.porElBote > CENTIMO && d.deSuBolsillo > CENTIMO && (
-                  <> ({formatEUR(d.deSuBolsillo)} suelto + {formatEUR(d.porElBote)} del bote)</>
-                )}
-                {d.porElBote > CENTIMO && d.deSuBolsillo <= CENTIMO && <> (todo del bote)</>}
-                {" · "}gastó {formatEUR(d.debe)}
-              </p>
+                {/* De dónde viene lo que puso: sin desglosar, con bote de por
+                    medio no se ve quién financió qué parte. */}
+                <p className="mt-1.5 text-xs text-(--color-text-muted)">
+                  puso {formatEUR(d.puso)}
+                  {d.porElBote > CENTIMO && d.deSuBolsillo > CENTIMO && (
+                    <> ({formatEUR(d.deSuBolsillo)} suelto + {formatEUR(d.porElBote)} del bote)</>
+                  )}
+                  {d.porElBote > CENTIMO && d.deSuBolsillo <= CENTIMO && <> (todo del bote)</>}
+                  {" · "}gastó {formatEUR(d.debe)}
+                </p>
+              </div>
             </li>
           );
         })}
       </ul>
 
       {pagos.length > 0 && (
-        <>
-        <div className="mt-3 flex items-center justify-between gap-2 border-t pt-3" style={{ borderColor: "var(--color-border)" }}>
-          <p className="text-xs font-semibold uppercase tracking-wide text-(--color-text-muted)">Para quedar en paz</p>
-          <button onClick={compartir} className="flex shrink-0 items-center gap-1 text-xs text-(--color-link)">
-            <Share2 size={12} aria-hidden="true" /> Compartir
-          </button>
+        <div
+          className="mt-2.5 rounded-(--radius-card) border bg-(--color-surface) p-3.5 shadow-(--shadow-card)"
+          style={{ borderColor: "var(--color-border)" }}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-(--color-text-muted)">Para quedar en paz</p>
+            <button onClick={compartir} className="flex shrink-0 items-center gap-1 text-xs text-(--color-link)">
+              <Share2 size={12} aria-hidden="true" /> Compartir
+            </button>
+          </div>
+          {descuadre < -CENTIMO && (
+            <p className="mt-1.5 text-xs text-(--color-cancelled)">
+              Faltan {formatEUR(-descuadre)} que no ha puesto nadie, así que con estos pagos no todos quedan a cero. Apunta quién los puso en el bote común.
+            </p>
+          )}
+          <ul className="mt-1.5 space-y-1">
+            {pagos.map((p, i) => (
+              <li key={`${p.de}-${p.a}-${i}`} className="flex items-center gap-1.5 text-sm">
+                <span className="min-w-0 flex-1 truncate text-(--color-text)">{nombre(p.de)}</span>
+                <ArrowRight size={13} className="shrink-0 text-(--color-text-muted)" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate text-(--color-text)">{nombre(p.a)}</span>
+                <span className="shrink-0 font-semibold text-(--color-text)">{formatEUR(p.importeEUR)}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-        {descuadre < -CENTIMO && (
-          <p className="mt-1.5 text-xs text-(--color-cancelled)">
-            Faltan {formatEUR(-descuadre)} que no ha puesto nadie, así que con estos pagos no todos quedan a cero. Apunta quién los puso en el bote común.
-          </p>
-        )}
-        <ul className="mt-1.5 space-y-1">
-          {pagos.map((p, i) => (
-            <li key={`${p.de}-${p.a}-${i}`} className="flex items-center gap-1.5 text-sm">
-              <span className="min-w-0 flex-1 truncate text-(--color-text)">{nombre(p.de)}</span>
-              <ArrowRight size={13} className="shrink-0 text-(--color-text-muted)" aria-hidden="true" />
-              <span className="min-w-0 flex-1 truncate text-(--color-text)">{nombre(p.a)}</span>
-              <span className="shrink-0 font-semibold text-(--color-text)">{formatEUR(p.importeEUR)}</span>
-            </li>
-          ))}
-        </ul>
-        </>
       )}
-    </div>
+    </section>
   );
 }
