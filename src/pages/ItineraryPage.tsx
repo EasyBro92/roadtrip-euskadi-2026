@@ -4,6 +4,7 @@ import { BedDouble, Clock, MapPinned, Plus, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { TarjetaHoy } from "../features/itinerary/TarjetaHoy";
+import { TituloPantalla } from "../components/TituloPantalla";
 import { useDaySwipe } from "../hooks/useDaySwipe";
 import { DayHeader } from "../features/itinerary/DayHeader";
 import { FilteredStopList } from "../features/itinerary/FilteredStopList";
@@ -106,7 +107,7 @@ export function ItineraryPage() {
   return (
     <div className="flex h-full flex-col overflow-hidden bg-(--color-bg)">
       <div className="safe-x flex items-center justify-between px-4 pt-4">
-        <h1 className="text-xl font-bold">Itinerario</h1>
+        <TituloPantalla>Itinerario</TituloPantalla>
         <div className="flex gap-2">
           {canUndo && (
             <button onClick={undo} className="flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium" style={{ borderColor: "var(--color-border)" }}>

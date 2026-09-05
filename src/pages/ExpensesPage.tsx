@@ -1,4 +1,5 @@
 import { Download } from "lucide-react";
+import { TituloPantalla } from "../components/TituloPantalla";
 import { nombreArchivo } from "../utils/nombreArchivo";
 import { useMemo } from "react";
 import { FormularioGasto } from "../features/expenses/FormularioGasto";
@@ -46,7 +47,7 @@ export function ExpensesPage() {
   return (
     <div className="safe-x flex h-full flex-col overflow-y-auto bg-(--color-bg) px-4 pb-24 pt-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Gastos</h1>
+        <TituloPantalla>Gastos</TituloPantalla>
         <button
           onClick={() => ExportService.downloadCSV(ExpenseService.toCSV(expenses, trip.travelers), `${nombreArchivo(trip.name, "viaje")}-gastos.csv`)}
           className="flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium"

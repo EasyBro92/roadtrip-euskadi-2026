@@ -83,16 +83,20 @@
   --color-surface-muted: #21242c;
   --color-text: #f1f3f5;
   --color-text-muted: #a1a8b3;
-  --color-border: #2f333c;
+  /*
+   * El borde sube de brillo, y es él quien dibuja la tarjeta.
+   *
+   * La sombra llevaba además un filo claro propio, así que sobre las
+   * tarjetas —que ya pintan su borde— se veían dos líneas pegadas, una
+   * encima de otra. Un solo filo, el del borde, y algo más claro para que a
+   * este nivel de negro se vea: es lo que hace que la tarjeta parezca tener
+   * luz propia, porque una sombra negra sobre casi negro no separa nada.
+   */
+  --color-border: #353a45;
   --color-link: #8ab4f8;
 
-  /*
-   * Tres capas: un filo claro que dibuja el borde de la tarjeta contra el
-   * casi negro, y dos sombras que la despegan. El filo es lo que hace que
-   * la tarjeta parezca tener luz propia; sin él, a este nivel de negro, una
-   * sombra sola no separa nada.
-   */
-  --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.5), 0 12px 28px rgba(0, 0, 0, 0.55);
+  /* Sólo profundidad: el filo lo pone el borde. */
+  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.5), 0 12px 28px rgba(0, 0, 0, 0.55);
   --shadow-sheet: 0 -1px 0 rgba(255, 255, 255, 0.06), 0 -8px 32px rgba(0, 0, 0, 0.65);
 }
 

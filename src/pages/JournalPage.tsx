@@ -1,4 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
+import { TituloPantalla } from "../components/TituloPantalla";
 import { Camera, CheckCircle2, Circle, Clock, Gauge, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDaySwipe } from "../hooks/useDaySwipe";
@@ -44,7 +45,7 @@ export function JournalPage() {
   return (
     <div className="flex h-full flex-col overflow-hidden bg-(--color-bg)">
       <div className="safe-x shrink-0 px-4 pt-4">
-        <h1 className="text-xl font-bold">Diario de viaje</h1>
+        <TituloPantalla>Diario de viaje</TituloPantalla>
       </div>
 
       <div className="safe-x mt-3 flex shrink-0 gap-2 overflow-x-auto px-4 pb-2 scrollbar-none">

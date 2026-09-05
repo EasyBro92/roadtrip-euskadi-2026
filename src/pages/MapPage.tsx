@@ -17,7 +17,9 @@ import { useSkipToNextStop } from "../features/map/useSkipToNextStop";
 import { VehicleMarker } from "../features/map/VehicleMarker";
 import { useStopsOfDay } from "../hooks/useStopsOfDay";
 import { useTap } from "../hooks/useTap";
+import { capaSegunTema } from "../services/map/capaSegunTema";
 import { getMapLayer } from "../services/map/MapService";
+import { useTemaOscuro } from "../hooks/useTemaOscuro";
 import { useSettingsStore } from "../stores/useSettingsStore";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
@@ -170,8 +172,11 @@ export function MapPage() {
   const currentDayId = useTripStore((s) => s.trip.currentDayId);
   const days = useTripStore((s) => s.trip.days);
   const dayId = currentDayId ?? days[0]?.id;
+  // En oscuro se pintan teselas oscuras, sin tocar la capa que tengas
+  // elegida: ver `capaSegunTema`.
   const mapLayerId = useSettingsStore((s) => s.settings.mapLayer);
-  const layer = getMapLayer(mapLayerId);
+  const temaOscuro = useTemaOscuro();
+  const layer = getMapLayer(capaSegunTema(mapLayerId, temaOscuro));
   const [map, setMap] = useState<L.Map | null>(null);
 
   const firstStop = useStopsOfDay(dayId)[0];

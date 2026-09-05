@@ -37,9 +37,19 @@ export function BottomNav() {
                   isActive ? "bg-(--color-navigation)/12" : "bg-transparent",
                 )}
               >
+                {/*
+                 * El activo va relleno, no sólo más grueso y de otro color.
+                 *
+                 * A plena luz, con el móvil en el salpicadero, la diferencia
+                 * de color entre azul y gris se pierde y el grosor de trazo
+                 * no se aprecia. Una silueta maciza frente a un contorno se
+                 * distingue igual aunque no se distinga el color.
+                 */}
                 <Icon
                   size={22}
-                  strokeWidth={isActive ? 2.4 : 1.9}
+                  strokeWidth={isActive ? 2.2 : 1.9}
+                  fill={isActive ? "currentColor" : "none"}
+                  fillOpacity={isActive ? 0.18 : undefined}
                   className={isActive ? "text-(--color-link)" : "text-(--color-text-muted)"}
                   aria-hidden="true"
                 />

@@ -225,3 +225,20 @@ a,
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/*
+ * Cifras de ancho fijo en toda la app.
+ *
+ * Por defecto cada dígito ocupa lo que necesita —el 1 es estrecho, el 8
+ * ancho— así que en una lista de gastos las comas de los euros bailan de
+ * fila en fila y hay que leerlas de una en una. Con ancho fijo quedan en
+ * columna y la lista se lee de un vistazo. Es lo que hacen las apps de banco.
+ *
+ * Va en el `body` y no en cada importe: hay dieciséis ficheros que pintan
+ * euros, más las distancias, las horas y las fechas. Puesto en un solo sitio
+ * no se puede olvidar en ninguno, y a los números sueltos dentro de una
+ * frase no les hace daño.
+ */
+body {
+  font-variant-numeric: tabular-nums;
+}

@@ -1,4 +1,5 @@
 import { BookImage, Bookmark, Car, ChevronsUpDown, FileText, Globe2, HardDrive, CircleHelp, CloudDownload, Compass, CornerUpLeft, Flag, ListChecks, MapPinned, NotebookPen, Radar, Settings, Share2, Sparkles, Star, Trophy, type LucideIcon } from "lucide-react";
+import { TituloPantalla } from "../components/TituloPantalla";
 import { useNavigate } from "react-router-dom";
 import { useT } from "../hooks/useT";
 import { useTripStats } from "../hooks/useTripStats";
@@ -49,12 +50,6 @@ const GROUPS: { title: string; items: MoreItem[] }[] = [
   {
     title: "Ajustes y datos",
     items: [
-      {
-        to: "/viajes",
-        label: "Mis viajes",
-        description: "Todos tus viajes, y crear uno nuevo",
-        icon: Compass,
-      },
       { to: "/mas/compartir", label: "Compartir y exportar", description: "JSON, GPX, GeoJSON y QR", icon: Share2 },
       { to: "/mas/configuracion", label: "Configuración", description: "Fechas, tema, ubicación y privacidad", icon: Settings },
       { to: "/mas/ayuda", label: "Ayuda", description: "Preguntas frecuentes", icon: CircleHelp },
@@ -76,7 +71,31 @@ export function MorePage() {
 
   return (
     <div className="safe-x h-full overflow-y-auto bg-(--color-bg) px-4 pt-4 pb-8">
-      <h1 className="mb-4 text-xl font-bold">Más</h1>
+      <TituloPantalla className="mb-3">Más</TituloPantalla>
+
+      {/*
+       * Salir del viaje, arriba del todo.
+       *
+       * Esto vivía dentro de "Ajustes y datos", debajo de exportar, y no lo
+       * encontraba nadie: volver al nivel superior de la app no es un ajuste,
+       * es lo contrario de entrar. Con la app configurada para abrirse en el
+       * mapa, la única forma de llegar a Mis viajes era saber que estaba
+       * escondida ahí.
+       *
+       * Aquí arriba basta con "Más" y un toque, y no gasta un sitio de la
+       * barra de abajo.
+       */}
+      <button
+        onClick={() => navigate("/viajes")}
+        className="mb-5 flex w-full items-center gap-2.5 rounded-(--radius-card) border bg-(--color-surface) px-4 py-3 text-left shadow-(--shadow-card) transition-transform active:scale-[0.99]"
+        style={{ borderColor: "var(--color-border)" }}
+      >
+        <CornerUpLeft size={17} className="shrink-0 text-(--color-text-muted)" aria-hidden="true" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-medium text-(--color-text)">Mis viajes</span>
+          <span className="block truncate text-xs text-(--color-text-muted)">Salir de este viaje y ver todos</span>
+        </span>
+      </button>
 
       {/*
        * La tarjeta del viaje, con su foto de portada.
