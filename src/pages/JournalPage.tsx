@@ -1,3 +1,4 @@
+import { Foto } from "../components/Foto";
 import { useLiveQuery } from "dexie-react-hooks";
 import { etiquetaParada } from "../features/itinerary/etiquetaParada";
 import { TituloPantalla } from "../components/TituloPantalla";
@@ -115,7 +116,7 @@ function PortadaDia({ day, blob, imagenStop }: { day: TripDay; blob?: Blob; imag
 
   return (
     <div className="relative mt-1 h-44 overflow-hidden rounded-(--radius-card)">
-      <img src={fondo} alt="" className="h-full w-full object-cover" />
+      <Foto src={fondo} alt="" className="h-full w-full object-cover" />
       {/* El degradado no es adorno: sin él el texto blanco desaparece sobre
           un cielo claro, que es la mitad superior de casi cualquier foto. */}
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3.5 pt-12">
@@ -323,7 +324,7 @@ function MetricCard({ icon: Icon, value, label }: { icon: typeof Clock; value: s
     <div className="rounded-2xl border bg-(--color-surface) p-2 text-center shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
       <Icon size={15} className="mx-auto text-(--color-link)" aria-hidden="true" />
       <p className="mt-1 truncate text-xs font-medium text-(--color-text)">{value}</p>
-      <p className="truncate text-[10px] text-(--color-text-muted)">{label}</p>
+      <p className="truncate text-xs text-(--color-text-muted)">{label}</p>
     </div>
   );
 }

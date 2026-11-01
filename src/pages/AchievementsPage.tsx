@@ -24,8 +24,8 @@ export function AchievementsPage() {
 
   return (
     <div className="safe-x h-full overflow-y-auto bg-(--color-bg) px-4 pt-4 pb-8">
-      <button onClick={() => navigate(-1)} className="mb-3 flex items-center gap-1 text-sm text-(--color-text-muted)">
-        <ArrowLeft size={15} aria-hidden="true" /> Atrás
+      <button onClick={() => navigate(-1)} className="-ml-2 mb-2 flex h-11 items-center gap-1.5 rounded-full pl-2 pr-4 text-sm font-medium text-(--color-text) active:bg-(--color-surface-muted)">
+        <ArrowLeft size={20} aria-hidden="true" /> Atrás
       </button>
       <h1 className="text-xl font-bold">Logros</h1>
 
@@ -66,9 +66,9 @@ export function AchievementsPage() {
                 <IconComponent size={21} color={unlocked ? "white" : "var(--color-text-muted)"} aria-hidden="true" />
               </div>
               <p className={`text-xs font-medium ${unlocked ? "text-(--color-text)" : "text-(--color-text-muted)"}`}>{def.name}</p>
-              <p className="text-[10px] leading-snug text-(--color-text-muted)">{def.description}</p>
+              <p className="text-xs leading-snug text-(--color-text-muted)">{def.description}</p>
               {unlocked ? (
-                <p className="text-[10px] font-medium text-(--color-gastronomy)">
+                <p className="text-xs font-medium text-(--color-gastronomy)">
                   {state?.unlockedAt ? `Conseguido el ${new Date(state.unlockedAt).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}` : "Conseguido"}
                 </p>
               ) : (
@@ -77,7 +77,7 @@ export function AchievementsPage() {
                     <div className="h-1.5 overflow-hidden rounded-full bg-(--color-surface-muted)">
                       <div className="h-full rounded-full bg-(--color-navigation)" style={{ width: `${progressPct}%` }} />
                     </div>
-                    <p className="mt-1 text-[10px] text-(--color-text-muted)">
+                    <p className="mt-1 text-xs text-(--color-text-muted)">
                       {state?.progress ?? 0}/{def.targetValue}
                     </p>
                   </div>

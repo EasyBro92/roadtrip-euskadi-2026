@@ -2,11 +2,20 @@ import { useCallback, useEffect, useState } from "react";
 import { PlaceDetailsService } from "../services/places/PlaceDetailsService";
 import type { ISODate, Stop } from "../types";
 import { parseISODate } from "../utils/dates";
-import { abreEseDia } from "../utils/openingHours";
+import { horasDeLlegada } from "../features/itinerary/duracionDia";
+import { abreEseDia, estadoDeApertura } from "../utils/openingHours";
 
 export interface ParadaCerrada {
   id: string;
   nombre: string;
+}
+
+/** Abre ese día, pero a la hora a la que llegarías estará cerrada. */
+export interface ParadaCerradaALaLlegada extends ParadaCerrada {
+  /** "19:30" */
+  llegada: string;
+  /** Cuándo vuelve a abrir, si es ese mismo día. */
+  abreA?: string;
 }
 
 /** Lo que sabemos de una parada tras mirar la caché. */
@@ -19,6 +28,7 @@ export interface Sabido {
 /** Las tres cuentas del aviso, sin React de por medio para poder probarlas. */
 export interface ResumenCierres {
   cerradas: ParadaCerrada[];
+  cerradasALaLlegada: ParadaCerradaALaLlegada[];
   sinComprobar: number;
   sinHorario: number;
 }
@@ -34,6 +44,8 @@ export interface ResumenCierres {
 export function resumirCierres(stops: Stop[], sabido: Record<string, Sabido>, fecha: ISODate): ResumenCierres {
   const dia = parseISODate(fecha);
   const cerradas: ParadaCerrada[] = [];
+  const cerradasALaLlegada: ParadaCerradaALaLlegada[] = [];
+  const llegadas = horasDeLlegada(stops);
   let sinComprobar = 0;
   let sinHorario = 0;
 
@@ -44,6 +56,18 @@ export function resumirCierres(stops: Stop[], sabido: Record<string, Sabido>, fe
 
     if (abre === false) {
       cerradas.push({ id: stop.id, nombre: stop.name });
+    } else if (abre === true && llegadas[stop.id] != null && llegadas[stop.id] < 24 * 60) {
+      // Abre ese día, pero ¿a la hora a la que llegas? Saliendo a las 9:00 y
+      // sumando visitas y carretera, un museo al final del día suele pillarse
+      // cerrado sin que nadie se dé cuenta hasta llegar a la puerta.
+      const minutos = llegadas[stop.id];
+      const momento = new Date(dia);
+      momento.setHours(Math.floor(minutos / 60), minutos % 60, 0, 0);
+      const estado = estadoDeApertura(horario, momento);
+      if (estado.estado === "cerrado") {
+        const llegada = `${String(Math.floor(minutos / 60)).padStart(2, "0")}:${String(minutos % 60).padStart(2, "0")}`;
+        cerradasALaLlegada.push({ id: stop.id, nombre: stop.name, llegada, abreA: estado.abreDia === "hoy" ? estado.abreA : undefined });
+      }
     } else if (abre === null) {
       // Sin saberlo: o no se ha preguntado, o se preguntó y no había nada.
       if (stop.openingHours || sabido[stop.id]?.comprobado) sinHorario++;
@@ -51,12 +75,14 @@ export function resumirCierres(stops: Stop[], sabido: Record<string, Sabido>, fe
     }
   }
 
-  return { cerradas, sinComprobar, sinHorario };
+  return { cerradas, cerradasALaLlegada, sinComprobar, sinHorario };
 }
 
 export interface EstadoCierres {
   /** Paradas que ese día están cerradas, con certeza. */
   cerradas: ParadaCerrada[];
+  /** Abren ese día, pero no a la hora estimada de llegada. */
+  cerradasALaLlegada: ParadaCerradaALaLlegada[];
   /** Paradas cuyo horario no se ha consultado todavía. */
   sinComprobar: number;
   /** Consultadas ya, pero OpenStreetMap no tiene horario de ellas. */
@@ -104,7 +130,7 @@ export function useDayClosures(stops: Stop[], fecha: ISODate): EstadoCierres {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [claves]);
 
-  const { cerradas, sinComprobar, sinHorario } = resumirCierres(stops, sabido, fecha);
+  const { cerradas, cerradasALaLlegada, sinComprobar, sinHorario } = resumirCierres(stops, sabido, fecha);
 
   const comprobar = useCallback(() => {
     const pendientes = stops.filter((s) => s.enabled && !s.openingHours && !sabido[s.id]?.comprobado);
@@ -135,5 +161,5 @@ export function useDayClosures(stops: Stop[], fecha: ISODate): EstadoCierres {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [claves, sabido]);
 
-  return { cerradas, sinComprobar, sinHorario, comprobando, progreso, comprobar };
+  return { cerradas, cerradasALaLlegada, sinComprobar, sinHorario, comprobando, progreso, comprobar };
 }

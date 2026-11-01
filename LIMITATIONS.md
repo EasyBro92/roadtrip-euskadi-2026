@@ -43,8 +43,9 @@ etiqueta "Demo" en la ficha de la parada:
   del resumen funciona ahora; el PDF con maquetación completa (portada,
   mapa capturado, estadísticas) queda para la fase siguiente (ver
   DECISIONS.md).
-- **Excel de gastos**: `xlsx` está instalado y preparado; la exportación CSV
-  está completa y funcional ahora mismo como alternativa inmediata.
+- **Excel de gastos**: no hay exportación a Excel; la CSV se abre en Excel
+  sin problema. `xlsx` se desinstaló el 01/11/2026: no se usaba y la versión
+  instalada tiene fallos de seguridad conocidos.
 - ~~**Playwright E2E**: escritos pero nunca ejecutados.~~ **Resuelto el
   05/09/2026.** Al ejecutarlos por primera vez fallaban 8 de los 15: la
   interfaz se había movido debajo (favoritos pasaron del itinerario a la

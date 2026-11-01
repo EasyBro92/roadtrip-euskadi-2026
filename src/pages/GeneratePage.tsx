@@ -61,6 +61,10 @@ export function GeneratePage() {
   const addStop = useTripStore((s) => s.addStop);
   const pushToast = useUIStore((s) => s.pushToast);
 
+  // "destino": un sitio y alrededores. "entre": de A a B viendo lo del camino.
+  const [modo, setModo] = useState<"destino" | "entre">("destino");
+  const [origen, setOrigen] = useState("");
+  const [km, setKm] = useState<number | null>(null);
   const [destino, setDestino] = useState("");
   const [dias, setDias] = useState(3);
   const [intereses, setIntereses] = useState<Interes[]>(["cultura", "gastronomia"]);
@@ -82,11 +86,23 @@ export function GeneratePage() {
       pushToast("Escribe a dónde quieres ir.", "error");
       return;
     }
+    if (modo === "entre" && origen.trim().length < 3) {
+      pushToast("Escribe desde dónde sales.", "error");
+      return;
+    }
     setGenerando(true);
     setError(null);
     setPropuesta(null);
+    setKm(null);
     try {
-      const { paradas } = await ItineraryGeneratorService.generate({ destino, dias, intereses, ritmo, transporte });
+      let paradas: SugerenciaParada[];
+      if (modo === "entre") {
+        const resultado = await ItineraryGeneratorService.generateEntre({ origen, destino, dias, intereses, ritmo });
+        paradas = resultado.paradas;
+        setKm(resultado.km);
+      } else {
+        ({ paradas } = await ItineraryGeneratorService.generate({ destino, dias, intereses, ritmo, transporte }));
+      }
       if (paradas.length === 0) {
         setError(`No he encontrado sitios en "${destino}" con esos filtros. Prueba con más intereses o en coche.`);
       } else {
@@ -104,8 +120,9 @@ export function GeneratePage() {
     // La fecha importa de verdad: con ella el itinerario ya sabe avisar de
     // lo que estará cerrado y de qué tiempo hará cada día.
     const importe = Number(presupuesto.replace(",", "."));
+    const nombre = modo === "entre" ? `${origen.trim()} → ${destino.trim()}` : destino.trim();
     createTrip({
-      name: destino.trim(),
+      name: nombre,
       startDate: fechaInicio || toISODate(new Date()),
       dayCount: dias,
       budgetEUR: Number.isFinite(importe) && importe > 0 ? importe : 0,
@@ -123,7 +140,7 @@ export function GeneratePage() {
       });
     }
 
-    pushToast(`Viaje a ${destino.trim()} creado. Edítalo a tu gusto.`, "success");
+    pushToast(`Viaje "${nombre}" creado. Edítalo a tu gusto.`, "success");
     navigate("/viaje");
   }
 
@@ -139,17 +156,49 @@ export function GeneratePage() {
         <h1 className="text-2xl font-semibold text-(--color-text)">Proponme un viaje</h1>
       </header>
       <p className="mb-4 text-sm text-(--color-text-muted)">
-        Dime a dónde vas y te propongo un itinerario para retocar.
+        Dime a dónde vas, o de dónde a dónde, y te propongo un itinerario para retocar.
       </p>
 
       <div className="rounded-(--radius-card) border bg-(--color-surface) p-4 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+        <div role="radiogroup" aria-label="Tipo de viaje" className="mb-4 grid grid-cols-2 gap-1 rounded-full bg-(--color-surface-muted) p-1">
+          {(
+            [
+              ["destino", "Un destino"],
+              ["entre", "De A a B"],
+            ] as const
+          ).map(([id, etiqueta]) => (
+            <button
+              key={id}
+              role="radio"
+              aria-checked={modo === id}
+              onClick={() => setModo(id)}
+              className={`rounded-full py-2 text-sm font-medium ${modo === id ? "bg-(--color-surface) text-(--color-text) shadow-(--shadow-card)" : "text-(--color-text-muted)"}`}
+            >
+              {etiqueta}
+            </button>
+          ))}
+        </div>
+
+        {modo === "entre" && (
+          <label className="mb-3 block text-xs font-medium text-(--color-text-muted)">
+            ¿Desde dónde sales?
+            <input
+              value={origen}
+              onChange={(e) => setOrigen(e.target.value)}
+              placeholder="Girona, Madrid…"
+              className="mt-1 w-full rounded-(--radius-control) border bg-(--color-bg) px-3 py-2.5 text-base text-(--color-text)"
+              style={{ borderColor: "var(--color-border)" }}
+            />
+          </label>
+        )}
+
         <label className="block text-xs font-medium text-(--color-text-muted)">
-          ¿A dónde vas?
+          {modo === "entre" ? "¿Hasta dónde?" : "¿A dónde vas?"}
           <input
             value={destino}
             onChange={(e) => setDestino(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && generar()}
-            placeholder="Madrid, Lisboa, Roma…"
+            placeholder={modo === "entre" ? "Bilbao, Lisboa…" : "Madrid, Lisboa, Roma…"}
             className="mt-1 w-full rounded-(--radius-control) border bg-(--color-bg) px-3 py-2.5 text-base text-(--color-text)"
             style={{ borderColor: "var(--color-border)" }}
           />
@@ -216,7 +265,8 @@ export function GeneratePage() {
         </div>
 
         <Grupo titulo="¿A qué ritmo?" opciones={RITMOS} valor={ritmo} onChange={setRitmo} />
-        <Grupo titulo="¿Cómo te mueves?" opciones={TRANSPORTES} valor={transporte} onChange={setTransporte} />
+        {/* De A a B es siempre en coche: no tiene sentido preguntarlo. */}
+        {modo === "destino" && <Grupo titulo="¿Cómo te mueves?" opciones={TRANSPORTES} valor={transporte} onChange={setTransporte} />}
 
         <button
           onClick={generar}
@@ -238,7 +288,10 @@ export function GeneratePage() {
         <div className="mt-4 rounded-(--radius-card) border bg-(--color-surface) p-4 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-(--color-link)" aria-hidden="true" />
-            <h2 className="text-sm font-semibold">{propuesta.length} sitios en {porDia.size} días</h2>
+            <h2 className="text-sm font-semibold">
+              {propuesta.length} sitios en {porDia.size} {porDia.size === 1 ? "día" : "días"}
+              {km != null && <span className="font-normal text-(--color-text-muted)"> · {km.toLocaleString("es-ES")} km por carretera</span>}
+            </h2>
           </div>
 
           {[...porDia.entries()].sort((a, b) => a[0] - b[0]).map(([dia, paradas]) => (
@@ -259,7 +312,7 @@ export function GeneratePage() {
             </div>
           ))}
 
-          <p className="mt-3 text-[11px] leading-relaxed text-(--color-text-muted)">
+          <p className="mt-3 text-xs leading-relaxed text-(--color-text-muted)">
             Sale de OpenStreetMap y Wikipedia, ordenado por lo conocido que es cada sitio. Es un punto de partida:
             quita, añade y reordena a tu gusto.
           </p>

@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react";
 import type { StopCategory } from "../types";
 
 /**
@@ -25,21 +24,4 @@ const GRADIENTS: Record<StopCategory, string> = {
 
 export function categoryGradient(category: StopCategory): string {
   return GRADIENTS[category] ?? "linear-gradient(135deg,#0F6FFF,#0B4FCC)";
-}
-
-/**
- * Estilo de fondo para una miniatura: foto real si existe, degradado de
- * categoría si no. La URL va entre comillas porque las de Wikimedia llevan
- * query string (`?utm_source=…&utm_campaign=…`) y sin comillas el token
- * `url()` de CSS es frágil con esos caracteres.
- */
-export function thumbStyle(heroImage: string | undefined, category: StopCategory): CSSProperties {
-  if (heroImage) {
-    return {
-      backgroundImage: `url("${heroImage}"), ${categoryGradient(category)}`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-    };
-  }
-  return { background: categoryGradient(category) };
 }

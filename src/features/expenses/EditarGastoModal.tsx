@@ -94,6 +94,9 @@ export function EditarGastoModal({ expenseId }: { expenseId: string }) {
     const porCabeza = gasto && travelers.length > 0 ? gasto.amountEUR / travelers.length : 0;
     return Object.fromEntries(travelers.map((t) => [t.id, String(guardado?.[t.id] ?? Number(porCabeza.toFixed(2)))]));
   });
+  // Los hooks van antes del return: si el gasto desaparece con la ventana
+  // abierta (deshacer, otra pestaña), React rompía la pantalla entera.
+  const dueno = useDuenoDelBote();
   if (!gasto) return null;
 
   const valor = Number.parseFloat(importe.replace(",", "."));
@@ -111,7 +114,6 @@ export function EditarGastoModal({ expenseId }: { expenseId: string }) {
   // dejan de sumar cero y alguien paga de más sin que nadie cobre.
   const cuadra = !aMedida || Math.abs(descuadre) < 0.005;
   const valido = Number.isFinite(valor) && valor > 0 && cuadra;
-  const dueno = useDuenoDelBote();
 
   function guardar() {
     if (!valido) return;

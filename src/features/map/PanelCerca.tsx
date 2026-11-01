@@ -7,7 +7,8 @@ import { useNearbyStore } from "../../stores/useNearbyStore";
 import { useSavedPlacesStore } from "../../stores/useSavedPlacesStore";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
-import type { StopCategory } from "../../types";
+import type { Coordinates, StopCategory } from "../../types";
+import { RoutingService } from "../../services/routing/RoutingService";
 import { formatKm } from "../../utils/format";
 import { googleMapsUrl } from "../../utils/geo";
 import { openExternalUrl } from "../../utils/openExternal";
@@ -47,8 +48,15 @@ const COMO_PARADA: Partial<Record<NearbyCategory, StopCategory>> = {
  * del centro del mapa, y no de tu GPS, es deliberado — así puedes mirar qué hay
  * en Bilbao mientras sigues en Huesca.
  */
-export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void }) {
-  const { categoria, resultados, cargando, error, buscar, resaltar, limpiar } = useNearbyStore();
+export function PanelCerca({ map, onCerrar, paradasDelDia = [] }: { map: L.Map; onCerrar: () => void; paradasDelDia?: Coordinates[] }) {
+  const { categoria, resultados, cargando, error, buscar, resaltar, limpiar, enRuta } = useNearbyStore();
+  /*
+   * "En la ruta de hoy": gasolineras, comida o aparcamiento a lo largo de la
+   * carretera del día, no alrededor de donde estés mirando. Es lo que se
+   * busca conduciendo: "¿dónde echo gasoil antes de llegar?".
+   */
+  const hayRuta = paradasDelDia.length >= 2;
+  const [modoRuta, setModoRuta] = useState(false);
   const enLinea = useOnline();
   /**
    * Filtro por tipo de cocina, sólo para comer.
@@ -67,6 +75,16 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
   // Las cocinas que de verdad hay entre los resultados, ordenadas.
   const cocinasDisponibles = [...new Set(resultados.map((l) => l.cocina).filter((c): c is string => Boolean(c)))].sort();
   const visibles = cocina ? resultados.filter((l) => l.cocina === cocina) : resultados;
+
+  async function lanzar(c: NearbyCategory, reintentar = false) {
+    if (modoRuta && hayRuta) {
+      const segmentos = await RoutingService.routeFullTrip(paradasDelDia.map((coordinates, i) => ({ id: `cerca-${i}`, coordinates })));
+      const trayecto = segmentos.flatMap((seg) => seg.geometry);
+      void buscar(paradasDelDia[0], c, reintentar, trayecto.length >= 2 ? trayecto : paradasDelDia);
+    } else {
+      void buscar(centroDelMapa(), c, reintentar);
+    }
+  }
 
   function centroDelMapa() {
     const c = map.getCenter();
@@ -109,13 +127,37 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
         </button>
       </div>
 
+      {hayRuta && (
+        <div role="radiogroup" aria-label="Dónde buscar" className="mx-2.5 mt-2.5 grid shrink-0 grid-cols-2 gap-1 rounded-full bg-(--color-surface-muted) p-1">
+          {(
+            [
+              [false, "Aquí en el mapa"],
+              [true, "En la ruta de hoy"],
+            ] as const
+          ).map(([valor, etiqueta]) => (
+            <button
+              key={etiqueta}
+              role="radio"
+              aria-checked={modoRuta === valor}
+              onClick={() => {
+                setModoRuta(valor);
+                limpiar();
+              }}
+              className={`rounded-full py-1.5 text-xs font-medium ${modoRuta === valor ? "bg-(--color-surface) text-(--color-text) shadow-(--shadow-card)" : "text-(--color-text-muted)"}`}
+            >
+              {etiqueta}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex shrink-0 flex-wrap gap-1.5 border-b p-2.5" style={{ borderColor: "var(--color-border)" }}>
         {CATEGORIAS.map((c) => (
           <button
             key={c}
             onClick={() => {
               setCocina(null);
-              buscar(centroDelMapa(), c);
+              void lanzar(c);
             }}
             aria-pressed={categoria === c}
             className={`rounded-full border px-2.5 py-1 text-xs ${categoria === c ? "border-(--color-navigation) bg-(--color-navigation) text-white" : "bg-(--color-surface) text-(--color-text)"}`}
@@ -128,14 +170,14 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {!enLinea && <Aviso texto="Buscar sitios cercanos necesita conexión. Sin ella no hay nada que consultar." />}
-        {enLinea && !categoria && <Aviso texto="Elige qué buscas alrededor del centro del mapa." />}
+        {enLinea && !categoria && <Aviso texto={modoRuta ? "Elige qué buscas a menos de 2 km de la carretera de hoy." : "Elige qué buscas alrededor del centro del mapa."} />}
         {cargando && <Aviso texto="Buscando en OpenStreetMap…" />}
 
         {error && (
           <div className="p-4 text-center">
             <p className="text-sm text-(--color-text-muted)">{error}</p>
             <button
-              onClick={() => categoria && buscar(centroDelMapa(), categoria, true)}
+              onClick={() => categoria && void lanzar(categoria, true)}
               className="mt-2 text-sm font-medium text-(--color-link)"
             >
               Reintentar
@@ -148,7 +190,13 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
         )}
 
         {!cargando && !error && categoria && resultados.length === 0 && (
-          <Aviso texto={`No hay ${NEARBY_CATEGORY_LABEL[categoria].toLowerCase()} en 5 km a la redonda.`} />
+          <Aviso
+            texto={
+              enRuta
+                ? `No hay ${NEARBY_CATEGORY_LABEL[categoria].toLowerCase()} a menos de 2 km de la ruta de hoy.`
+                : `No hay ${NEARBY_CATEGORY_LABEL[categoria].toLowerCase()} en 5 km a la redonda.`
+            }
+          />
         )}
 
         {/* Filtro de cocina: sólo aparece si de verdad hay de dónde elegir. */}
@@ -159,7 +207,7 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
                 key={c}
                 onClick={() => setCocina(cocina === c ? null : c)}
                 aria-pressed={cocina === c}
-                className={`rounded-full border px-2.5 py-1 text-[11px] ${cocina === c ? "border-(--color-navigation) bg-(--color-navigation) text-white" : "bg-(--color-surface) text-(--color-text)"}`}
+                className={`rounded-full border px-2.5 py-1 text-xs ${cocina === c ? "border-(--color-navigation) bg-(--color-navigation) text-white" : "bg-(--color-surface) text-(--color-text)"}`}
                 style={cocina !== c ? { borderColor: "var(--color-border)" } : undefined}
               >
                 {c}
@@ -176,7 +224,7 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
                 <button onClick={() => irA(lugar)} className="min-w-0 flex-1 py-1 text-left">
                   <p className="truncate text-sm text-(--color-text)">{lugar.name}</p>
                   <p className="truncate text-xs text-(--color-text-muted)">
-                    {formatKm(lugar.distanceMeters)}
+                    {enRuta ? `en el km ${Math.round(lugar.distanceMeters / 1000)} de la ruta` : formatKm(lugar.distanceMeters)}
                     {lugar.clase && <> · {lugar.clase}</>}
                     {lugar.cocina && <> · {lugar.cocina}</>}
                     {lugar.precio && <> · {lugar.precio}</>}
@@ -208,7 +256,7 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
         </ul>
 
         {resultados.length > 0 && (
-          <p className="px-3 py-2 text-[11px] text-(--color-text-muted)">Datos de OpenStreetMap, mantenidos por voluntarios.</p>
+          <p className="px-3 py-2 text-xs text-(--color-text-muted)">Datos de OpenStreetMap, mantenidos por voluntarios.</p>
         )}
       </div>
     </div>

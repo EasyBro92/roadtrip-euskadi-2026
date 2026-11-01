@@ -204,7 +204,7 @@ export function ReviewModal({ tipo, targetId, nombre }: { tipo: TipoValorado; ta
           )}
         </div>
         <input ref={inputFichero} type="file" accept="image/*" multiple hidden onChange={(e) => anadirFotos(e.target.files)} />
-        <p className="mb-4 text-[11px] text-(--color-text-muted)">
+        <p className="mb-4 text-xs text-(--color-text-muted)">
           Se guardan reducidas dentro de la app, no en la galería del móvil.
         </p>
 

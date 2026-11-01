@@ -61,7 +61,7 @@ export function TarjetaHoy({ onIrAlDia }: { onIrAlDia: (dayId: string) => void }
           >
             <CategoryThumb category={siguiente.category} heroImage={siguiente.heroImage} className="h-12 w-12 rounded-xl" />
             <span className="min-w-0 flex-1">
-              <span className="block text-[11px] font-medium uppercase tracking-wide text-(--color-text-muted)">Siguiente parada</span>
+              <span className="block text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">Siguiente parada</span>
               <span className="block truncate text-sm font-semibold text-(--color-text)">{siguiente.name}</span>
               {/* La categoría ya viene escrita de `etiquetaParada`, sin
                   `capitalize` de CSS: esa regla sube la inicial de cada
