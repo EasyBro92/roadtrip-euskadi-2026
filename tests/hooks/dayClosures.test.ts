@@ -77,3 +77,31 @@ describe("resumirCierres", () => {
     expect(r.sinComprobar).toBe(1);
   });
 });
+
+describe("resumirCierres a la hora de llegada", () => {
+  const cerca = (lat: number) => ({ coordinates: { latitude: lat, longitude: -2.93 } });
+
+  it("avisa si llegas cuando ya ha cerrado, aunque ese día abra", () => {
+    // Saliendo a las 9:00: 8 h en la primera parada y llegas a la segunda pasadas las 17:00.
+    const stops = [
+      parada("larga", { ...cerca(43.26), recommendedDurationMinutes: 480 }),
+      parada("museo", { ...cerca(43.261), recommendedDurationMinutes: 60, openingHours: "Mo-Su 10:00-14:00" }),
+    ];
+    const r = resumirCierres(stops, nada, MARTES);
+    expect(r.cerradas).toHaveLength(0);
+    expect(r.cerradasALaLlegada.map((c) => c.nombre)).toEqual(["museo"]);
+    expect(r.cerradasALaLlegada[0].llegada).toMatch(/^1[78]:\d\d$/);
+  });
+
+  it("no avisa si llegas con tiempo", () => {
+    const stops = [parada("museo", { ...cerca(43.26), recommendedDurationMinutes: 60, openingHours: "Mo-Su 09:00-14:00" })];
+    expect(resumirCierres(stops, nada, MARTES).cerradasALaLlegada).toHaveLength(0);
+  });
+
+  it("dice a qué hora abre si llegas demasiado pronto", () => {
+    const stops = [parada("bodega", { ...cerca(43.26), recommendedDurationMinutes: 60, openingHours: "Mo-Su 11:00-20:00" })];
+    const [aviso] = resumirCierres(stops, nada, MARTES).cerradasALaLlegada;
+    expect(aviso.llegada).toBe("09:00");
+    expect(aviso.abreA).toBe("11:00");
+  });
+});
