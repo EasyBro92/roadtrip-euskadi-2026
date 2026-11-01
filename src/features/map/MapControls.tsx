@@ -224,7 +224,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
         </ControlGroup>
       </div>
 
-      {panel === "cerca" && <PanelCerca map={map} onCerrar={() => setPanel("none")} />}
+      {panel === "cerca" && <PanelCerca map={map} onCerrar={() => setPanel("none")} paradasDelDia={enabledStops.map((s) => s.coordinates)} />}
       {panel === "coche" && <PanelCoche map={map} onCerrar={() => setPanel("none")} onActualizar={marcarCocheAqui} />}
 
       {/* Con la capa encendida, un botón para volver a buscar donde estés
