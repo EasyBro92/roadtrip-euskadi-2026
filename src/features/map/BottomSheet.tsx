@@ -291,7 +291,7 @@ function CircleAction({
       >
         <Icon size={17} color={active ? "#fff" : tinta} fill={active ? "#fff" : "none"} aria-hidden="true" />
       </span>
-      <span className="text-center text-[11px] leading-tight" style={{ color: tinta }}>
+      <span className="text-center text-xs leading-tight" style={{ color: tinta }}>
         {label}
       </span>
     </button>

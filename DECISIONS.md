@@ -59,7 +59,7 @@ encargo.
   copiloto y logros completos. ⚠️ *parcial:* pantalla de celebración final
   (`/resumen`) exporta el resumen en JSON, pero el PDF premium maquetado
   (portada, mapa capturado, estadísticas) queda para la siguiente iteración
-  — `jspdf`/`jspdf-autotable`/`html2canvas` ya están instalados para eso. Los
+  (`jspdf`/`html2canvas` se desinstalaron el 01/11/2026 sin usar: se vuelven a instalar cuando toque). Los
   tests unitarios (40, Vitest) y el spec E2E (15 escenarios, Playwright)
   están escritos y pasan/son ejecutables; falta correr Playwright con
   navegadores instalados en este entorno.

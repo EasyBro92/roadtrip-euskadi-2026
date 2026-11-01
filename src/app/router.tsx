@@ -72,7 +72,9 @@ export const router = createBrowserRouter([
       { path: "/diario", element: withSuspense(<JournalPage />) },
       { path: "/gastos", element: withSuspense(<ExpensesPage />) },
       { path: "/mas", element: withSuspense(<MorePage />) },
-      { path: "/mas/mi-golf", element: withSuspense(<VehiclePage />) },
+      { path: "/mas/coche", element: withSuspense(<VehiclePage />) },
+      // La dirección antigua sigue valiendo para accesos guardados.
+      { path: "/mas/mi-golf", element: <Navigate to="/mas/coche" replace /> },
       { path: "/mas/logros", element: withSuspense(<AchievementsPage />) },
       { path: "/mas/favoritos", element: withSuspense(<FavoritesPage />) },
       { path: "/mas/checklist", element: withSuspense(<ChecklistPage />) },

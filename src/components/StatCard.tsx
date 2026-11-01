@@ -20,7 +20,7 @@ export function StatCard({ icon: Icon, label, value, to }: StatCardProps) {
         <Icon size={16} className="text-(--color-link)" aria-hidden="true" />
       </span>
       <span className="w-full truncate text-sm font-medium text-(--color-text)">{value}</span>
-      <span className="w-full truncate text-[11px] text-(--color-text-muted)">{label}</span>
+      <span className="w-full truncate text-xs text-(--color-text-muted)">{label}</span>
     </>
   );
 

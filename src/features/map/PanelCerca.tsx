@@ -159,7 +159,7 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
                 key={c}
                 onClick={() => setCocina(cocina === c ? null : c)}
                 aria-pressed={cocina === c}
-                className={`rounded-full border px-2.5 py-1 text-[11px] ${cocina === c ? "border-(--color-navigation) bg-(--color-navigation) text-white" : "bg-(--color-surface) text-(--color-text)"}`}
+                className={`rounded-full border px-2.5 py-1 text-xs ${cocina === c ? "border-(--color-navigation) bg-(--color-navigation) text-white" : "bg-(--color-surface) text-(--color-text)"}`}
                 style={cocina !== c ? { borderColor: "var(--color-border)" } : undefined}
               >
                 {c}
@@ -208,7 +208,7 @@ export function PanelCerca({ map, onCerrar }: { map: L.Map; onCerrar: () => void
         </ul>
 
         {resultados.length > 0 && (
-          <p className="px-3 py-2 text-[11px] text-(--color-text-muted)">Datos de OpenStreetMap, mantenidos por voluntarios.</p>
+          <p className="px-3 py-2 text-xs text-(--color-text-muted)">Datos de OpenStreetMap, mantenidos por voluntarios.</p>
         )}
       </div>
     </div>

@@ -259,7 +259,7 @@ export function GeneratePage() {
             </div>
           ))}
 
-          <p className="mt-3 text-[11px] leading-relaxed text-(--color-text-muted)">
+          <p className="mt-3 text-xs leading-relaxed text-(--color-text-muted)">
             Sale de OpenStreetMap y Wikipedia, ordenado por lo conocido que es cada sitio. Es un punto de partida:
             quita, añade y reordena a tu gusto.
           </p>

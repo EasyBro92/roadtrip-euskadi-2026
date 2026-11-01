@@ -84,8 +84,8 @@ export function VisitedPage() {
 
   return (
     <div className="safe-x flex h-full flex-col overflow-hidden bg-(--color-bg) px-4 pt-4">
-      <button onClick={() => navigate(-1)} className="mb-3 flex items-center gap-1 text-sm text-(--color-text-muted)">
-        <ArrowLeft size={15} aria-hidden="true" /> Atrás
+      <button onClick={() => navigate(-1)} className="-ml-2 mb-2 flex h-11 items-center gap-1.5 rounded-full pl-2 pr-4 text-sm font-medium text-(--color-text) active:bg-(--color-surface-muted)">
+        <ArrowLeft size={20} aria-hidden="true" /> Atrás
       </button>
 
       <div className="flex items-start justify-between gap-2">
@@ -128,7 +128,7 @@ function Numero({ valor, etiqueta }: { valor: string; etiqueta: string }) {
   return (
     <div className="rounded-(--radius-card) border bg-(--color-surface) p-3 text-center" style={{ borderColor: "var(--color-border)" }}>
       <p className="text-xl font-medium text-(--color-text)">{valor}</p>
-      <p className="text-[11px] text-(--color-text-muted)">{etiqueta}</p>
+      <p className="text-xs text-(--color-text-muted)">{etiqueta}</p>
     </div>
   );
 }

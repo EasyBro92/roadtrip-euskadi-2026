@@ -2,7 +2,7 @@ import type { ID, ISODate, Timestamped } from "./common";
 
 export type FuelType = "diesel" | "gasolina-95" | "gasolina-98" | "hibrido" | "electrico";
 
-/** Ficha del vehículo ("Mi Golf"). Todos los campos son editables por el usuario. */
+/** Ficha del vehículo ("Mi coche"). Todos los campos son editables por el usuario. */
 export interface Vehicle extends Timestamped {
   id: ID;
   make: string;

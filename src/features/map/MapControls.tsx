@@ -1,6 +1,6 @@
 import type L from "leaflet";
-import { Car, Compass, Crosshair, Landmark, Layers, ListFilter, LocateFixed, Navigation2, Radar } from "lucide-react";
-import { useState } from "react";
+import { Car, Crosshair, Landmark, Layers, LocateFixed, Navigation2, Radar } from "lucide-react";
+import { useRef, useState } from "react";
 import { useStopsOfDay } from "../../hooks/useStopsOfDay";
 import { useTap } from "../../hooks/useTap";
 import { MAP_LAYERS } from "../../services/map/MapService";
@@ -86,7 +86,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
   const stopTracking = useLocationStore((s) => s.stopTracking);
   const pushToast = useUIStore((s) => s.pushToast);
 
-  const [panel, setPanel] = useState<"none" | "layers" | "categories" | "legend" | "cerca" | "coche">("none");
+  const [panel, setPanel] = useState<"none" | "capas" | "cerca" | "coche">("none");
   const coche = useCocheStore((s) => s.coche);
   const aparcar = useCocheStore((s) => s.aparcar);
   const capaPois = usePoiStore((s) => s.activa);
@@ -96,6 +96,9 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
   const buscarPois = usePoiStore((s) => s.buscar);
   const numeroPois = usePoiStore((s) => s.pois.length);
   const [locating, setLocating] = useState(false);
+  // Cuándo se centró el mapa en ti por última vez: un segundo toque poco
+  // después pasa a seguirte, como en Google Maps.
+  const ultimoCentrado = useRef(0);
 
   const enabledStops = stops.filter((s) => s.enabled);
   const usedCategories = Array.from(new Set(enabledStops.map((s) => s.category)));
@@ -162,6 +165,25 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
     void marcarCocheAqui();
   }
 
+  /*
+   * Un solo botón de ubicación en lugar de dos iconos casi iguales: el primer
+   * toque te centra, otro toque en los 8 segundos siguientes te sigue, y con
+   * el seguimiento puesto lo apaga.
+   */
+  function botonUbicacion() {
+    if (locationTracking) {
+      toggleFollow();
+      return;
+    }
+    if (Date.now() - ultimoCentrado.current < 8000) {
+      ultimoCentrado.current = 0;
+      toggleFollow();
+      return;
+    }
+    ultimoCentrado.current = Date.now();
+    void centerOnMe();
+  }
+
   function toggleFollow() {
     if (locationTracking) {
       stopTracking();
@@ -183,16 +205,21 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
           misma altura que ella, la columna tapaba los últimos chips. */}
       <div className="pointer-events-auto absolute right-3 top-[124px] flex flex-col gap-3">
         <ControlGroup>
-          <ControlButton grouped icon={Layers} label="Selector de mapa" active={panel === "layers"} onClick={() => setPanel(panel === "layers" ? "none" : "layers")} />
-          <ControlButton grouped icon={ListFilter} label="Mostrar u ocultar categorías" active={panel === "categories"} onClick={() => setPanel(panel === "categories" ? "none" : "categories")} />
-          <ControlButton grouped icon={Compass} label="Leyenda" active={panel === "legend"} onClick={() => setPanel(panel === "legend" ? "none" : "legend")} />
+          {/* Tipo de mapa, categorías y leyenda en un solo panel: eran tres
+              iconos seguidos que no se distinguían sin pulsarlos. */}
+          <ControlButton grouped icon={Layers} label="Capas: tipo de mapa, categorías y leyenda" active={panel === "capas"} onClick={() => setPanel(panel === "capas" ? "none" : "capas")} />
           <ControlButton grouped icon={Radar} label="Qué hay cerca" active={panel === "cerca"} onClick={() => setPanel(panel === "cerca" ? "none" : "cerca")} />
           <ControlButton grouped icon={Landmark} label={capaPois ? "Ocultar sitios de interés" : "Ver sitios de interés"} active={capaPois} onClick={alternarPois} />
         </ControlGroup>
         <ControlGroup>
           <ControlButton grouped icon={Crosshair} label="Ver ruta completa del día" onClick={fitToDay} />
-          <ControlButton grouped icon={LocateFixed} label={locating ? "Buscando ubicación…" : "Mi ubicación"} onClick={centerOnMe} />
-          <ControlButton grouped icon={Navigation2} label={locationTracking ? "Dejar de seguir" : "Seguir mi posición"} active={locationTracking} onClick={toggleFollow} />
+          <ControlButton
+            grouped
+            icon={locationTracking ? Navigation2 : LocateFixed}
+            label={locating ? "Buscando ubicación…" : locationTracking ? "Dejar de seguir mi posición" : "Mi ubicación (otro toque: seguirme)"}
+            active={locationTracking}
+            onClick={botonUbicacion}
+          />
           <ControlButton grouped icon={Car} label={coche ? "Volver al coche" : "He aparcado aquí"} active={panel === "coche"} onClick={aparcarAqui} />
         </ControlGroup>
       </div>
@@ -220,48 +247,47 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
 
       {poisError && capaPois && (
         <div className="pointer-events-none absolute inset-x-0 top-[168px] flex justify-center px-6">
-          <p className="rounded-full bg-(--color-surface) px-3 py-1.5 text-center text-[11px] text-(--color-text-muted) shadow-(--shadow-card)">{poisError}</p>
+          <p className="rounded-full bg-(--color-surface) px-3 py-1.5 text-center text-xs text-(--color-text-muted) shadow-(--shadow-card)">{poisError}</p>
         </div>
       )}
 
-      {panel === "layers" && (
+      {panel === "capas" && (
         // Alineado con la columna de controles, que ya está por debajo de la
         // tira de días.
-        <div className="pointer-events-auto absolute right-16 top-[124px] w-52 overflow-hidden rounded-2xl border bg-(--color-surface) py-1 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+        <div
+          className="pointer-events-auto absolute right-16 top-[124px] max-h-[60vh] w-60 overflow-y-auto rounded-2xl border bg-(--color-surface) py-2 shadow-(--shadow-card)"
+          style={{ borderColor: "var(--color-border)" }}
+        >
+          <p className="px-4 pb-1 pt-1 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">Tipo de mapa</p>
           {MAP_LAYERS.map((layer) => (
             <button
               key={layer.id}
-              onClick={() => {
-                updateSettings({ mapLayer: layer.id });
-                setPanel("none");
-              }}
+              onClick={() => updateSettings({ mapLayer: layer.id })}
               className={`block w-full px-4 py-2.5 text-left text-sm ${settings.mapLayer === layer.id ? "bg-(--color-surface-muted) font-medium text-(--color-link)" : "text-(--color-text)"}`}
             >
               {layer.label}
             </button>
           ))}
-        </div>
-      )}
 
-      {panel === "categories" && (
-        <div className="pointer-events-auto absolute right-16 top-[124px] max-h-72 w-56 overflow-y-auto rounded-2xl border bg-(--color-surface) p-3 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">Categorías visibles</p>
-          {usedCategories.map((category) => (
-            <label key={category} className="flex items-center gap-2 py-1.5 text-sm">
-              <input type="checkbox" checked={settings.categoryVisibility[category] !== false} onChange={() => toggleCategoryVisibility(category)} className="h-4 w-4" />
-              <span className={`h-2.5 w-2.5 rounded-full category-${category}`} style={{ background: "var(--category-color)" }} />
-              {CATEGORY_LABELS[category]}
-            </label>
-          ))}
-        </div>
-      )}
+          {usedCategories.length > 0 && (
+            <div className="mt-2 border-t px-4 pt-3" style={{ borderColor: "var(--color-border)" }}>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">Categorías visibles</p>
+              {usedCategories.map((category) => (
+                <label key={category} className="flex items-center gap-2 py-1.5 text-sm">
+                  <input type="checkbox" checked={settings.categoryVisibility[category] !== false} onChange={() => toggleCategoryVisibility(category)} className="h-4 w-4" />
+                  <span className={`h-2.5 w-2.5 rounded-full category-${category}`} style={{ background: "var(--category-color)" }} />
+                  {CATEGORY_LABELS[category]}
+                </label>
+              ))}
+            </div>
+          )}
 
-      {panel === "legend" && (
-        <div className="pointer-events-auto absolute right-16 top-[124px] w-56 rounded-2xl border bg-(--color-surface) p-3 text-sm shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">Leyenda</p>
-          <LegendRow color="#9CA3AF" label="Ruta completa" />
-          <LegendRow color="#16A34A" label="Tramo recorrido" />
-          <LegendRow color="#4285F4" label="Tramo pendiente" />
+          <div className="mt-2 border-t px-4 pt-3" style={{ borderColor: "var(--color-border)" }}>
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">Leyenda</p>
+            <LegendRow color="#9CA3AF" label="Ruta completa" />
+            <LegendRow color="#16A34A" label="Tramo recorrido" />
+            <LegendRow color="#4285F4" label="Tramo pendiente" />
+          </div>
         </div>
       )}
     </div>

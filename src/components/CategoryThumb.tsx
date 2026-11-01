@@ -17,7 +17,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { StopCategory } from "../types";
-import { thumbStyle } from "../utils/categoryGradient";
+import { useState } from "react";
+import { categoryGradient } from "../utils/categoryGradient";
 
 /**
  * El icono de cada categoría de parada.
@@ -62,18 +63,32 @@ interface CategoryThumbProps {
  */
 export function CategoryThumb({ category, heroImage, className = "h-12 w-12 rounded-xl", iconSize = 22 }: CategoryThumbProps) {
   const Icon = ICONOS[category] ?? MapPin;
+  // La foto va encima del icono como <img> y no como fondo CSS: si no carga
+  // (sin cobertura, Wikimedia caído) se quita y vuelve a verse el icono. Con
+  // fondo CSS quedaba un cuadrado de color liso que no decía nada.
+  const [fallida, setFallida] = useState<string | undefined>(undefined);
+  const conFoto = Boolean(heroImage) && fallida !== heroImage;
 
   return (
     <div
-      className={`flex shrink-0 items-center justify-center overflow-hidden ${className}`}
-      style={thumbStyle(heroImage, category)}
+      className={`relative flex shrink-0 items-center justify-center overflow-hidden ${className}`}
+      style={{ background: categoryGradient(category) }}
       aria-hidden="true"
     >
       {/*
        * Blanco a media opacidad, no del todo: sobre el degradado un blanco
        * puro pesa más que el nombre de la parada, que es lo que se lee.
        */}
-      {!heroImage && <Icon size={iconSize} className="text-white/85" strokeWidth={1.75} />}
+      <Icon size={iconSize} className="text-white/85" strokeWidth={1.75} />
+      {conFoto && (
+        <img
+          src={heroImage}
+          alt=""
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover"
+          onError={() => setFallida(heroImage)}
+        />
+      )}
     </div>
   );
 }
