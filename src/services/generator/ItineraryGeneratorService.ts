@@ -1,6 +1,7 @@
 import type { Coordinates, StopCategory } from "../../types";
-import { haversineDistanceMeters } from "../../utils/geo";
+import { haversineDistanceMeters, pointAlongPath } from "../../utils/geo";
 import { GeocodingService } from "../geocoding/GeocodingService";
+import { RoutingService } from "../routing/RoutingService";
 
 export type Interes = "cultura" | "gastronomia" | "naturaleza" | "monumentos" | "playa" | "ocio";
 export type Ritmo = "tranquilo" | "normal" | "intenso";
@@ -16,6 +17,14 @@ export interface SugerenciaParada {
   wikidataId?: string;
   /** En cuántos idiomas tiene artículo en Wikipedia. Cuanto más, más conocido. */
   relevancia?: number;
+}
+
+export interface PeticionEntre {
+  origen: string;
+  destino: string;
+  dias: number;
+  intereses: Interes[];
+  ritmo: Ritmo;
 }
 
 export interface PeticionItinerario {
@@ -171,7 +180,143 @@ function encadenarPorCercania(paradas: SugerenciaParada[], desde: Coordinates): 
   return ruta;
 }
 
+/** Cuánto se aparta uno de la carretera para ver algo: 15 km, unos 15 minutos. */
+const DESVIO_M = 15000;
+
+/** Como mucho tantas consultas a Overpass por viaje, aunque sea muy largo. */
+const MAX_MUESTRAS = 8;
+
+/** Una sola consulta con todos los intereses, para no lanzar una por interés en cada punto. */
+function consultaVarios(intereses: Interes[], centro: Coordinates, radio: number): string {
+  const cerca = `(around:${radio},${centro.latitude},${centro.longitude})`;
+  const partes = intereses
+    .flatMap((i) => ["node", "way", "relation"].map((tipo) => `${tipo}${FILTROS[i].osm}["wikidata"]["name"]${cerca};`))
+    .join("");
+  return `[out:json][timeout:25];(${partes});out center 30;`;
+}
+
+/** A qué interés pertenece un elemento devuelto por la consulta conjunta. */
+function interesDe(tags: Record<string, string>, intereses: Interes[]): Interes | null {
+  for (const i of intereses) {
+    const [, clave, valor] = FILTROS[i].osm.match(/\["(\w+)"[~=]"([^"]+)"\]/) ?? [];
+    if (clave && valor && tags[clave] && new RegExp(`^(${valor})$`).test(tags[clave])) return i;
+  }
+  return null;
+}
+
+/** Puntos repartidos a lo largo del trayecto, sin contar los extremos. */
+export function puntosAlLargo(trayecto: Coordinates[], cuantos: number): { punto: Coordinates; progreso: number }[] {
+  if (trayecto.length < 2 || cuantos < 1) return [];
+  return Array.from({ length: cuantos }, (_, i) => {
+    const progreso = (i + 1) / (cuantos + 1);
+    return { punto: pointAlongPath(trayecto, progreso).point, progreso };
+  });
+}
+
+/**
+ * Reparte las candidatas en días según por dónde caen del trayecto: el día 1
+ * lo que hay en el primer tramo, el último lo que queda cerca del destino.
+ * Dentro de cada día van las más conocidas, y en el orden en que se pasa por
+ * ellas.
+ */
+export function repartirPorTramos(
+  candidatas: (SugerenciaParada & { progreso: number })[],
+  dias: number,
+  porDia: number,
+): SugerenciaParada[] {
+  const salida: SugerenciaParada[] = [];
+  for (let d = 1; d <= dias; d++) {
+    const desde = (d - 1) / dias;
+    const hasta = d / dias;
+    const delTramo = candidatas
+      .filter((c) => c.progreso >= desde && (c.progreso < hasta || (d === dias && c.progreso <= 1)))
+      .sort((a, b) => (b.relevancia ?? 0) - (a.relevancia ?? 0))
+      .slice(0, porDia)
+      .sort((a, b) => a.progreso - b.progreso);
+    for (const c of delTramo) {
+      const { progreso: _progreso, ...parada } = c;
+      salida.push({ ...parada, dayIndex: d });
+    }
+  }
+  return salida;
+}
+
 export const ItineraryGeneratorService = {
+  /**
+   * "Voy de A a B en N días, ¿qué veo por el camino?"
+   *
+   * Busca sitios a menos de 15 km de la carretera (o de la línea recta si no
+   * hay servicio de rutas), repartidos en N tramos: cada día ve lo de su
+   * tramo. Sale de A el primer día y llega a B el último.
+   */
+  async generateEntre(peticion: PeticionEntre): Promise<{ paradas: SugerenciaParada[]; km: number | null }> {
+    const [a] = await GeocodingService.search(peticion.origen, { limit: 1 });
+    if (!a) throw new Error(`No encuentro "${peticion.origen}".`);
+    const [b] = await GeocodingService.search(peticion.destino, { limit: 1 });
+    if (!b) throw new Error(`No encuentro "${peticion.destino}".`);
+
+    const tramo = await RoutingService.routeBetweenStops({ fromStopId: "origen", toStopId: "destino", from: a.coordinates, to: b.coordinates });
+    const trayecto = tramo.geometry.length >= 2 ? tramo.geometry : [a.coordinates, b.coordinates];
+
+    const intereses = peticion.intereses.length > 0 ? peticion.intereses : (["monumentos", "naturaleza", "ocio"] as Interes[]);
+    const muestras = puntosAlLargo(trayecto, Math.min(MAX_MUESTRAS, Math.max(2, peticion.dias * 2)));
+
+    const candidatas: (SugerenciaParada & { progreso: number })[] = [];
+    const vistos = new Set<string>();
+    // En serie, como en `generate`: Overpass es un servidor donado.
+    for (const { punto, progreso } of muestras) {
+      try {
+        const res = await fetch(OVERPASS, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `data=${encodeURIComponent(consultaVarios(intereses, punto, DESVIO_M))}`,
+        });
+        if (!res.ok) continue;
+        const datos: { elements: ElementoOverpass[] } = await res.json();
+        for (const el of datos.elements) {
+          const nombre = el.tags?.name;
+          const lat = el.lat ?? el.center?.lat;
+          const lon = el.lon ?? el.center?.lon;
+          const interes = el.tags ? interesDe(el.tags, intereses) : null;
+          if (!nombre || lat == null || lon == null || !interes || vistos.has(nombre)) continue;
+          vistos.add(nombre);
+          candidatas.push({
+            name: nombre,
+            category: FILTROS[interes].categoria,
+            coordinates: { latitude: lat, longitude: lon },
+            dayIndex: 1,
+            recommendedDurationMinutes: FILTROS[interes].minutos,
+            wikidataId: el.tags?.wikidata,
+            progreso,
+          });
+        }
+      } catch {
+        // Un punto sin respuesta deja ese tramo más vacío, no tumba el viaje.
+      }
+    }
+
+    // La relevancia se pide en bloques de 50, que es lo que admite Wikidata.
+    for (let i = 0; i < candidatas.length; i += 50) await puntuarPorRelevancia(candidatas.slice(i, i + 50));
+
+    const porDia = Math.max(1, PARADAS_POR_DIA[peticion.ritmo] - 1);
+    const enRuta = repartirPorTramos(candidatas, peticion.dias, porDia);
+
+    const extremo = (nombre: string, coordinates: Coordinates, dayIndex: number): SugerenciaParada => ({
+      name: nombre,
+      category: "ciudad",
+      coordinates,
+      dayIndex,
+      recommendedDurationMinutes: 60,
+    });
+    const paradas = [
+      extremo(peticion.origen.trim(), a.coordinates, 1),
+      ...enRuta,
+      extremo(peticion.destino.trim(), b.coordinates, peticion.dias),
+    ];
+
+    return { paradas, km: tramo.distanceMeters != null ? Math.round(tramo.distanceMeters / 1000) : null };
+  },
+
   /**
    * Propone un itinerario para un destino. Es un punto de partida para editar,
    * no una guía: sale de datos abiertos, que aciertan en qué hay y dónde, pero
