@@ -415,6 +415,22 @@ const CIUDADES: CiudadCruda[] = [
   ]],
 ];
 
+/** País de las ciudades de fuera de España (el resto son españolas). */
+const PAIS: Record<string, string> = {
+  Lisboa: "Portugal",
+  Oporto: "Portugal",
+  París: "Francia",
+  Roma: "Italia",
+  Florencia: "Italia",
+  Venecia: "Italia",
+  Ámsterdam: "Países Bajos",
+  Berlín: "Alemania",
+  Praga: "Chequia",
+  Viena: "Austria",
+  Londres: "Reino Unido",
+  Edimburgo: "Reino Unido",
+};
+
 function aPlantilla([nombre, dias, paradas]: CiudadCruda): RouteTemplate {
   return {
     id: `ruta-${nombre
@@ -425,6 +441,9 @@ function aPlantilla([nombre, dias, paradas]: CiudadCruda): RouteTemplate {
       .replace(/^-|-$/g, "")}`,
     name: `${nombre} en ${dias} ${dias === 1 ? "día" : "días"}`,
     region: nombre,
+    country: PAIS[nombre] ?? "España",
+    tipo: "ciudad",
+    tags: ["cultura"],
     summary: `Los lugares más conocidos de ${nombre}, repartidos en ${dias} ${dias === 1 ? "día" : "días"}.`,
     dayCount: dias,
     stops: paradas.map(
