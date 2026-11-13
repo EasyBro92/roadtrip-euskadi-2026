@@ -1,41 +1,125 @@
-import { lazy, Suspense, type ReactNode } from "react";
+import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppShell } from "./layout/AppShell";
 import { EntryRedirect } from "./EntryRedirect";
 import { RootLayout } from "./layout/RootLayout";
 
-// Code splitting por ruta (sección 48: "lazy loading, code splitting"). Cada
-// pantalla es su propio chunk; solo se descarga cuando el usuario navega a ella.
-const WelcomePage = lazy(() => import("../pages/WelcomePage").then((m) => ({ default: m.WelcomePage })));
-const TripsPage = lazy(() => import("../pages/TripsPage").then((m) => ({ default: m.TripsPage })));
-const GeneratePage = lazy(() => import("../pages/GeneratePage").then((m) => ({ default: m.GeneratePage })));
-const ExplorePage = lazy(() => import("../pages/ExplorePage").then((m) => ({ default: m.ExplorePage })));
-const MapPage = lazy(() => import("../pages/MapPage").then((m) => ({ default: m.MapPage })));
-const ItineraryPage = lazy(() => import("../pages/ItineraryPage").then((m) => ({ default: m.ItineraryPage })));
-const JournalPage = lazy(() => import("../pages/JournalPage").then((m) => ({ default: m.JournalPage })));
-const ExpensesPage = lazy(() => import("../pages/ExpensesPage").then((m) => ({ default: m.ExpensesPage })));
-const MorePage = lazy(() => import("../pages/MorePage").then((m) => ({ default: m.MorePage })));
-const VehiclePage = lazy(() => import("../pages/VehiclePage").then((m) => ({ default: m.VehiclePage })));
-const AchievementsPage = lazy(() => import("../pages/AchievementsPage").then((m) => ({ default: m.AchievementsPage })));
-const FavoritesPage = lazy(() => import("../pages/FavoritesPage").then((m) => ({ default: m.FavoritesPage })));
-const ChecklistPage = lazy(() => import("../pages/ChecklistPage").then((m) => ({ default: m.ChecklistPage })));
-const PlacesLibraryPage = lazy(() => import("../pages/PlacesLibraryPage").then((m) => ({ default: m.PlacesLibraryPage })));
-const SharePage = lazy(() => import("../pages/SharePage").then((m) => ({ default: m.SharePage })));
-const OfflinePage = lazy(() => import("../pages/OfflinePage").then((m) => ({ default: m.OfflinePage })));
-const SettingsPage = lazy(() => import("../pages/SettingsPage").then((m) => ({ default: m.SettingsPage })));
-const HelpPage = lazy(() => import("../pages/HelpPage").then((m) => ({ default: m.HelpPage })));
-const SummaryPage = lazy(() => import("../pages/SummaryPage").then((m) => ({ default: m.SummaryPage })));
-const CopilotPage = lazy(() => import("../pages/CopilotPage").then((m) => ({ default: m.CopilotPage })));
-const NearbyPage = lazy(() => import("../pages/NearbyPage").then((m) => ({ default: m.NearbyPage })));
-const SavedPlacesPage = lazy(() => import("../pages/SavedPlacesPage").then((m) => ({ default: m.SavedPlacesPage })));
-const DocumentsPage = lazy(() => import("../pages/DocumentsPage").then((m) => ({ default: m.DocumentsPage })));
-const VisitedPage = lazy(() => import("../pages/VisitedPage").then((m) => ({ default: m.VisitedPage })));
-const MyReviewsPage = lazy(() => import("../pages/MyReviewsPage").then((m) => ({ default: m.MyReviewsPage })));
-const AlbumPage = lazy(() => import("../pages/AlbumPage").then((m) => ({ default: m.AlbumPage })));
-const PrepararPage = lazy(() => import("../pages/PrepararPage").then((m) => ({ default: m.PrepararPage })));
-const ImportarPage = lazy(() => import("../pages/ImportarPage").then((m) => ({ default: m.ImportarPage })));
-const NotesPage = lazy(() => import("../pages/NotesPage").then((m) => ({ default: m.NotesPage })));
-const ReturnTripPage = lazy(() => import("../pages/ReturnTripPage").then((m) => ({ default: m.ReturnTripPage })));
+type Modulo = Record<string, ComponentType>;
+
+/** Las pantallas con su forma de cargarse, para poder traerlas antes de que se pidan. */
+const cargadores = new Map<string, () => Promise<Modulo>>();
+
+/*
+ * Code splitting por ruta (sección 48: "lazy loading, code splitting"). Cada
+ * pantalla es su propio chunk; solo se descarga cuando el usuario navega a ella.
+ *
+ * `pagina` guarda además cómo se carga cada una. `import()` devuelve siempre
+ * la misma promesa para el mismo módulo, así que pedirla por adelantado no la
+ * descarga dos veces: cuando React la necesita, ya está.
+ */
+function pagina(cargar: () => Promise<Modulo>, nombre: string) {
+  cargadores.set(nombre, cargar);
+  return lazy(() => cargar().then((m) => ({ default: m[nombre] })));
+}
+
+const WelcomePage = pagina(() => import("../pages/WelcomePage"), "WelcomePage");
+const TripsPage = pagina(() => import("../pages/TripsPage"), "TripsPage");
+const GeneratePage = pagina(() => import("../pages/GeneratePage"), "GeneratePage");
+const ExplorePage = pagina(() => import("../pages/ExplorePage"), "ExplorePage");
+const MapPage = pagina(() => import("../pages/MapPage"), "MapPage");
+const ItineraryPage = pagina(() => import("../pages/ItineraryPage"), "ItineraryPage");
+const JournalPage = pagina(() => import("../pages/JournalPage"), "JournalPage");
+const ExpensesPage = pagina(() => import("../pages/ExpensesPage"), "ExpensesPage");
+const MorePage = pagina(() => import("../pages/MorePage"), "MorePage");
+const VehiclePage = pagina(() => import("../pages/VehiclePage"), "VehiclePage");
+const AchievementsPage = pagina(() => import("../pages/AchievementsPage"), "AchievementsPage");
+const FavoritesPage = pagina(() => import("../pages/FavoritesPage"), "FavoritesPage");
+const ChecklistPage = pagina(() => import("../pages/ChecklistPage"), "ChecklistPage");
+const PlacesLibraryPage = pagina(() => import("../pages/PlacesLibraryPage"), "PlacesLibraryPage");
+const SharePage = pagina(() => import("../pages/SharePage"), "SharePage");
+const OfflinePage = pagina(() => import("../pages/OfflinePage"), "OfflinePage");
+const SettingsPage = pagina(() => import("../pages/SettingsPage"), "SettingsPage");
+const HelpPage = pagina(() => import("../pages/HelpPage"), "HelpPage");
+const SummaryPage = pagina(() => import("../pages/SummaryPage"), "SummaryPage");
+const CopilotPage = pagina(() => import("../pages/CopilotPage"), "CopilotPage");
+const NearbyPage = pagina(() => import("../pages/NearbyPage"), "NearbyPage");
+const SavedPlacesPage = pagina(() => import("../pages/SavedPlacesPage"), "SavedPlacesPage");
+const DocumentsPage = pagina(() => import("../pages/DocumentsPage"), "DocumentsPage");
+const VisitedPage = pagina(() => import("../pages/VisitedPage"), "VisitedPage");
+const MyReviewsPage = pagina(() => import("../pages/MyReviewsPage"), "MyReviewsPage");
+const AlbumPage = pagina(() => import("../pages/AlbumPage"), "AlbumPage");
+const PrepararPage = pagina(() => import("../pages/PrepararPage"), "PrepararPage");
+const ImportarPage = pagina(() => import("../pages/ImportarPage"), "ImportarPage");
+const NotesPage = pagina(() => import("../pages/NotesPage"), "NotesPage");
+const ReturnTripPage = pagina(() => import("../pages/ReturnTripPage"), "ReturnTripPage");
+
+/** Qué pantalla corresponde a cada dirección de entrada. */
+const PANTALLA_DE: Record<string, string> = {
+  "/viajes": "TripsPage",
+  "/explorar": "ExplorePage",
+  "/crear": "GeneratePage",
+  "/viaje": "WelcomePage",
+  "/mapa": "MapPage",
+  "/itinerario": "ItineraryPage",
+  "/diario": "JournalPage",
+  "/gastos": "ExpensesPage",
+  "/mas": "MorePage",
+};
+
+function traer(nombre: string | undefined): void {
+  if (!nombre) return;
+  void cargadores.get(nombre)?.().catch(() => undefined);
+}
+
+/*
+ * La pantalla por la que se entra se pide YA, mientras React arranca.
+ *
+ * Antes la cadena era: descargar la app, ejecutarla, montar el router, y sólo
+ * entonces descubrir qué pantalla hacía falta y pedirla. Ese último viaje se
+ * hacía con la pantalla en blanco. Aquí se lanza en cuanto se lee este
+ * fichero, en paralelo con todo lo demás.
+ *
+ * La raíz redirige a Mis viajes o al mapa según un ajuste que aún no se ha
+ * leído, así que se piden las dos: la que sobra es la primera que se abre
+ * después de todas formas.
+ */
+{
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+  const ruta = window.location.pathname.slice(base.length).replace(/\/$/, "") || "/";
+  if (ruta === "/") {
+    traer("TripsPage");
+    traer("MapPage");
+  } else {
+    traer(PANTALLA_DE[ruta]);
+  }
+}
+
+/**
+ * Con la app ya pintada y quieta, trae las cinco pestañas y los modales.
+ *
+ * Así cambiar de pestaña no espera a nada: ni a la red la primera vez, ni a
+ * leer y compilar el fichero las siguientes. Se hace en ratos libres y de una
+ * en una para no competir con lo que el usuario esté tocando.
+ */
+export function precargarPantallas(alTerminar?: () => void): void {
+  const pendientes = ["MapPage", "ItineraryPage", "ExpensesPage", "JournalPage", "MorePage", "TripsPage", "WelcomePage", "ExplorePage"];
+  const enRatoLibre: (tarea: () => void) => void =
+    "requestIdleCallback" in window ? (tarea) => window.requestIdleCallback(tarea, { timeout: 3000 }) : (tarea) => window.setTimeout(tarea, 300);
+
+  const siguiente = () => {
+    const nombre = pendientes.shift();
+    if (!nombre) {
+      alTerminar?.();
+      return;
+    }
+    const cargar = cargadores.get(nombre);
+    if (!cargar) return siguiente();
+    void cargar()
+      .catch(() => undefined)
+      .then(() => enRatoLibre(siguiente));
+  };
+  enRatoLibre(siguiente);
+}
 
 function PageSkeleton() {
   return (
