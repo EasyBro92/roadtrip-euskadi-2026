@@ -133,7 +133,7 @@ export function BottomSheet({ dayId }: { dayId: string }) {
          */}
         {sheetState !== "minimized" && stop.heroImage ? (
           <div className="relative shrink-0">
-            <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-44 w-full" iconSize={48} />
+            <CategoryThumb category={stop.category} heroImage={stop.heroImage} lugar={{ nombre: stop.name, coordinates: stop.coordinates }} className="h-44 w-full" iconSize={48} />
 
             {stop.visited && (
               <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-(--color-completed) px-2.5 py-1 text-xs font-medium text-white">
@@ -157,7 +157,7 @@ export function BottomSheet({ dayId }: { dayId: string }) {
           </div>
         ) : (
           <div className="flex gap-3 px-4">
-            <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-16 w-16 rounded-2xl" iconSize={28} />
+            <CategoryThumb category={stop.category} heroImage={stop.heroImage} lugar={{ nombre: stop.name, coordinates: stop.coordinates }} className="h-16 w-16 rounded-2xl" iconSize={28} />
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-xl font-medium text-(--color-text)">{stop.name}</h2>
               <div className="mt-0.5 flex items-center gap-1.5 text-sm">

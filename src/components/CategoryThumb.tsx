@@ -16,7 +16,8 @@ import {
   UtensilsCrossed,
   type LucideIcon,
 } from "lucide-react";
-import type { StopCategory } from "../types";
+import type { Coordinates, StopCategory } from "../types";
+import { useFotoAutomatica } from "../hooks/useFotoAutomatica";
 import { useState } from "react";
 import { categoryGradient } from "../utils/categoryGradient";
 
@@ -50,6 +51,11 @@ interface CategoryThumbProps {
   category: StopCategory;
   /** Foto real de la parada, si la hay: manda sobre el icono. */
   heroImage?: string;
+  /**
+   * Quién es, para buscarle foto si no trae. Sin esto se queda con el icono,
+   * que es lo correcto donde no se sabe qué sitio es.
+   */
+  lugar?: { nombre: string; coordinates: Coordinates };
   /** Tamaño y forma, en clases: "h-12 w-12 rounded-xl". */
   className?: string;
   iconSize?: number;
@@ -61,8 +67,11 @@ interface CategoryThumbProps {
  *
  * Con foto no se dibuja el icono: taparía justo lo que se quiere ver.
  */
-export function CategoryThumb({ category, heroImage, className = "h-12 w-12 rounded-xl", iconSize = 22 }: CategoryThumbProps) {
+export function CategoryThumb({ category, heroImage: propia, lugar, className = "h-12 w-12 rounded-xl", iconSize = 22 }: CategoryThumbProps) {
   const Icon = ICONOS[category] ?? MapPin;
+  // La que trae la parada manda siempre; la automática sólo rellena el hueco.
+  const automatica = useFotoAutomatica(!propia && lugar ? { ...lugar, category } : undefined);
+  const heroImage = propia ?? automatica;
   // La foto va encima del icono como <img> y no como fondo CSS: si no carga
   // (sin cobertura, Wikimedia caído) se quita y vuelve a verse el icono. Con
   // fondo CSS quedaba un cuadrado de color liso que no decía nada.
