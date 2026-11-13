@@ -1,3 +1,4 @@
+import { shiftISODate } from "./dates";
 import type { ISODate } from "../types";
 
 /**
@@ -38,7 +39,7 @@ export function urlSkyscanner(destino: string, fecha: ISODate): string {
 
 /** El día siguiente en formato ISO. La salida de un hotel es la mañana de después. */
 export function diaSiguiente(fecha: ISODate): ISODate {
-  const d = new Date(`${fecha}T12:00:00`);
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0, 10);
+  // Con el calendario, no pasando por UTC: `toISOString()` devolvía el día
+  // equivocado en husos muy adelantados respecto a Greenwich.
+  return shiftISODate(fecha, 1);
 }
