@@ -238,7 +238,7 @@ export function FichaParadaModal({ stopId, origen }: { stopId: string; origen?: 
               <div className="relative shrink-0" style={{ touchAction: "none" }} {...gestos}>
                 {/* La foto más alta: es lo que estira la tarjeta y le da
                     proporción de tarjeta en vez de la de una caja. */}
-                <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-56 w-full" iconSize={52} />
+                <CategoryThumb category={stop.category} heroImage={stop.heroImage} lugar={{ nombre: stop.name, coordinates: stop.coordinates }} className="h-56 w-full" iconSize={52} />
 
                 {/* La pista de que se puede arrastrar. Sin ella el gesto
                     existe pero no lo encuentra nadie. */}

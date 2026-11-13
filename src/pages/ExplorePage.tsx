@@ -55,6 +55,12 @@ const PORTADA_TIPO: Record<RouteTipo, string> = {
   ciudad: "linear-gradient(135deg,#7c3aed,#4338ca)",
 };
 import { toISODate } from "../utils/dates";
+import { useEnPantalla } from "../hooks/useEnPantalla";
+import { useFotoAutomatica } from "../hooks/useFotoAutomatica";
+import type { StopCategory } from "../types";
+
+/** Las categorías que dan una buena portada, por delante de una ciudad o un museo. */
+const PARA_PORTADA: StopCategory[] = ["pueblo", "paisaje", "playa", "castillo", "naturaleza", "mirador"];
 
 /** Ficha desplegable de una ruta: sus paradas día a día y el botón de copiar. */
 function FichaRuta({ ruta, distanciaKm }: { ruta: RouteTemplate; distanciaKm: number | null }) {
@@ -99,19 +105,54 @@ function FichaRuta({ ruta, distanciaKm }: { ruta: RouteTemplate; distanciaKm: nu
     navigate("/viaje");
   }
 
+  /*
+   * La portada, con foto de verdad.
+   *
+   * Para una ciudad, la de la propia ciudad. Para un road trip, la de su
+   * primera parada con paisaje —un pueblo, una playa, un castillo— antes que
+   * la de la capital de la que se sale. Sólo se busca cuando la tarjeta
+   * asoma por pantalla: son más de cien y pedirlas todas al entrar no tiene
+   * sentido. Si no hay foto se queda el color de siempre.
+   */
+  const [refTarjeta, enPantalla] = useEnPantalla<HTMLLIElement>();
+  const paradaPortada = ruta.stops.find((s) => PARA_PORTADA.includes(s.category)) ?? ruta.stops[0];
+  const foto = useFotoAutomatica(
+    paradaPortada
+      ? ruta.tipo === "ciudad"
+        ? { nombre: ruta.name.replace(/ en \d+ días?$/, ""), coordinates: paradaPortada.coordinates }
+        : { nombre: paradaPortada.name, coordinates: paradaPortada.coordinates, category: paradaPortada.category }
+      : undefined,
+    enPantalla,
+  );
+  const [fotoRota, setFotoRota] = useState(false);
+
   const km = kmDeRuta(ruta);
   const tipo = ruta.tipo ?? "roadtrip";
   const IconoPortada = ICONO_TEMA[ruta.tags?.[0] ?? "naturaleza"] ?? Mountain;
 
   return (
-    <li className="overflow-hidden rounded-(--radius-card) border bg-(--color-surface) shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
+    <li
+      ref={refTarjeta}
+      className="overflow-hidden rounded-(--radius-card) border bg-(--color-surface) shadow-(--shadow-card)"
+      // Las tarjetas que no están a la vista no se maquetan ni se pintan
+      // hasta que se llega a ellas: con más de cien, es lo que hace que la
+      // lista abra y se desplace sin tirones.
+      style={{ borderColor: "var(--color-border)", contentVisibility: "auto", containIntrinsicSize: "auto 250px" }}
+    >
       <button onClick={() => setAbierta((v) => !v)} className="w-full text-left" aria-expanded={abierta}>
         {/* Portada de color con el tema de la ruta: las tarjetas eran solo
             texto y todas parecían la misma. */}
-        <div className="relative flex h-24 items-end justify-between p-3.5" style={{ background: PORTADA_TIPO[tipo] }}>
+        <div className={`relative flex items-end justify-between overflow-hidden p-3.5 ${foto && !fotoRota ? "h-36" : "h-24"}`} style={{ background: PORTADA_TIPO[tipo] }}>
           <IconoPortada size={64} strokeWidth={1.25} className="absolute -right-2 -top-2 text-white/20" aria-hidden="true" />
-          <span className="rounded-full bg-black/25 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">{ETIQUETA_TIPO[tipo]}</span>
-          <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-(--color-text)">
+          {foto && !fotoRota && (
+            <>
+              <img src={foto} alt="" loading="lazy" decoding="async" onError={() => setFotoRota(true)} className="absolute inset-0 h-full w-full object-cover" />
+              {/* Un velo abajo para que las dos etiquetas se lean sobre cualquier foto. */}
+              <span className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" aria-hidden="true" />
+            </>
+          )}
+          <span className="relative rounded-full bg-black/25 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">{ETIQUETA_TIPO[tipo]}</span>
+          <span className="relative rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-(--color-text)">
             {ruta.dayCount} {ruta.dayCount === 1 ? "día" : "días"}
           </span>
         </div>
@@ -259,7 +300,7 @@ export function ExplorePage() {
   }
 
   const paises = useMemo(() => paisesDe(TODAS_LAS_RUTAS), []);
-  // Sin memo: son unas setenta rutas y filtrarlas cuesta menos que comparar dependencias.
+  // Sin memo: son unas ciento cuarenta rutas y filtrarlas cuesta menos que comparar dependencias.
   const rutas = filtrarRutas(TODAS_LAS_RUTAS, filtros, ubicacion);
   const hayFiltros = params.toString() !== "" && !(params.size === 1 && params.has("orden"));
   const cuenta = (tipo: FiltrosExplorar["tipo"]) => (tipo === "todas" ? TODAS_LAS_RUTAS.length : TODAS_LAS_RUTAS.filter((r) => (r.tipo ?? "roadtrip") === tipo).length);

@@ -77,7 +77,7 @@ export function FilteredStopList({ categoria }: { categoria: StopCategory }) {
             className="flex w-full items-center gap-3 rounded-(--radius-card) border bg-(--color-surface) p-3 text-left shadow-(--shadow-card)"
             style={{ borderColor: "var(--color-border)" }}
           >
-            <CategoryThumb category={parada.category} heroImage={parada.heroImage} className="h-12 w-12 rounded-xl" />
+            <CategoryThumb category={parada.category} heroImage={parada.heroImage} lugar={{ nombre: parada.name, coordinates: parada.coordinates }} className="h-12 w-12 rounded-xl" />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium text-(--color-text)">{parada.name}</span>
               <span className="mt-0.5 block text-xs text-(--color-text-muted)">
