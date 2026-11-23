@@ -10,8 +10,12 @@ import { RoutePolylines } from "../features/map/RoutePolylines";
 import { StartRouteButton } from "../features/map/StartRouteButton";
 import { CocheMarker } from "../features/map/CocheMarker";
 import { NearbyMarkers } from "../features/map/NearbyMarkers";
-import { FichaPoi, PoiLayer } from "../features/map/PoiLayer";
-import { StopMarkers } from "../features/map/StopMarkers";
+import { PoiLayer } from "../features/map/PoiLayer";
+import { NombresSegunZoom, StopMarkers } from "../features/map/StopMarkers";
+import { ChipsCategorias } from "../features/map/ChipsCategorias";
+import { FichaLugar } from "../features/map/FichaLugar";
+import { LugarMarker } from "../features/map/LugarMarker";
+import { useLugarStore } from "../stores/useLugarStore";
 import { useLiveNavigation } from "../features/map/useLiveNavigation";
 import { useSkipToNextStop } from "../features/map/useSkipToNextStop";
 import { VehicleMarker } from "../features/map/VehicleMarker";
@@ -135,12 +139,13 @@ function PlaybackControls({ dayId }: { dayId: string }) {
   const skipToNextStop = useSkipToNextStop(dayId);
   const { isLive, toggle: toggleLive } = useLiveNavigation();
   const bottomSheetState = useUIStore((s) => s.bottomSheetState);
+  const hayLugar = useLugarStore((s) => s.lugar != null);
 
   // Dos acciones bien distintas: seguir tu GPS, o avanzar por el itinerario.
   const liveTap = useTap(toggleLive);
   const nextTap = useTap(skipToNextStop);
 
-  if (bottomSheetState === "expanded") return null;
+  if (bottomSheetState === "expanded" || hayLugar) return null;
 
   return (
     <div className="pointer-events-none absolute bottom-[calc(128px+env(safe-area-inset-bottom)+12px)] left-0 right-0 z-[550] flex items-center justify-between gap-2 px-4">
@@ -178,6 +183,11 @@ export function MapPage() {
   const temaOscuro = useTemaOscuro();
   const layer = getMapLayer(capaSegunTema(mapLayerId, temaOscuro));
   const [map, setMap] = useState<L.Map | null>(null);
+  const hayLugar = useLugarStore((s) => s.lugar != null);
+
+  // Al salir del mapa se cierra la ficha: volver y encontrarla abierta sobre
+  // otro día no tendría sentido.
+  useEffect(() => () => useLugarStore.getState().elegir(null), []);
 
   const firstStop = useStopsOfDay(dayId)[0];
   const center: [number, number] = firstStop ? [firstStop.coordinates.latitude, firstStop.coordinates.longitude] : GIRONA_FALLBACK;
@@ -201,6 +211,8 @@ export function MapPage() {
         <NearbyMarkers />
         <CocheMarker />
         <PoiLayer />
+        <LugarMarker />
+        <NombresSegunZoom />
         <VehicleMarker />
         <InvalidateSizeOnSheetChange />
         <AutoFitOnDayChange dayId={dayId} />
@@ -211,11 +223,13 @@ export function MapPage() {
 
       {map && <MapSearchBar dayId={dayId} map={map} />}
       <DaySelector />
+      {map && <ChipsCategorias map={map} />}
       {map && <MapControls dayId={dayId} map={map} />}
       {/* Va antes del panel inferior para quedar por debajo de él si coinciden. */}
-      <FichaPoi />
       <PlaybackControls dayId={dayId} />
-      <BottomSheet dayId={dayId} />
+      {/* La ficha de un sitio ocupa el sitio del panel de la parada: las dos
+          a la vez se tapaban y no se sabía de cuál era cada botón. */}
+      {hayLugar ? <FichaLugar /> : <BottomSheet dayId={dayId} />}
     </div>
   );
 }

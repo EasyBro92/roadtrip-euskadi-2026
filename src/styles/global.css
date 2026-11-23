@@ -184,6 +184,169 @@ a,
   animation: entra-desde-izquierda 0.22s ease-out;
 }
 
+/*
+ * Animaciones de la Fase 1. Todas cortas (150–450 ms) y con un propósito:
+ * decir de dónde sale algo o qué acaba de pasar. Ninguna se repite sola.
+ */
+
+/* Una pantalla nueva entra subiendo un poco y apareciendo, en vez de saltar. */
+@keyframes pantalla-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.pantalla-entra {
+  animation: pantalla-entra 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Fichas y hojas que salen de abajo, con un pequeño rebote al llegar. */
+@keyframes sube-desde-abajo {
+  from {
+    opacity: 0.4;
+    transform: translateY(110%);
+  }
+}
+
+.sube-desde-abajo {
+  animation: sube-desde-abajo 0.34s cubic-bezier(0.32, 1.25, 0.5, 1);
+}
+
+/* Desplegables: aparecen creciendo desde arriba, como los de Google. */
+@keyframes aparece {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+
+.aparece {
+  animation: aparece 0.18s ease-out;
+  transform-origin: top center;
+}
+
+/*
+ * Pines que caen al mapa y rebotan. Se anima el contenido del marcador, no
+ * el marcador: a ese Leaflet le pone su propio `transform` para colocarlo, y
+ * animarlo lo mandaría a la esquina del mapa durante la animación.
+ */
+@keyframes pin-cae {
+  0% {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(2px);
+  }
+  80% {
+    transform: translateY(-3px);
+  }
+}
+
+.pin-cae {
+  animation: pin-cae 0.45s cubic-bezier(0.3, 0.7, 0.4, 1) both;
+  transform-origin: bottom center;
+}
+
+/* El pin elegido da un saltito para que se vea cuál es. */
+@keyframes pin-rebota {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  35% {
+    transform: translateY(-10px);
+  }
+  65% {
+    transform: translateY(0) scaleY(0.92);
+  }
+}
+
+.pin-rebota {
+  animation: pin-rebota 0.5s ease-out;
+  transform-origin: bottom center;
+}
+
+/* El nombre bajo el pin, con un halo blanco para leerse sobre cualquier mapa. */
+.etiqueta-pin {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 1px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 600 11px/1.2 var(--font-sans);
+  text-shadow:
+    0 0 2px var(--color-surface),
+    0 0 2px var(--color-surface),
+    0 0 3px var(--color-surface);
+  pointer-events: none;
+}
+
+.mostrar-nombres .etiqueta-pin {
+  display: block;
+}
+
+/* Guardar hace latir el corazón. */
+@keyframes latido {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.25);
+  }
+  60% {
+    transform: scale(0.95);
+  }
+}
+
+.latido {
+  animation: latido 0.45s ease-out;
+}
+
+/* Siluetas de carga con un brillo que las recorre, en vez de una rueda. */
+@keyframes brillo {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.esqueleto {
+  background: linear-gradient(90deg, var(--color-surface-muted) 25%, var(--color-border) 50%, var(--color-surface-muted) 75%);
+  background-size: 200% 100%;
+  animation: brillo 1.4s linear infinite;
+}
+
+/* Un guardado que se confirma solo, sin pedir nada. */
+@keyframes guardado-aparece {
+  0% {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  15%,
+  80% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.guardado-aparece {
+  animation: guardado-aparece 1.6s ease-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

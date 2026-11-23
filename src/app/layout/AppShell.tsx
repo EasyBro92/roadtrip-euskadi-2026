@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { AvisoSinConexion } from "../../components/AvisoSinConexion";
 import { useTripStore } from "../../stores/useTripStore";
 import { BottomNav } from "./BottomNav";
@@ -12,6 +12,7 @@ import { BottomNav } from "./BottomNav";
  */
 export function AppShell() {
   const sincronizarDiaDeHoy = useTripStore((s) => s.sincronizarDiaDeHoy);
+  const { pathname } = useLocation();
 
   // Una vez al abrir: si hoy es un día del viaje, es el día que se enseña.
   useEffect(() => {
@@ -22,7 +23,11 @@ export function AppShell() {
     <div className="app-shell safe-top">
       <AvisoSinConexion />
       <main className="min-h-0 flex-1 overflow-hidden">
-        <Outlet />
+        {/* La clave es la ruta: al cambiar de pantalla, la nueva entra con su
+            animación en vez de aparecer de golpe. */}
+        <div key={pathname} className="pantalla-entra h-full">
+          <Outlet />
+        </div>
       </main>
       <BottomNav />
     </div>

@@ -7,6 +7,9 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   // GitHub Pages sirve desde /<repo>/, no desde la raíz; Netlify/Vercel usan "/".
   base: process.env.VITE_BASE_PATH || "/",
+  // Fecha de la compilación, para el pie de Configuración: "¿tengo la última?"
+  // se responde mirando el día, que dice más que un 0.0.0 que nunca cambia.
+  define: { __APP_VERSION__: JSON.stringify(new Date().toISOString().slice(0, 10)) },
   plugins: [
     react(),
     tailwindcss(),

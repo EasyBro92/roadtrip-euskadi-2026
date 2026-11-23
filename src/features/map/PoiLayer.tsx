@@ -1,12 +1,10 @@
 import L from "leaflet";
-import { Bookmark, Plus, X } from "lucide-react";
 import { useEffect, useMemo } from "react";
-import { Marker, useMap, useMapEvents } from "react-leaflet";
+import { Marker, useMap } from "react-leaflet";
 import type { Poi } from "../../services/places/PoiService";
+import { useLugarStore } from "../../stores/useLugarStore";
 import { usePoiStore } from "../../stores/usePoiStore";
-import { useSavedPlacesStore } from "../../stores/useSavedPlacesStore";
-import { useTripStore } from "../../stores/useTripStore";
-import { useUIStore } from "../../stores/useUIStore";
+import { categoriaDeTipoOsm } from "./categoriaDeLugar";
 
 /**
  * Punto apagado, más discreto que las paradas de tu viaje.
@@ -37,9 +35,37 @@ function recuadroDe(map: L.Map) {
   return { sur: b.getSouth(), oeste: b.getWest(), norte: b.getNorth(), este: b.getEast() };
 }
 
+const idDe = (poi: Poi) => `poi:${poi.id}`;
+
+/** La clave OSM ("castle") se deduce de la etiqueta legible que ya trae el sitio. */
+const CLAVE_DE_TIPO: Record<string, string> = {
+  Museo: "museum",
+  Mirador: "viewpoint",
+  Castillo: "castle",
+  Ruinas: "ruins",
+  Monumento: "monument",
+  Iglesia: "church",
+  Monasterio: "monastery",
+  Yacimiento: "archaeological_site",
+  Memorial: "memorial",
+};
+
+function lugarDePoi(poi: Poi) {
+  return {
+    id: idDe(poi),
+    nombre: poi.name,
+    tipo: poi.tipo,
+    categoria: categoriaDeTipoOsm(CLAVE_DE_TIPO[poi.tipo]),
+    coordinates: poi.coordinates,
+    origen: "interes" as const,
+  };
+}
+
 export function PoiLayer() {
   const map = useMap();
-  const { activa, pois, elegido, buscar, elegir, ultimoRecuadro } = usePoiStore();
+  const { activa, pois, buscar, ultimoRecuadro } = usePoiStore();
+  const lugar = useLugarStore((s) => s.lugar);
+  const elegirLugar = useLugarStore((s) => s.elegir);
 
   const normal = useMemo(() => icono(false), []);
   const grande = useMemo(() => icono(true), []);
@@ -50,9 +76,6 @@ export function PoiLayer() {
     if (activa && !ultimoRecuadro) buscar(recuadroDe(map));
   }, [activa, ultimoRecuadro, buscar, map]);
 
-  // Al cerrar la capa se cierra también la ficha que hubiera abierta.
-  useMapEvents({ click: () => elegir(null) });
-
   if (!activa) return null;
 
   return (
@@ -61,83 +84,12 @@ export function PoiLayer() {
         <Marker
           key={poi.id}
           position={[poi.coordinates.latitude, poi.coordinates.longitude]}
-          icon={poi.id === elegido?.id ? grande : normal}
+          icon={lugar?.id === idDe(poi) ? grande : normal}
           alt={poi.name}
           title={poi.name}
-          eventHandlers={{ click: () => elegir(poi) }}
+          eventHandlers={{ click: () => elegirLugar(lugarDePoi(poi)) }}
         />
       ))}
     </>
-  );
-}
-
-/**
- * Ficha pequeña del sitio tocado, sobre el mapa.
- *
- * Va fuera de `PoiLayer` porque aquello vive dentro del contenedor de Leaflet
- * y esto es una tarjeta normal de la interfaz.
- */
-export function FichaPoi() {
-  const elegido = usePoiStore((s) => s.elegido);
-  const elegir = usePoiStore((s) => s.elegir);
-  const guardar = useSavedPlacesStore((s) => s.guardar);
-  const lugares = useSavedPlacesStore((s) => s.lugares);
-  const openModal = useUIStore((s) => s.openModal);
-  const pushToast = useUIStore((s) => s.pushToast);
-  const addStop = useTripStore((s) => s.addStop);
-  const viajeActivo = useTripStore((s) => s.trip.name);
-
-  if (!elegido) return null;
-
-  const guardado = lugares.some(
-    (p) =>
-      p.nombre.trim().toLowerCase() === elegido.name.trim().toLowerCase() &&
-      p.coordinates.latitude.toFixed(4) === elegido.coordinates.latitude.toFixed(4),
-  );
-
-  function anadir(poi: Poi) {
-    openModal({
-      type: "day-picker",
-      title: `Añadir ${poi.name}`,
-      message: `Se añadirá a "${viajeActivo}". ¿A qué día?`,
-      onPick: (dayId) => {
-        addStop(dayId, { name: poi.name, category: "cultura", coordinates: poi.coordinates });
-        pushToast(`${poi.name} añadida a tu itinerario.`, "success");
-      },
-    });
-  }
-
-  return (
-    <div
-      className="pointer-events-auto absolute inset-x-3 bottom-3 z-[620] rounded-2xl border bg-(--color-surface) p-3 shadow-(--shadow-card) sm:inset-x-auto sm:left-3 sm:w-72"
-      style={{ borderColor: "var(--color-border)" }}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-(--color-text)">{elegido.name}</p>
-          <p className="text-xs text-(--color-text-muted)">{elegido.tipo}</p>
-        </div>
-        <button aria-label="Cerrar" onClick={() => elegir(null)} className="-mr-1 -mt-1 p-1 text-(--color-text-muted)">
-          <X size={16} aria-hidden="true" />
-        </button>
-      </div>
-
-      <div className="mt-2 flex gap-3">
-        <button onClick={() => anadir(elegido)} className="flex items-center gap-1 text-xs font-medium text-(--color-link)">
-          <Plus size={13} aria-hidden="true" /> Añadir al viaje
-        </button>
-        <button
-          onClick={() => {
-            if (guardado) return;
-            guardar({ nombre: elegido.name, coordinates: elegido.coordinates, categoria: "cultura" });
-            pushToast(`${elegido.name} guardado en "Quiero ir".`, "success");
-          }}
-          className="flex items-center gap-1 text-xs font-medium text-(--color-link)"
-        >
-          <Bookmark size={13} fill={guardado ? "currentColor" : "none"} aria-hidden="true" />
-          {guardado ? "Guardado" : "Guardar"}
-        </button>
-      </div>
-    </div>
   );
 }

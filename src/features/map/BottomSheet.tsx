@@ -101,7 +101,7 @@ export function BottomSheet({ dayId }: { dayId: string }) {
   return (
     <div
       className={`pointer-events-auto absolute inset-x-0 bottom-0 z-[600] flex flex-col overflow-hidden rounded-t-[28px] border-t bg-(--color-surface) shadow-(--shadow-sheet) safe-bottom ${
-        dragHeight == null ? "transition-[height] duration-200 ease-out" : ""
+        dragHeight == null ? "transition-[height] duration-300 ease-[cubic-bezier(0.32,1.2,0.5,1)]" : ""
       }`}
       style={{ height: dragHeight != null ? `${dragHeight}px` : HEIGHTS[sheetState], borderColor: "var(--color-border)" }}
     >
@@ -109,7 +109,7 @@ export function BottomSheet({ dayId }: { dayId: string }) {
           agarrarlo con el pulgar sin apuntar al asa exacta. */}
       <button
         aria-label={sheetState === "expanded" ? "Minimizar panel" : "Expandir panel"}
-        className="flex shrink-0 touch-none flex-col items-center gap-1 py-3"
+        className="flex shrink-0 touch-none flex-col items-center gap-1 py-3 active:[transform:none]"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
