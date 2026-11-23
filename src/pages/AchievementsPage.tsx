@@ -1,13 +1,13 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { ArrowLeft, BedDouble, Camera, Fish, Fuel, Gauge, Landmark, MapPin, Mountain, PartyPopper, Trophy, UtensilsCrossed, Waves, type LucideIcon } from "lucide-react";
-import { useEffect } from "react";
+import { ArrowLeft, BedDouble, CalendarCheck, Camera, Fish, Fuel, Gauge, Landmark, MapPin, Mountain, PartyPopper, Trophy, UtensilsCrossed, Waves, type LucideIcon } from "lucide-react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ACHIEVEMENT_DEFS } from "../data/achievements.data";
+import { logrosDelViaje } from "../data/achievements.data";
 import { db } from "../services/storage/db";
 import { useTripStore } from "../stores/useTripStore";
 import { percentage } from "../utils/format";
 
-const ICONS: Record<string, LucideIcon> = { MapPin, Trophy, BedDouble, Fuel, UtensilsCrossed, Fish, Camera, Gauge, Waves, Landmark, Mountain, PartyPopper };
+const ICONS: Record<string, LucideIcon> = { CalendarCheck, MapPin, Trophy, BedDouble, Fuel, UtensilsCrossed, Fish, Camera, Gauge, Waves, Landmark, Mountain, PartyPopper };
 
 export function AchievementsPage() {
   const navigate = useNavigate();
@@ -20,7 +20,10 @@ export function AchievementsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalPhotos]);
 
-  const unlockedCount = achievementsState.filter((a) => a.unlockedAt).length;
+  const stopsById = useTripStore((s) => s.stopsById);
+  // Sólo los que se pueden conseguir en este viaje: "Bilbao completado" no pinta nada en Portugal.
+  const defs = useMemo(() => logrosDelViaje(Object.values(stopsById)), [stopsById]);
+  const unlockedCount = achievementsState.filter((a) => a.unlockedAt && defs.some((d) => d.id === a.id)).length;
 
   return (
     <div className="safe-x h-full overflow-y-auto bg-(--color-bg) px-4 pt-4 pb-8">
@@ -34,17 +37,17 @@ export function AchievementsPage() {
         <div className="flex items-baseline justify-between">
           <span className="text-2xl font-medium">
             {unlockedCount}
-            <span className="text-base text-(--color-text-muted)">/{ACHIEVEMENT_DEFS.length}</span>
+            <span className="text-base text-(--color-text-muted)">/{defs.length}</span>
           </span>
-          <span className="text-xs text-(--color-text-muted)">{percentage(unlockedCount, ACHIEVEMENT_DEFS.length)}% desbloqueado</span>
+          <span className="text-xs text-(--color-text-muted)">{percentage(unlockedCount, defs.length)}% desbloqueado</span>
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-(--color-surface-muted)">
-          <div className="h-full rounded-full bg-(--color-gastronomy) transition-all" style={{ width: `${percentage(unlockedCount, ACHIEVEMENT_DEFS.length)}%` }} />
+          <div className="h-full rounded-full bg-(--color-gastronomy) transition-all" style={{ width: `${percentage(unlockedCount, defs.length)}%` }} />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {ACHIEVEMENT_DEFS.map((def) => {
+      <div className="cascada grid grid-cols-2 gap-3">
+        {defs.map((def) => {
           const state = achievementsState.find((a) => a.id === def.id);
           const unlocked = Boolean(state?.unlockedAt);
           const IconComponent = ICONS[def.icon] ?? Trophy;

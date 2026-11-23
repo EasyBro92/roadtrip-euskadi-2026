@@ -1,4 +1,26 @@
-import type { AchievementDefinition, AchievementEvalContext } from "../types";
+import type { AchievementDefinition, AchievementEvalContext, Stop, StopCategory } from "../types";
+
+/** El viaje tiene al menos una de estas paradas: el logro va con él. */
+function tieneAlguna(ids: string[]) {
+  return (stops: Stop[]) => stops.some((s) => ids.includes(s.id));
+}
+
+function visitadasDe(ctx: AchievementEvalContext, categorias: StopCategory[]): number {
+  return ctx.stops.filter((s) => s.visited && categorias.includes(s.category)).length;
+}
+
+/** Hay algún día con paradas y todas las que cuentan, visitadas. */
+function diasRedondos(ctx: AchievementEvalContext): number {
+  const porId = new Map(ctx.stops.map((s) => [s.id, s]));
+  return ctx.trip.days.filter((d) => {
+    const paradas = d.stopIds.map((id) => porId.get(id)).filter((s): s is Stop => Boolean(s?.enabled && !s.optional));
+    return paradas.length > 0 && paradas.every((s) => s.visited);
+  }).length;
+}
+
+const COMIDA: StopCategory[] = ["gastronomia"];
+const CULTURA: StopCategory[] = ["cultura", "historia", "castillo"];
+const NATURALEZA: StopCategory[] = ["naturaleza", "paisaje", "mirador", "playa"];
 
 function stopVisited(ctx: AchievementEvalContext, stopId: string): boolean {
   return ctx.stops.some((s) => s.id === stopId && s.visited);
@@ -59,6 +81,7 @@ export const ACHIEVEMENT_DEFS: AchievementDefinition[] = [
     targetValue: 1,
     getProgress: (ctx) => Math.min(1, ctx.totalDistinctStadiumsVisited),
     isUnlocked: (ctx) => ctx.totalDistinctStadiumsVisited >= 1,
+    aplica: (stops) => stops.some((s) => s.category === "estadio"),
   },
   {
     id: "ach-all-stadiums",
@@ -69,16 +92,18 @@ export const ACHIEVEMENT_DEFS: AchievementDefinition[] = [
     targetValue: STADIUM_STOP_IDS.length,
     getProgress: (ctx) => STADIUM_STOP_IDS.filter((id) => stopVisited(ctx, id)).length,
     isUnlocked: (ctx) => STADIUM_STOP_IDS.every((id) => stopVisited(ctx, id)),
+    aplica: tieneAlguna(STADIUM_STOP_IDS),
   },
   {
     id: "ach-first-hotel",
     category: "hoteles",
     name: "Primera noche",
-    description: "Registra tu primera noche de hotel.",
+    description: "Llega a tu primer alojamiento del viaje.",
     icon: "BedDouble",
     targetValue: 1,
-    getProgress: (ctx) => Math.min(1, HOTEL_STOP_IDS.filter((id) => stopVisited(ctx, id)).length),
-    isUnlocked: (ctx) => HOTEL_STOP_IDS.some((id) => stopVisited(ctx, id)),
+    // Cualquier alojamiento visitado, no sólo los cuatro del viaje de Euskadi.
+    getProgress: (ctx) => Math.min(1, HOTEL_STOP_IDS.filter((id) => stopVisited(ctx, id)).length + visitadasDe(ctx, ["hotel"])),
+    isUnlocked: (ctx) => HOTEL_STOP_IDS.some((id) => stopVisited(ctx, id)) || visitadasDe(ctx, ["hotel"]) > 0,
   },
   {
     id: "ach-first-refuel",
@@ -99,6 +124,7 @@ export const ACHIEVEMENT_DEFS: AchievementDefinition[] = [
     targetValue: 1,
     getProgress: (ctx) => (stopVisited(ctx, "stop-parte-vieja-ss") ? 1 : 0),
     isUnlocked: (ctx) => stopVisited(ctx, "stop-parte-vieja-ss"),
+    aplica: tieneAlguna(["stop-parte-vieja-ss"]),
   },
   {
     id: "ach-rodaballo-getaria",
@@ -109,6 +135,7 @@ export const ACHIEVEMENT_DEFS: AchievementDefinition[] = [
     targetValue: 1,
     getProgress: (ctx) => (stopVisited(ctx, "stop-getaria") ? 1 : 0),
     isUnlocked: (ctx) => stopVisited(ctx, "stop-getaria"),
+    aplica: tieneAlguna(["stop-getaria"]),
   },
   {
     id: "ach-anchoas-santona",
@@ -119,6 +146,7 @@ export const ACHIEVEMENT_DEFS: AchievementDefinition[] = [
     targetValue: 1,
     getProgress: (ctx) => (stopVisited(ctx, "stop-santona") ? 1 : 0),
     isUnlocked: (ctx) => stopVisited(ctx, "stop-santona"),
+    aplica: tieneAlguna(["stop-santona"]),
   },
   {
     id: "ach-rabas-santander",
@@ -129,6 +157,7 @@ export const ACHIEVEMENT_DEFS: AchievementDefinition[] = [
     targetValue: 1,
     getProgress: (ctx) => (stopVisited(ctx, "stop-barrio-pesquero") ? 1 : 0),
     isUnlocked: (ctx) => stopVisited(ctx, "stop-barrio-pesquero"),
+    aplica: tieneAlguna(["stop-barrio-pesquero"]),
   },
   {
     id: "ach-photos-10",
@@ -189,6 +218,7 @@ export const ACHIEVEMENT_DEFS: AchievementDefinition[] = [
     targetValue: COASTAL_BASQUE_STOP_IDS.length,
     getProgress: (ctx) => COASTAL_BASQUE_STOP_IDS.filter((id) => stopVisited(ctx, id)).length,
     isUnlocked: (ctx) => COASTAL_BASQUE_STOP_IDS.every((id) => stopVisited(ctx, id)),
+    aplica: tieneAlguna(COASTAL_BASQUE_STOP_IDS),
   },
   {
     id: "ach-bilbao-completo",
@@ -199,6 +229,7 @@ export const ACHIEVEMENT_DEFS: AchievementDefinition[] = [
     targetValue: BILBAO_STOP_IDS.length,
     getProgress: (ctx) => BILBAO_STOP_IDS.filter((id) => stopVisited(ctx, id)).length,
     isUnlocked: (ctx) => BILBAO_STOP_IDS.every((id) => stopVisited(ctx, id)),
+    aplica: tieneAlguna(BILBAO_STOP_IDS),
   },
   {
     id: "ach-cantabria",
@@ -211,6 +242,61 @@ export const ACHIEVEMENT_DEFS: AchievementDefinition[] = [
       ["stop-santona", "stop-palacio-magdalena", "stop-barrio-pesquero", "stop-santander"].filter((id) => stopVisited(ctx, id)).length,
     isUnlocked: (ctx) =>
       ["stop-santona", "stop-palacio-magdalena", "stop-barrio-pesquero", "stop-santander"].every((id) => stopVisited(ctx, id)),
+    aplica: tieneAlguna(["stop-santona", "stop-palacio-magdalena", "stop-barrio-pesquero", "stop-santander"]),
+  },
+  {
+    id: "ach-dia-redondo",
+    category: "viaje",
+    name: "Día redondo",
+    description: "Visita todas las paradas de un día.",
+    icon: "CalendarCheck",
+    targetValue: 1,
+    getProgress: (ctx) => Math.min(1, diasRedondos(ctx)),
+    isUnlocked: (ctx) => diasRedondos(ctx) >= 1,
+  },
+  {
+    id: "ach-tres-dias-redondos",
+    category: "viaje",
+    name: "Tres días redondos",
+    description: "Completa todas las paradas de tres días distintos.",
+    icon: "CalendarCheck",
+    targetValue: 3,
+    getProgress: (ctx) => Math.min(3, diasRedondos(ctx)),
+    isUnlocked: (ctx) => diasRedondos(ctx) >= 3,
+    aplica: (stops) => new Set(stops.map((s) => s.dayId)).size >= 3,
+  },
+  {
+    id: "ach-buen-comer",
+    category: "gastronomia",
+    name: "Buen comer",
+    description: "Visita 5 sitios de comer del viaje.",
+    icon: "UtensilsCrossed",
+    targetValue: 5,
+    getProgress: (ctx) => Math.min(5, visitadasDe(ctx, COMIDA)),
+    isUnlocked: (ctx) => visitadasDe(ctx, COMIDA) >= 5,
+    aplica: (stops) => stops.filter((s) => COMIDA.includes(s.category)).length >= 5,
+  },
+  {
+    id: "ach-cultureta",
+    category: "viaje",
+    name: "Cultureta",
+    description: "Visita 5 museos, castillos o monumentos.",
+    icon: "Landmark",
+    targetValue: 5,
+    getProgress: (ctx) => Math.min(5, visitadasDe(ctx, CULTURA)),
+    isUnlocked: (ctx) => visitadasDe(ctx, CULTURA) >= 5,
+    aplica: (stops) => stops.filter((s) => CULTURA.includes(s.category)).length >= 5,
+  },
+  {
+    id: "ach-aire-libre",
+    category: "viaje",
+    name: "Aire libre",
+    description: "Visita 5 playas, miradores o parajes naturales.",
+    icon: "Mountain",
+    targetValue: 5,
+    getProgress: (ctx) => Math.min(5, visitadasDe(ctx, NATURALEZA)),
+    isUnlocked: (ctx) => visitadasDe(ctx, NATURALEZA) >= 5,
+    aplica: (stops) => stops.filter((s) => NATURALEZA.includes(s.category)).length >= 5,
   },
   {
     id: "ach-trip-completed",
@@ -222,3 +308,8 @@ export const ACHIEVEMENT_DEFS: AchievementDefinition[] = [
     isUnlocked: (ctx) => ctx.stops.length > 0 && ctx.stops.every((s) => s.visited || s.optional),
   },
 ];
+
+/** Los logros que tienen sentido en el viaje con estas paradas. */
+export function logrosDelViaje(stops: Stop[]): AchievementDefinition[] {
+  return ACHIEVEMENT_DEFS.filter((d) => !d.aplica || d.aplica(stops));
+}

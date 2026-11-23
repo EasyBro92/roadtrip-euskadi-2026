@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import { NumeroQueCuenta } from "./NumeroQueCuenta";
 
 interface StatCardProps {
   icon: LucideIcon;
@@ -19,7 +20,9 @@ export function StatCard({ icon: Icon, label, value, to }: StatCardProps) {
       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-(--color-navigation)/10">
         <Icon size={16} className="text-(--color-link)" aria-hidden="true" />
       </span>
-      <span className="w-full truncate text-sm font-medium text-(--color-text)">{value}</span>
+      <span className="w-full truncate text-sm font-medium text-(--color-text)">
+        <NumeroQueCuenta texto={value} />
+      </span>
       <span className="w-full truncate text-xs text-(--color-text-muted)">{label}</span>
     </>
   );

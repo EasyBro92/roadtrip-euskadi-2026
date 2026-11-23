@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { AvisoSinConexion } from "../../components/AvisoSinConexion";
+import { Celebracion } from "../../components/Celebracion";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import { avisosDeReservas, DocumentService } from "../../services/documents/DocumentService";
@@ -50,6 +51,7 @@ export function AppShell() {
         {CON_BOTON_CREAR.has(pathname) && <BotonCrear />}
       </main>
       <BottomNav />
+      <Celebracion />
     </div>
   );
 }
