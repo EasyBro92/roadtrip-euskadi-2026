@@ -347,6 +347,21 @@ a,
   animation: guardado-aparece 1.6s ease-out forwards;
 }
 
+/* La línea de la ruta se traza de principio a fin al aparecer. */
+@keyframes ruta-dibuja {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.ruta-dibuja {
+  stroke-dasharray: 1;
+  animation: ruta-dibuja 0.9s ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

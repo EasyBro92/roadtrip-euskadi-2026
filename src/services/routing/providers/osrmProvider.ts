@@ -1,4 +1,4 @@
-import type { Coordinates } from "../../../types";
+import type { Coordinates, RouteStrategy } from "../../../types";
 import type { RoutingProvider, RoutingProviderResult } from "../RoutingProvider";
 import { RoutingProviderError } from "../RoutingProvider";
 
@@ -13,9 +13,11 @@ export const osrmProvider: RoutingProvider = {
   label: "OSRM (demo público)",
   requiresApiKey: false,
   isAvailable: () => true,
-  async route(waypoints: Coordinates[]): Promise<RoutingProviderResult> {
+  async route(waypoints: Coordinates[], strategy?: RouteStrategy): Promise<RoutingProviderResult> {
     const coordsParam = waypoints.map((w) => `${w.longitude},${w.latitude}`).join(";");
-    const url = `https://router.project-osrm.org/route/v1/driving/${coordsParam}?overview=full&geometries=geojson`;
+    // El perfil de coche del servidor de demo permite excluir los peajes.
+    const sinPeajes = strategy === "no-tolls" ? "&exclude=toll" : "";
+    const url = `https://router.project-osrm.org/route/v1/driving/${coordsParam}?overview=full&geometries=geojson${sinPeajes}`;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);

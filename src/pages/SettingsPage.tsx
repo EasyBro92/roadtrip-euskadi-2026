@@ -259,6 +259,7 @@ export function SettingsPage() {
           })}
         </div>
         <div className="mt-4 space-y-3">
+          <Toggle label="Evitar peajes en las rutas" checked={settings.evitarPeajes ?? false} onChange={(v) => updateSettings({ evitarPeajes: v })} />
           <Toggle label="Ahorro de batería (menos precisión)" checked={settings.batterySaverMode} onChange={(v) => updateSettings({ batterySaverMode: v })} />
           <label className="block text-sm">
             <span className="mb-1 block text-(--color-text-muted)">Radio de llegada: {settings.arrivalRadiusMeters} m</span>

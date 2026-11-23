@@ -8,7 +8,7 @@ import { useCocheStore } from "../../stores/useCocheStore";
 import { useLocationStore } from "../../stores/useLocationStore";
 import { useSettingsStore } from "../../stores/useSettingsStore";
 import { useUIStore } from "../../stores/useUIStore";
-import type { StopCategory } from "../../types";
+import { CAPAS_POR_DEFECTO, type StopCategory } from "../../types";
 import { usePoiStore } from "../../stores/usePoiStore";
 import { PanelCerca } from "./PanelCerca";
 import { PanelCoche } from "./PanelCoche";
@@ -267,6 +267,30 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
               {layer.label}
             </button>
           ))}
+
+          <div className="mt-2 border-t px-4 pt-3" style={{ borderColor: "var(--color-border)" }}>
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">En el mapa</p>
+            {(
+              [
+                ["fotos", "Tus fotos"],
+                ["gastos", "Lo gastado en cada sitio"],
+                ["guardados", "Sitios guardados"],
+              ] as const
+            ).map(([clave, etiqueta]) => {
+              const capas = settings.capasMapa ?? CAPAS_POR_DEFECTO;
+              return (
+                <label key={clave} className="flex items-center gap-2 py-1.5 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={capas[clave]}
+                    onChange={() => updateSettings({ capasMapa: { ...capas, [clave]: !capas[clave] } })}
+                    className="h-4 w-4"
+                  />
+                  {etiqueta}
+                </label>
+              );
+            })}
+          </div>
 
           {usedCategories.length > 0 && (
             <div className="mt-2 border-t px-4 pt-3" style={{ borderColor: "var(--color-border)" }}>

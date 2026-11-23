@@ -1,4 +1,4 @@
-import type L from "leaflet";
+import L from "leaflet";
 import { Play, SkipForward, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
@@ -16,6 +16,9 @@ import { ChipsCategorias } from "../features/map/ChipsCategorias";
 import { FichaLugar } from "../features/map/FichaLugar";
 import { LugarMarker } from "../features/map/LugarMarker";
 import { useLugarStore } from "../stores/useLugarStore";
+import { CapasExtra } from "../features/map/CapasExtra";
+import { colorDelDia } from "../features/map/coloresDia";
+import { TriangleAlert, X } from "lucide-react";
 import { useLiveNavigation } from "../features/map/useLiveNavigation";
 import { useSkipToNextStop } from "../features/map/useSkipToNextStop";
 import { VehicleMarker } from "../features/map/VehicleMarker";
@@ -113,6 +116,34 @@ function FlyToCurrentStop() {
   return null;
 }
 
+/** Escala en km abajo a la izquierda, como en cualquier mapa de papel. */
+function Escala() {
+  const map = useMap();
+  useEffect(() => {
+    const control = L.control.scale({ imperial: false, position: "bottomleft", maxWidth: 90 });
+    control.addTo(map);
+    return () => {
+      control.remove();
+    };
+  }, [map]);
+  return null;
+}
+
+/** Al pasar a ver el viaje entero, el mapa encuadra todas las paradas. */
+function EncuadrarViaje({ activa }: { activa: boolean }) {
+  const map = useMap();
+  const stopsById = useTripStore((s) => s.stopsById);
+  useEffect(() => {
+    if (!activa) return;
+    const puntos = Object.values(stopsById)
+      .filter((s) => s.enabled)
+      .map((s) => [s.coordinates.latitude, s.coordinates.longitude] as [number, number]);
+    if (puntos.length > 1) map.flyToBounds(puntos, { padding: [56, 56], duration: 0.8 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activa, map]);
+  return null;
+}
+
 /** Zoom inteligente / centrado automático al cambiar de día (sección 11). */
 function AutoFitOnDayChange({ dayId }: { dayId: string }) {
   const map = useMap();
@@ -184,6 +215,21 @@ export function MapPage() {
   const layer = getMapLayer(capaSegunTema(mapLayerId, temaOscuro));
   const [map, setMap] = useState<L.Map | null>(null);
   const hayLugar = useLugarStore((s) => s.lugar != null);
+  const vistaViaje = useUIStore((s) => s.vistaViaje);
+  const rutaAproximada = useUIStore((s) => s.rutaAproximada);
+  const setRutaAproximada = useUIStore((s) => s.setRutaAproximada);
+  const pistaVista = useSettingsStore((s) => s.settings.pistaMapaVista ?? false);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
+
+  // Una sola vez: cómo marcar un punto, que no se descubre solo.
+  useEffect(() => {
+    if (pistaVista) return;
+    const t = setTimeout(() => {
+      useUIStore.getState().pushToast("Pista: mantén pulsado el mapa para marcar cualquier punto y añadirlo al viaje.", "info");
+      updateSettings({ pistaMapaVista: true });
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [pistaVista, updateSettings]);
 
   // Al salir del mapa se cierra la ficha: volver y encontrarla abierta sobre
   // otro día no tendría sentido.
@@ -206,8 +252,17 @@ export function MapPage() {
     <div className="relative h-full w-full overflow-hidden">
       <MapContainer center={center} zoom={12} className="h-full w-full" zoomControl={false}>
         <TileLayer key={layer.id} url={layer.url} attribution={layer.attribution} maxZoom={layer.maxZoom} subdomains={["a", "b", "c"]} />
-        <RoutePolylines dayId={dayId} />
-        <StopMarkers dayId={dayId} />
+        {vistaViaje ? (
+          days.map((d, i) => (
+            <RoutePolylines key={d.id} dayId={d.id} color={colorDelDia(i)} />
+          ))
+        ) : (
+          <RoutePolylines dayId={dayId} />
+        )}
+        {vistaViaje ? days.map((d) => <StopMarkers key={d.id} dayId={d.id} />) : <StopMarkers dayId={dayId} />}
+        <CapasExtra />
+        <Escala />
+        <EncuadrarViaje activa={vistaViaje} />
         <NearbyMarkers />
         <CocheMarker />
         <PoiLayer />
@@ -215,7 +270,7 @@ export function MapPage() {
         <NombresSegunZoom />
         <VehicleMarker />
         <InvalidateSizeOnSheetChange />
-        <AutoFitOnDayChange dayId={dayId} />
+        {!vistaViaje && <AutoFitOnDayChange dayId={dayId} />}
         <FollowVehicleWhilePlaying />
         <FlyToCurrentStop />
         <MapInstanceBridge onReady={setMap} />
@@ -225,6 +280,15 @@ export function MapPage() {
       <DaySelector />
       {map && <ChipsCategorias map={map} />}
       {map && <MapControls dayId={dayId} map={map} />}
+      {rutaAproximada && (
+        <div className="aparece pointer-events-auto absolute left-3 top-[160px] z-[545] flex max-w-[65%] items-start gap-1.5 rounded-xl bg-(--color-surface) px-3 py-2 text-xs text-(--color-text) shadow-(--shadow-card)">
+          <TriangleAlert size={14} className="mt-0.5 shrink-0 text-(--color-skipped)" aria-hidden="true" />
+          <span>Ruta aproximada: no hay conexión con el servicio de rutas y se dibuja en línea recta.</span>
+          <button onClick={() => setRutaAproximada(false)} aria-label="Cerrar aviso" className="-mr-1 shrink-0 text-(--color-text-muted)">
+            <X size={14} aria-hidden="true" />
+          </button>
+        </div>
+      )}
       {/* Va antes del panel inferior para quedar por debajo de él si coinciden. */}
       <PlaybackControls dayId={dayId} />
       {/* La ficha de un sitio ocupa el sitio del panel de la parada: las dos

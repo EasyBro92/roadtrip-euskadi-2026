@@ -58,6 +58,13 @@ interface UIStoreState {
 
   welcomeScreenVisible: boolean;
   dismissWelcomeScreen: () => void;
+
+  /** El mapa enseña el viaje entero, cada día de un color, en vez de un día. */
+  vistaViaje: boolean;
+  setVistaViaje: (v: boolean) => void;
+  /** Algún tramo pintado es una línea recta porque ningún servicio de rutas respondió. */
+  rutaAproximada: boolean;
+  setRutaAproximada: (v: boolean) => void;
 }
 
 export const useUIStore = create<UIStoreState>((set) => ({
@@ -81,4 +88,9 @@ export const useUIStore = create<UIStoreState>((set) => ({
 
   welcomeScreenVisible: true,
   dismissWelcomeScreen: () => set({ welcomeScreenVisible: false }),
+
+  vistaViaje: false,
+  setVistaViaje: (v) => set({ vistaViaje: v }),
+  rutaAproximada: false,
+  setRutaAproximada: (v) => set({ rutaAproximada: v }),
 }));
