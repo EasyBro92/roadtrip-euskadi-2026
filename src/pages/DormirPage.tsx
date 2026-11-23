@@ -5,6 +5,7 @@ import { nochesPorDia } from "../features/itinerary/alojamiento";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
 import { formatDateLong } from "../utils/format";
+import { haversineDistanceMeters } from "../utils/geo";
 import { openExternalUrl } from "../utils/openExternal";
 import { diaSiguiente, urlBooking } from "../utils/reservas";
 
@@ -28,13 +29,23 @@ export function DormirPage() {
   const noches = nochesPorDia(days, stopsById).slice(0, -1);
   const conSitio = noches.filter((n) => n.nombre).length;
 
-  function ciudadDe(dayId: string): string {
+  function ciudadDe(dayId: string, hotelId: string | null): string {
     const dia = days.find((d) => d.id === dayId);
     if (!dia) return "";
     if (dia.city) return dia.city;
-    // Sin ciudad apuntada, la última parada del día: es donde acabas.
-    const ultima = [...dia.stopIds].reverse().map((id) => stopsById[id]).find((s) => s?.enabled);
-    return ultima?.name ?? dia.title;
+    // Sin ciudad apuntada, un sitio del día que no sea el propio hotel ni un
+    // aparcamiento: buscar en Booking por el nombre del hotel sólo encuentra
+    // ese hotel. Si hay hotel, el sitio más cercano a él (es donde duermes);
+    // si no, el último del día (es donde acabas).
+    const sitios = dia.stopIds.map((id) => stopsById[id]).filter((s) => s?.enabled && s.category !== "hotel" && s.category !== "aparcamiento");
+    const hotel = hotelId ? stopsById[hotelId] : null;
+    if (hotel && sitios.length > 0) {
+      const cercano = [...sitios].sort(
+        (a, b) => haversineDistanceMeters(a.coordinates, hotel.coordinates) - haversineDistanceMeters(b.coordinates, hotel.coordinates),
+      )[0];
+      return cercano.name;
+    }
+    return sitios[sitios.length - 1]?.name ?? dia.title;
   }
 
   function verEnMapa(dayId: string, stopId: string) {
@@ -65,7 +76,7 @@ export function DormirPage() {
       <ul className="cascada space-y-3">
         {noches.map((noche, i) => {
           const dia = days.find((d) => d.id === noche.dayId)!;
-          const ciudad = ciudadDe(noche.dayId);
+          const ciudad = ciudadDe(noche.dayId, noche.stopId);
           const parada = noche.stopId ? stopsById[noche.stopId] : null;
           return (
             <li

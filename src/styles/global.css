@@ -385,6 +385,15 @@ a,
 .cascada > :nth-child(7) { animation-delay: 240ms; }
 .cascada > :nth-child(n + 8) { animation-delay: 280ms; }
 
+/*
+ * Con el botón + flotando abajo a la derecha, las listas necesitan aire al
+ * final: si no, el último botón de la pantalla ("Buscar lugar") queda tapado
+ * y no hay forma de tocarlo.
+ */
+.con-boton-crear .overflow-y-auto {
+  padding-bottom: 6rem;
+}
+
 /* Confeti al completar un día o ganar un logro. */
 @keyframes confeti-cae {
   0% {

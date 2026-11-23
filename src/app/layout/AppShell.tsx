@@ -42,7 +42,7 @@ export function AppShell() {
   return (
     <div className="app-shell safe-top">
       <AvisoSinConexion />
-      <main className="relative min-h-0 flex-1 overflow-hidden">
+      <main className={`relative min-h-0 flex-1 overflow-hidden ${CON_BOTON_CREAR.has(pathname) ? "con-boton-crear" : ""}`}>
         {/* La clave es la ruta: al cambiar de pantalla, la nueva entra con su
             animación en vez de aparecer de golpe. */}
         <div key={pathname} className="pantalla-entra h-full">
