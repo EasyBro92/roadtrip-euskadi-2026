@@ -1,4 +1,4 @@
-import { Heart, Navigation, Plus, Share2, X } from "lucide-react";
+import { Heart, Navigation, Plus, Receipt, Share2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CategoryThumb } from "../../components/CategoryThumb";
 import { useLocationStore } from "../../stores/useLocationStore";
@@ -6,7 +6,8 @@ import { useLugarStore, type LugarElegido } from "../../stores/useLugarStore";
 import { useSavedPlacesStore } from "../../stores/useSavedPlacesStore";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
-import { formatKm } from "../../utils/format";
+import { fechaLocal, formatEUR, formatKm } from "../../utils/format";
+import type { ExpenseCategory, StopCategory } from "../../types";
 import { haversineDistanceMeters } from "../../utils/geo";
 import { openExternalUrl } from "../../utils/openExternal";
 
@@ -14,6 +15,17 @@ function urlComoLlegar(lugar: LugarElegido): string {
   const { latitude, longitude } = lugar.coordinates;
   return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
 }
+
+/** Con qué categoría de gasto se apunta lo pagado en cada tipo de sitio. */
+const GASTO_DE: Partial<Record<StopCategory, ExpenseCategory>> = {
+  gastronomia: "restaurante",
+  hotel: "hotel",
+  aparcamiento: "aparcamiento",
+  cultura: "entrada",
+  castillo: "entrada",
+  historia: "entrada",
+  estadio: "entrada",
+};
 
 function mismoSitio(a: { nombre: string; coordinates: LugarElegido["coordinates"] }, b: LugarElegido): boolean {
   return (
@@ -42,6 +54,9 @@ export function FichaLugar() {
   const pushToast = useUIStore((s) => s.pushToast);
   const addStop = useTripStore((s) => s.addStop);
   const viajeActivo = useTripStore((s) => s.trip.name);
+  const travelers = useTripStore((s) => s.trip.travelers);
+  const currentDayId = useTripStore((s) => s.trip.currentDayId);
+  const addExpense = useTripStore((s) => s.addExpense);
   const miPosicion = useLocationStore((s) => s.position);
   // Para que el corazón lata sólo al guardar, no cada vez que se abre la ficha.
   const [latido, setLatido] = useState(0);
@@ -83,6 +98,46 @@ export function FichaLugar() {
     guardar({ nombre: lugar.nombre, coordinates: lugar.coordinates, categoria: lugar.categoria });
     setLatido((n) => n + 1);
     pushToast(`${lugar.nombre} guardado en "Quiero ir".`, "success");
+  }
+
+  /*
+   * Apuntar lo que has pagado aquí sin salir del mapa. Lo paga el primer
+   * viajero y se reparte entre todos, como en el formulario rápido de Gastos;
+   * se puede cambiar después desde allí.
+   */
+  function apuntarGasto() {
+    if (!lugar) return;
+    const sitio = lugar;
+    openModal({
+      type: "prompt",
+      title: `Gasto en ${sitio.nombre}`,
+      message: "¿Cuánto has pagado? Lo pagas tú y se reparte entre todos; puedes cambiarlo en Gastos.",
+      placeholder: "0,00",
+      onSubmit: (valor) => {
+        const importe = Number(valor.replace(",", "."));
+        if (!importe || importe <= 0) {
+          pushToast("Escribe un importe mayor que cero.", "error");
+          return;
+        }
+        const ahora = new Date();
+        addExpense({
+          date: fechaLocal(ahora),
+          time: ahora.toTimeString().slice(0, 5),
+          amountEUR: importe,
+          category: GASTO_DE[sitio.categoria] ?? "otros",
+          place: sitio.nombre,
+          dayId: currentDayId ?? null,
+          stopId: null,
+          paidByTravelerId: travelers[0]?.id ?? null,
+          splitBetweenTravelerIds: travelers.map((t) => t.id),
+          paymentMethod: "tarjeta",
+          notes: "",
+          receiptPhotoId: null,
+          kind: "actual",
+        });
+        pushToast(`${formatEUR(importe)} apuntados en ${sitio.nombre}.`, "success");
+      },
+    });
   }
 
   async function compartir() {
@@ -152,6 +207,7 @@ export function FichaLugar() {
             animar={latido > 0}
             onClick={alternarGuardado}
           />
+          <BotonRedondo icono={Receipt} etiqueta="Gasto" onClick={apuntarGasto} />
           <BotonRedondo icono={Share2} etiqueta="Compartir" onClick={() => void compartir()} />
         </div>
 
@@ -183,7 +239,7 @@ function BotonRedondo({
 }) {
   const lleno = relleno || activo;
   return (
-    <button onClick={onClick} className="flex w-20 flex-col items-center gap-1">
+    <button onClick={onClick} className="flex w-16 flex-col items-center gap-1">
       <span
         className={`flex h-11 w-11 items-center justify-center rounded-full border ${animar ? "latido" : ""}`}
         style={{

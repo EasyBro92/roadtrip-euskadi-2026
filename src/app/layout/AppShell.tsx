@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { AvisoSinConexion } from "../../components/AvisoSinConexion";
 import { useTripStore } from "../../stores/useTripStore";
+import { useUIStore } from "../../stores/useUIStore";
+import { avisosDeReservas, DocumentService } from "../../services/documents/DocumentService";
 import { BottomNav } from "./BottomNav";
 
 /**
@@ -18,6 +20,19 @@ export function AppShell() {
   useEffect(() => {
     sincronizarDiaDeHoy();
   }, [sincronizarDiaDeHoy]);
+
+  // Una vez por sesión: reservas de hoy o mañana y cancelaciones que vencen.
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("avisos-reservas")) return;
+      sessionStorage.setItem("avisos-reservas", "1");
+    } catch {
+      // Sin sessionStorage (modo privado estricto) se avisa igual.
+    }
+    void DocumentService.listar()
+      .then((docs) => avisosDeReservas(docs).forEach((a) => useUIStore.getState().pushToast(a, "info")))
+      .catch(() => undefined);
+  }, []);
 
   return (
     <div className="app-shell safe-top">

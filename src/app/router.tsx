@@ -39,6 +39,7 @@ const PlacesLibraryPage = pagina(() => import("../pages/PlacesLibraryPage"), "Pl
 const SharePage = pagina(() => import("../pages/SharePage"), "SharePage");
 const OfflinePage = pagina(() => import("../pages/OfflinePage"), "OfflinePage");
 const SettingsPage = pagina(() => import("../pages/SettingsPage"), "SettingsPage");
+const DormirPage = pagina(() => import("../pages/DormirPage"), "DormirPage");
 const HelpPage = pagina(() => import("../pages/HelpPage"), "HelpPage");
 const SummaryPage = pagina(() => import("../pages/SummaryPage"), "SummaryPage");
 const CopilotPage = pagina(() => import("../pages/CopilotPage"), "CopilotPage");
@@ -166,6 +167,7 @@ export const router = createBrowserRouter([
       { path: "/mas/compartir", element: withSuspense(<SharePage />) },
       { path: "/mas/offline", element: withSuspense(<OfflinePage />) },
       { path: "/mas/configuracion", element: withSuspense(<SettingsPage />) },
+      { path: "/mas/dormir", element: withSuspense(<DormirPage />) },
       { path: "/mas/ayuda", element: withSuspense(<HelpPage />) },
       { path: "/mas/copiloto", element: withSuspense(<CopilotPage />) },
       { path: "/mas/cerca", element: withSuspense(<NearbyPage />) },

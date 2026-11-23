@@ -22,6 +22,10 @@ export interface Documento {
   /** Día al que corresponde: entrada al hotel, hora del vuelo… */
   fecha?: ISODate;
   hora?: string;
+  /** Hasta cuándo se puede cancelar gratis, como en las reservas de Booking. */
+  cancelacionHasta?: ISODate;
+  /** Si falta pagarla o confirmarla. Sin dato, se da por confirmada. */
+  pendiente?: boolean;
   nombreFichero?: string;
   mime?: string;
   tamanoBytes?: number;
@@ -99,4 +103,27 @@ export function proximos(documentos: Documento[], hoy = new Date()): Documento[]
 
   const ventana = new Set([dia(hoy), dia(manana)]);
   return documentos.filter((d) => d.fecha && ventana.has(d.fecha));
+}
+
+/**
+ * Los avisos que salen al abrir la app: lo que empieza hoy o mañana y las
+ * cancelaciones gratis que vencen hoy o mañana.
+ *
+ * `proximos` existía y la pantalla de reservas lo prometía, pero nadie lo
+ * llamaba: el aviso no salía nunca.
+ */
+export function avisosDeReservas(documentos: Documento[], hoy = new Date()): string[] {
+  const hoyIso = fechaLocal(hoy);
+  const manana = new Date(hoy);
+  manana.setDate(manana.getDate() + 1);
+  const mananaIso = fechaLocal(manana);
+  const cuando = (f: string) => (f === hoyIso ? "hoy" : "mañana");
+
+  const avisos = proximos(documentos, hoy).map((d) => `${d.titulo}: es ${cuando(d.fecha!)}.`);
+  for (const d of documentos) {
+    if (d.cancelacionHasta === hoyIso || d.cancelacionHasta === mananaIso) {
+      avisos.push(`La cancelación gratis de ${d.titulo} vence ${cuando(d.cancelacionHasta)}.`);
+    }
+  }
+  return avisos;
 }

@@ -1,5 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { ArrowLeft, ExternalLink, FileText, Paperclip, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, CalendarClock, CheckCircle2, CircleDashed, ExternalLink, FileText, Paperclip, Plus, Trash2 } from "lucide-react";
 import { Vacio } from "../components/Vacio";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +13,7 @@ import {
 import { db } from "../services/storage/db";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
-import { formatDateShort } from "../utils/format";
+import { fechaLocal, formatDateShort } from "../utils/format";
 import { openExternalUrl } from "../utils/openExternal";
 
 /**
@@ -36,6 +36,8 @@ export function DocumentsPage() {
   const [localizador, setLocalizador] = useState("");
   const [dayId, setDayId] = useState<string>(trip.days[0]?.id ?? "");
   const [guardando, setGuardando] = useState(false);
+  const [cancelacionHasta, setCancelacionHasta] = useState("");
+  const [pendiente, setPendiente] = useState(false);
   const inputFichero = useRef<HTMLInputElement>(null);
 
   async function anadir(fichero?: File) {
@@ -46,9 +48,19 @@ export function DocumentsPage() {
     setGuardando(true);
     try {
       const dia = trip.days.find((d) => d.id === dayId);
-      await DocumentService.guardar({ titulo: titulo.trim(), tipo, localizador: localizador.trim() || undefined, dayId: dayId || null, fecha: dia?.date }, fichero);
+      await DocumentService.guardar({
+          titulo: titulo.trim(),
+          tipo,
+          localizador: localizador.trim() || undefined,
+          dayId: dayId || null,
+          fecha: dia?.date,
+          cancelacionHasta: cancelacionHasta || undefined,
+          pendiente: pendiente || undefined,
+        }, fichero);
       setTitulo("");
       setLocalizador("");
+      setCancelacionHasta("");
+      setPendiente(false);
       pushToast(fichero ? "Documento guardado." : "Datos guardados, sin fichero.", "success");
     } catch (error) {
       pushToast((error as Error).message, "error");
@@ -128,6 +140,23 @@ export function DocumentsPage() {
             />
           </div>
 
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex min-w-[160px] flex-1 flex-col text-xs text-(--color-text-muted)">
+              Cancelación gratis hasta (opcional)
+              <input
+                type="date"
+                value={cancelacionHasta}
+                onChange={(e) => setCancelacionHasta(e.target.value)}
+                className="mt-1 rounded-lg border px-2.5 py-2 text-sm text-(--color-text)"
+                style={{ borderColor: "var(--color-border)" }}
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={pendiente} onChange={(e) => setPendiente(e.target.checked)} className="h-4 w-4" />
+              Falta pagar o confirmar
+            </label>
+          </div>
+
           <div className="flex gap-2">
             <button
               onClick={() => inputFichero.current?.click()}
@@ -156,7 +185,12 @@ export function DocumentsPage() {
       </div>
 
       {documentos.length === 0 && (
-        <Vacio icon={FileText} titulo="Sin reservas guardadas" texto="Guarda aquí el PDF del hotel o el localizador y lo tendrás sin cobertura." />
+        <Vacio
+          icon={FileText}
+          titulo="Sin reservas guardadas"
+          texto="Guarda aquí el PDF del hotel o el localizador y lo tendrás sin cobertura."
+          accion={{ etiqueta: "Ver dónde dormir cada noche", onClick: () => navigate("/mas/dormir") }}
+        />
       )}
 
       {porDia.map(({ dia, docs }, i) =>
@@ -190,7 +224,28 @@ export function DocumentsPage() {
   );
 }
 
+/** Días enteros de hoy a una fecha: 0 hoy, 1 mañana, negativo si ya pasó. */
+function diasHasta(fecha: string): number {
+  const hoy = new Date(`${fechaLocal()}T00:00:00`).getTime();
+  return Math.round((new Date(`${fecha}T00:00:00`).getTime() - hoy) / 86_400_000);
+}
+
+function cuandoEs(dias: number): string {
+  if (dias === 0) return "hoy";
+  if (dias === 1) return "mañana";
+  if (dias > 1) return `en ${dias} días`;
+  if (dias === -1) return "ayer";
+  return `hace ${-dias} días`;
+}
+
+/**
+ * Una reserva como las tarjetas de "Mis reservas" de Booking: si está
+ * confirmada o falta algo, cuánto falta para la fecha y hasta cuándo se puede
+ * cancelar gratis, en verde, o en ámbar cuando el plazo está a punto de vencer.
+ */
 function Ficha({ doc, onAbrir, onBorrar }: { doc: Documento; onAbrir: (d: Documento) => void; onBorrar: (d: Documento) => void }) {
+  const faltan = doc.fecha ? diasHasta(doc.fecha) : null;
+  const cancelar = doc.cancelacionHasta ? diasHasta(doc.cancelacionHasta) : null;
   return (
     <li className="flex items-center gap-2 rounded-(--radius-card) border bg-(--color-surface) p-3" style={{ borderColor: "var(--color-border)" }}>
       <FileText size={17} className="shrink-0 text-(--color-text-muted)" aria-hidden="true" />
@@ -201,6 +256,29 @@ function Ficha({ doc, onAbrir, onBorrar }: { doc: Documento; onAbrir: (d: Docume
           {doc.localizador && <> · {doc.localizador}</>}
           {!doc.nombreFichero && <> · sin fichero</>}
         </p>
+        <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] font-medium">
+          {doc.pendiente ? (
+            <span className="flex items-center gap-1 rounded-full bg-(--color-skipped)/15 px-2 py-0.5 text-(--color-skipped)">
+              <CircleDashed size={11} aria-hidden="true" /> Pendiente
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 rounded-full bg-(--color-progress)/12 px-2 py-0.5 text-(--color-progress)">
+              <CheckCircle2 size={11} aria-hidden="true" /> Confirmada
+            </span>
+          )}
+          {faltan != null && faltan >= 0 && (
+            <span className="flex items-center gap-1 rounded-full bg-(--color-surface-muted) px-2 py-0.5 text-(--color-text)">
+              <CalendarClock size={11} aria-hidden="true" /> {faltan === 0 ? "Es hoy" : `Empieza ${cuandoEs(faltan)}`}
+            </span>
+          )}
+          {cancelar != null && (
+            <span
+              className={`rounded-full px-2 py-0.5 ${cancelar < 0 ? "bg-(--color-surface-muted) text-(--color-text-muted)" : cancelar <= 2 ? "bg-(--color-skipped)/15 text-(--color-skipped)" : "bg-(--color-progress)/12 text-(--color-progress)"}`}
+            >
+              {cancelar < 0 ? "Ya no se puede cancelar gratis" : cancelar <= 2 ? `La cancelación gratis vence ${cuandoEs(cancelar)}` : `Cancelación gratis hasta el ${formatDateShort(doc.cancelacionHasta!)}`}
+            </span>
+          )}
+        </div>
       </div>
       {doc.nombreFichero && (
         <button onClick={() => onAbrir(doc)} aria-label={`Abrir ${doc.titulo}`} className="shrink-0 p-1.5 text-(--color-link)">
