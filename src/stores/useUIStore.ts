@@ -8,6 +8,8 @@ export interface Toast {
   id: string;
   message: string;
   tone: "info" | "success" | "error";
+  /** Un botón dentro del aviso, como el "Deshacer" de Gmail. */
+  accion?: { etiqueta: string; alPulsar: () => void };
 }
 
 export type ModalState =
@@ -53,7 +55,7 @@ interface UIStoreState {
   closeModal: () => void;
 
   toasts: Toast[];
-  pushToast: (message: string, tone?: Toast["tone"]) => void;
+  pushToast: (message: string, tone?: Toast["tone"], accion?: Toast["accion"]) => void;
   dismissToast: (id: string) => void;
 
   welcomeScreenVisible: boolean;
@@ -82,8 +84,8 @@ export const useUIStore = create<UIStoreState>((set) => ({
   closeModal: () => set({ modal: { type: "none" } }),
 
   toasts: [],
-  pushToast: (message, tone = "info") =>
-    set((state) => ({ toasts: [...state.toasts, { id: crypto.randomUUID(), message, tone }] })),
+  pushToast: (message, tone = "info", accion) =>
+    set((state) => ({ toasts: [...state.toasts, { id: crypto.randomUUID(), message, tone, accion }] })),
   dismissToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 
   welcomeScreenVisible: true,

@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Vacio } from "../components/Vacio";
 import { useDaySwipe } from "../hooks/useDaySwipe";
+import { useZoomFoto } from "../hooks/useZoomFoto";
 import { AlbumService } from "../services/album/AlbumService";
 import { fotosDelAlbum } from "../services/album/flatFotos";
 import { db } from "../services/storage/db";
@@ -274,7 +275,7 @@ function VisorFotos({
         onClick={(e) => e.stopPropagation()}
         {...swipe}
       >
-        <Foto src={fotos[indice]} alt="" className="max-h-full max-w-full object-contain" />
+        <FotoAmpliable key={indice} src={fotos[indice]} />
 
         {indice > 0 && (
           <button
@@ -295,6 +296,16 @@ function VisorFotos({
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Una foto del visor que se amplía con doble toque o pellizcando. Va con `key` por foto, así el zoom no pasa a la siguiente. */
+function FotoAmpliable({ src }: { src: string }) {
+  const zoom = useZoomFoto();
+  return (
+    <div {...zoom.contenedor} className="flex h-full w-full items-center justify-center overflow-hidden">
+      <Foto src={src} alt="" draggable={false} className="max-h-full max-w-full select-none object-contain" style={zoom.estiloImagen} />
     </div>
   );
 }

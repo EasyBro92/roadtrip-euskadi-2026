@@ -1,5 +1,6 @@
 import type L from "leaflet";
-import { ArrowLeft, Bookmark, Clock, MapPin, Search, X } from "lucide-react";
+import { ArrowLeft, Bookmark, Clock, LayoutGrid, MapPin, Search, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useMemo, useRef, useState } from "react";
 import { etiquetaParada } from "../itinerary/etiquetaParada";
 import { useBusquedaDeLugares } from "../../hooks/useBusquedaDeLugares";
@@ -14,6 +15,7 @@ import { useUIStore } from "../../stores/useUIStore";
 import type { Stop } from "../../types";
 import { buscarCategoriaEnMapa } from "./buscarEnMapa";
 import { categoriaDeTipoOsm, categoriaEscrita, partirDireccion } from "./categoriaDeLugar";
+import { pantallasQueCoinciden } from "./pantallasDeLaApp";
 
 const CLAVE_RECIENTES = "busquedas-recientes";
 const MAX_RECIENTES = 6;
@@ -50,6 +52,7 @@ export function MapSearchBar({ map }: { dayId: string; map: L.Map }) {
   const guardados = useSavedPlacesStore((s) => s.lugares);
   const setBottomSheetState = useUIStore((s) => s.setBottomSheetState);
   const elegirLugar = useLugarStore((s) => s.elegir);
+  const navigate = useNavigate();
 
   const texto = query.trim();
   const categoria = categoriaEscrita(texto);
@@ -61,6 +64,8 @@ export function MapSearchBar({ map }: { dayId: string; map: L.Map }) {
       .filter((s) => sinTildes(s.name).includes(q) || s.category.includes(q))
       .slice(0, 5);
   }, [texto, allStops]);
+
+  const pantallas = useMemo(() => pantallasQueCoinciden(sinTildes(texto)), [texto]);
 
   const guardadosQueCoinciden = useMemo(() => {
     const q = sinTildes(texto);
@@ -132,7 +137,7 @@ export function MapSearchBar({ map }: { dayId: string; map: L.Map }) {
   }
 
   const escribiendo = texto.length >= 2;
-  const sinNada = !searching && !categoria && localMatches.length === 0 && guardadosQueCoinciden.length === 0 && remoteResults.length === 0;
+  const sinNada = !searching && !categoria && localMatches.length === 0 && guardadosQueCoinciden.length === 0 && pantallas.length === 0 && remoteResults.length === 0;
 
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-[570] px-3 pt-3">
@@ -238,6 +243,24 @@ export function MapSearchBar({ map }: { dayId: string; map: L.Map }) {
                     titulo={l.nombre}
                     subtitulo="Quiero ir"
                     onClick={() => abrirLugar(lugarDeGuardado(l))}
+                  />
+                ))}
+              </>
+            )}
+
+            {escribiendo && pantallas.length > 0 && (
+              <>
+                <Grupo titulo="En la app" />
+                {pantallas.map((p) => (
+                  <Fila
+                    key={p.ruta}
+                    icono={<LayoutGrid size={17} className="text-(--color-link)" />}
+                    titulo={p.nombre}
+                    subtitulo="Abrir pantalla"
+                    onClick={() => {
+                      close();
+                      navigate(p.ruta);
+                    }}
                   />
                 ))}
               </>

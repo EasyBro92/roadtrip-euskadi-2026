@@ -4,7 +4,11 @@ import { AvisoSinConexion } from "../../components/AvisoSinConexion";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import { avisosDeReservas, DocumentService } from "../../services/documents/DocumentService";
+import { BotonCrear } from "./BotonCrear";
 import { BottomNav } from "./BottomNav";
+
+/** Pantallas donde sale el botón +. En el mapa no: ya tiene sus botones y la hoja de abajo. */
+const CON_BOTON_CREAR = new Set(["/itinerario", "/diario", "/mas"]);
 
 /**
  * Contenedor de las pantallas de dentro de un viaje: altura dinámica real
@@ -37,12 +41,13 @@ export function AppShell() {
   return (
     <div className="app-shell safe-top">
       <AvisoSinConexion />
-      <main className="min-h-0 flex-1 overflow-hidden">
+      <main className="relative min-h-0 flex-1 overflow-hidden">
         {/* La clave es la ruta: al cambiar de pantalla, la nueva entra con su
             animación en vez de aparecer de golpe. */}
         <div key={pathname} className="pantalla-entra h-full">
           <Outlet />
         </div>
+        {CON_BOTON_CREAR.has(pathname) && <BotonCrear />}
       </main>
       <BottomNav />
     </div>

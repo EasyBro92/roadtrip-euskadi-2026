@@ -206,7 +206,12 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
               destructive
               onClick={() => {
                 setMenuOpen(false);
-                openModal({ type: "confirm", title: "Eliminar parada", message: `¿Eliminar "${stop.name}" del itinerario?`, onConfirm: () => deleteStop(stop.id) });
+                // Como en Gmail: se borra al momento y el aviso deja deshacerlo,
+                // en vez de preguntar antes cada vez.
+                const copia = stop;
+                const indice = useTripStore.getState().trip.days.find((d) => d.id === stop.dayId)?.stopIds.indexOf(stop.id) ?? 0;
+                deleteStop(stop.id);
+                pushToast(`"${copia.name}" eliminada.`, "info", { etiqueta: "Deshacer", alPulsar: () => useTripStore.getState().restaurarParada(copia, indice) });
               }}
             />
           </div>

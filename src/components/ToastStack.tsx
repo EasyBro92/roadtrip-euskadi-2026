@@ -15,7 +15,8 @@ export function ToastStack() {
   const dismissToast = useUIStore((s) => s.dismissToast);
 
   useEffect(() => {
-    const timers = toasts.map((toast) => setTimeout(() => dismissToast(toast.id), 4000));
+    // Con botón dura más: hay que tener tiempo de leerlo y de pulsarlo.
+    const timers = toasts.map((toast) => setTimeout(() => dismissToast(toast.id), toast.accion ? 6000 : 4000));
     return () => timers.forEach(clearTimeout);
   }, [toasts, dismissToast]);
 
@@ -29,10 +30,21 @@ export function ToastStack() {
           <div
             key={toast.id}
             role="status"
-            className={`pointer-events-auto flex max-w-sm items-center gap-2 rounded-(--radius-control) px-4 py-2.5 text-sm font-medium shadow-(--shadow-card) ${TONE_CLASSES[toast.tone]}`}
+            className={`aparece pointer-events-auto flex max-w-sm items-center gap-2 rounded-(--radius-control) px-4 py-2.5 text-sm font-medium shadow-(--shadow-card) ${TONE_CLASSES[toast.tone]}`}
           >
             <Icon size={16} aria-hidden="true" />
             <span>{toast.message}</span>
+            {toast.accion && (
+              <button
+                onClick={() => {
+                  toast.accion!.alPulsar();
+                  dismissToast(toast.id);
+                }}
+                className="control-en-linea -my-1 ml-2 shrink-0 rounded-full px-2 py-1 text-sm font-bold uppercase tracking-wide underline-offset-2 hover:underline"
+              >
+                {toast.accion.etiqueta}
+              </button>
+            )}
           </div>
         );
       })}

@@ -22,6 +22,7 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
   const yo = useTripStore((s) => s.trip.miViajeroId);
   const dueno = useDuenoDelBote();
   const deleteExpense = useTripStore((s) => s.deleteExpense);
+  const restaurarGasto = useTripStore((s) => s.restaurarGasto);
   const openModal = useUIStore((s) => s.openModal);
   const pushToast = useUIStore((s) => s.pushToast);
 
@@ -39,23 +40,26 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
   const dias = [...porFecha.entries()].sort((a, b) => b[0].localeCompare(a[0]));
 
   /**
-   * Borrar no se puede deshacer y descuadra el presupuesto, así que se
-   * pregunta diciendo exactamente qué se va.
+   * Se borra al momento y el aviso deja deshacerlo durante unos segundos.
+   * El ticket sí se espera a borrarlo: si se deshace, tiene que seguir ahí.
    */
   function borrar(e: Expense) {
     const descripcion = e.place || etiquetaCategoria(e.category);
-    openModal({
-      type: "confirm",
-      title: "Borrar gasto",
-      message: `¿Borrar ${formatEUR(e.amountEUR)} de ${descripcion}? No se puede deshacer.`,
-      onConfirm: () => {
-        // El ticket no le sirve a nadie sin su gasto, y ocupa sitio de verdad
-        // en el móvil: se va con él.
-        if (e.receiptPhotoId) void PhotoService.remove(e.receiptPhotoId);
-        deleteExpense(e.id);
-        pushToast("Gasto borrado.", "success");
+    let deshecho = false;
+    deleteExpense(e.id);
+    pushToast(`${formatEUR(e.amountEUR)} de ${descripcion} borrado.`, "info", {
+      etiqueta: "Deshacer",
+      alPulsar: () => {
+        deshecho = true;
+        restaurarGasto(e);
       },
     });
+    if (e.receiptPhotoId) {
+      const foto = e.receiptPhotoId;
+      setTimeout(() => {
+        if (!deshecho) void PhotoService.remove(foto);
+      }, 7000);
+    }
   }
 
   return (

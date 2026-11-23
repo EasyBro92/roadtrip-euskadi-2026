@@ -147,6 +147,8 @@ interface TripStoreState {
     },
   ) => ID;
   deleteStop: (id: ID) => void;
+  /** Vuelve a poner una parada recién borrada en su día y su sitio (el "Deshacer"). */
+  restaurarParada: (stop: Stop, indice: number) => void;
   duplicateStop: (id: ID) => void;
   reorderStopsInDay: (dayId: ID, orderedStopIds: ID[]) => void;
   moveStopToDay: (stopId: ID, targetDayId: ID, targetIndex: number) => void;
@@ -182,6 +184,8 @@ interface TripStoreState {
   deleteAportacion: (id: ID) => void;
   updateExpense: (id: ID, patch: Partial<Expense>) => void;
   deleteExpense: (id: ID) => void;
+  /** Devuelve un gasto recién borrado tal cual estaba. */
+  restaurarGasto: (expense: Expense) => void;
 
   // --- Checklist ---
   toggleChecklistItem: (id: ID) => void;
@@ -375,6 +379,21 @@ export const useTripStore = create<TripStoreState>()(
             currentStopId: state.trip.currentStopId === id ? null : state.trip.currentStopId,
           });
           return { stopsById: rest, trip };
+        }),
+
+      restaurarParada: (stop, indice) =>
+        set((state) => {
+          if (state.stopsById[stop.id] || !state.trip.days.some((d) => d.id === stop.dayId)) return state;
+          const trip = recomputeOverloaded({
+            ...state.trip,
+            days: state.trip.days.map((d) => {
+              if (d.id !== stop.dayId) return d;
+              const stopIds = [...d.stopIds];
+              stopIds.splice(Math.min(indice, stopIds.length), 0, stop.id);
+              return { ...d, stopIds };
+            }),
+          });
+          return { stopsById: { ...state.stopsById, [stop.id]: stop }, trip };
         }),
 
       duplicateStop: (id) =>
@@ -640,6 +659,8 @@ export const useTripStore = create<TripStoreState>()(
         }),
       updateExpense: (id, patch) => set((state) => ({ expenses: state.expenses.map((e) => (e.id === id ? { ...e, ...patch, updatedAt: new Date().toISOString() } : e)) })),
       deleteExpense: (id) => set((state) => ({ expenses: state.expenses.filter((e) => e.id !== id) })),
+      restaurarGasto: (expense) =>
+        set((state) => (state.expenses.some((e) => e.id === expense.id) ? state : { expenses: [...state.expenses, expense] })),
 
       toggleChecklistItem: (id) => set((state) => ({ checklist: state.checklist.map((c) => (c.id === id ? { ...c, checked: !c.checked } : c)) })),
       addChecklistItem: (category, label) => set((state) => ({ checklist: [...state.checklist, { id: generateId("checklist"), category, label, checked: false, isCustom: true }] })),
