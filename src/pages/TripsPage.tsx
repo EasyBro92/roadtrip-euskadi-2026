@@ -1,9 +1,10 @@
-import { BedDouble, Compass, Download, Map as MapIcon, Plane, Plus, Route, Search, Wallet, Wand2 } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { BedDouble, Compass, Sparkles, Download, Map as MapIcon, Plane, Plus, Route, Search, Wallet, Wand2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { SwipeToDelete } from "../components/SwipeToDelete";
 import { TODAS_LAS_RUTAS } from "../data/routeTemplates.data";
 import { TarjetaIdea } from "../features/inicio/TarjetaIdea";
+import { crearViajeDeEjemplo, NOMBRE_VIAJE_DE_EJEMPLO } from "../features/inicio/viajeDeEjemplo";
 import { PilaDeViajes } from "../features/trips/PilaDeViajes";
 import { repartirViajes } from "../features/trips/repartirViajes";
 import { TarjetaViaje } from "../features/trips/TarjetaViaje";
@@ -85,6 +86,16 @@ function NuevoViaje({ onCerrar }: { onCerrar: () => void }) {
   );
 }
 
+function demoYaCargada(): boolean {
+  try {
+    if (localStorage.getItem("demo-cargada")) return true;
+    localStorage.setItem("demo-cargada", "1");
+  } catch {
+    // Sin almacenamiento, se carga cada vez: mejor eso que no enseñarlo.
+  }
+  return false;
+}
+
 /** Unas pocas rutas para inspirarse, siempre las mismas en el mismo día para que no bailen al volver. */
 function ideasDelDia(): RouteTemplate[] {
   const roadtrips = TODAS_LAS_RUTAS.filter((r) => (r.tipo ?? "roadtrip") === "roadtrip" && r.stops.length > 0);
@@ -130,13 +141,36 @@ export function TripsPage() {
 
   const [creando, setCreando] = useState(false);
   const [ideas] = useState(ideasDelDia);
+  const [cargandoEjemplo, setCargandoEjemplo] = useState(false);
+  const [params] = useSearchParams();
   const trips = listTrips();
+  const hayEjemplo = trips.some((t) => t.name === NOMBRE_VIAJE_DE_EJEMPLO);
   const { activo, proximos, terminados } = repartirViajes(trips, toISODate(new Date()));
 
   function abrir(id: string, activo: boolean, destino = "/viaje") {
     if (!activo) switchTrip(id);
     navigate(destino);
   }
+
+  async function verEjemplo() {
+    setCargandoEjemplo(true);
+    try {
+      await crearViajeDeEjemplo();
+      pushToast("Viaje de ejemplo listo: Costa Brava, con el primer día hecho.", "success");
+      navigate("/viaje");
+    } finally {
+      setCargandoEjemplo(false);
+    }
+  }
+
+  // Un enlace con ?ejemplo=1 abre directamente el viaje de ejemplo: sirve para enseñar la app.
+  const pideEjemplo = params.get("ejemplo") === "1";
+  useEffect(() => {
+    // La versión de prueba (VITE_DEMO=1) lo carga sola la primera vez que se abre.
+    const demo = import.meta.env.VITE_DEMO === "1" && !hayEjemplo && !demoYaCargada();
+    if (!pideEjemplo && !demo) return;
+    void crearViajeDeEjemplo().then(() => navigate("/viaje", { replace: true }));
+  }, [pideEjemplo, hayEjemplo, navigate]);
 
   function borrar(id: string, nombre: string) {
     if (trips.length === 1) {
@@ -214,6 +248,23 @@ export function TripsPage() {
       </header>
 
       <div className="safe-x cascada">
+        {!hayEjemplo && (
+          <button
+            onClick={() => void verEjemplo()}
+            disabled={cargandoEjemplo}
+            className="tarjeta-elevable mt-5 flex w-full items-center gap-3 rounded-2xl border-2 border-dashed p-4 text-left"
+            style={{ borderColor: "color-mix(in srgb, var(--color-navigation) 45%, transparent)", background: "color-mix(in srgb, var(--color-navigation) 6%, var(--color-surface))" }}
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-(--color-accent) text-[#1a1a1a]">
+              <Sparkles size={20} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold text-(--color-text)">{cargandoEjemplo ? "Preparando el viaje…" : "Ver un viaje de ejemplo"}</span>
+              <span className="block text-xs text-(--color-text-muted)">Costa Brava en 4 días, con gastos, diario, reservas y el primer día hecho.</span>
+            </span>
+          </button>
+        )}
+
         {creando && (
           <div className="mt-5">
             <NuevoViaje onCerrar={() => setCreando(false)} />

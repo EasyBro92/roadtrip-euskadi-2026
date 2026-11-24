@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
 /**
  * Punto de entrada de la app: siempre el inicio.
@@ -9,5 +9,7 @@ import { Navigate } from "react-router-dom";
  * cualquier viaje se vuelve a ella con la barra de arriba.
  */
 export function EntryRedirect() {
-  return <Navigate to="/viajes" replace />;
+  // La consulta se conserva: un enlace con ?ejemplo=1 tiene que llegar al inicio con ella.
+  const { search } = useLocation();
+  return <Navigate to={{ pathname: "/viajes", search }} replace />;
 }

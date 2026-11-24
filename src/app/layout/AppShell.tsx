@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Outlet, useLocation, useNavigationType } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import { AvisoSinConexion } from "../../components/AvisoSinConexion";
 import { Celebracion } from "../../components/Celebracion";
 import { useTripStore } from "../../stores/useTripStore";
@@ -23,6 +23,7 @@ export function AppShell() {
   const sincronizarDiaDeHoy = useTripStore((s) => s.sincronizarDiaDeHoy);
   const { pathname, state } = useLocation();
   const tipo = useNavigationType();
+  const navigate = useNavigate();
 
   // Una vez al abrir: si hoy es un día del viaje, es el día que se enseña.
   useEffect(() => {
@@ -38,9 +39,19 @@ export function AppShell() {
       // Sin sessionStorage (modo privado estricto) se avisa igual.
     }
     void DocumentService.listar()
-      .then((docs) => avisosDeReservas(docs).forEach((a) => useUIStore.getState().pushToast(a, "info")))
+      .then((docs) => {
+        const avisos = avisosDeReservas(docs);
+        const { pushToast } = useUIStore.getState();
+        // Uno solo se cuenta entero; varios, en un aviso que lleva a la lista: cuatro avisos apilados tapaban media pantalla.
+        if (avisos.length === 1) pushToast(avisos[0], "info");
+        else if (avisos.length > 1)
+          pushToast(`Tienes ${avisos.length} avisos de reservas: hoy, mañana o cancelaciones que vencen.`, "info", {
+            etiqueta: "Ver",
+            alPulsar: () => navigate("/mas/documentos"),
+          });
+      })
       .catch(() => undefined);
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="app-shell">
