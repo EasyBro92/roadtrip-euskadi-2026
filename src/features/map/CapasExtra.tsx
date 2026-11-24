@@ -22,7 +22,7 @@ function iconoFoto(miniatura: string, cuantas: number): L.DivIcon {
   return L.divIcon({
     className: "",
     html: `<div class="pin-cae" style="position:relative;width:40px;height:40px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);background:#ddd url('${src}') center/cover;">
-      ${cuantas > 1 ? `<span style="position:absolute;right:-6px;top:-6px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#1a73e8;color:#fff;font:600 11px/18px sans-serif;text-align:center;">${cuantas}</span>` : ""}
+      ${cuantas > 1 ? `<span style="position:absolute;right:-6px;top:-6px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#006ce4;color:#fff;font:600 11px/18px sans-serif;text-align:center;">${cuantas}</span>` : ""}
     </div>`,
     iconSize: [40, 40],
     iconAnchor: [20, 46],

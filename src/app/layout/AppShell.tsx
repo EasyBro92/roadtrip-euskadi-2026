@@ -1,11 +1,13 @@
 import { useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigationType } from "react-router-dom";
 import { AvisoSinConexion } from "../../components/AvisoSinConexion";
 import { Celebracion } from "../../components/Celebracion";
 import { useTripStore } from "../../stores/useTripStore";
 import { useUIStore } from "../../stores/useUIStore";
 import { avisosDeReservas, DocumentService } from "../../services/documents/DocumentService";
+import { BarraViaje } from "./BarraViaje";
 import { BotonCrear } from "./BotonCrear";
+import { claseDeTransicion } from "./direccion";
 import { BottomNav } from "./BottomNav";
 
 /** Pantallas donde sale el botón +. En el mapa no: ya tiene sus botones y la hoja de abajo. */
@@ -19,7 +21,8 @@ const CON_BOTON_CREAR = new Set(["/itinerario", "/diario", "/mas"]);
  */
 export function AppShell() {
   const sincronizarDiaDeHoy = useTripStore((s) => s.sincronizarDiaDeHoy);
-  const { pathname } = useLocation();
+  const { pathname, state } = useLocation();
+  const tipo = useNavigationType();
 
   // Una vez al abrir: si hoy es un día del viaje, es el día que se enseña.
   useEffect(() => {
@@ -40,12 +43,13 @@ export function AppShell() {
   }, []);
 
   return (
-    <div className="app-shell safe-top">
+    <div className="app-shell">
+      <BarraViaje />
       <AvisoSinConexion />
       <main className={`relative min-h-0 flex-1 overflow-hidden ${CON_BOTON_CREAR.has(pathname) ? "con-boton-crear" : ""}`}>
         {/* La clave es la ruta: al cambiar de pantalla, la nueva entra con su
             animación en vez de aparecer de golpe. */}
-        <div key={pathname} className="pantalla-entra h-full">
+        <div key={pathname} className={`${claseDeTransicion(pathname, tipo, state)} h-full`}>
           <Outlet />
         </div>
         {CON_BOTON_CREAR.has(pathname) && <BotonCrear />}

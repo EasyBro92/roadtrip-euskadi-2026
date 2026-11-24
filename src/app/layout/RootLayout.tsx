@@ -1,4 +1,5 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigationType } from "react-router-dom";
+import { claseDeTransicion } from "./direccion";
 import { ModalHost } from "../../components/ModalHost";
 import { ToastStack } from "../../components/ToastStack";
 
@@ -15,7 +16,8 @@ import { ToastStack } from "../../components/ToastStack";
 const DENTRO_DEL_VIAJE = /\/(mapa|itinerario|diario|gastos|mas|resumen)(\/|$)/;
 
 export function RootLayout() {
-  const { pathname } = useLocation();
+  const { pathname, state } = useLocation();
+  const tipo = useNavigationType();
   const dentro = DENTRO_DEL_VIAJE.test(pathname);
   return (
     <>
@@ -24,7 +26,7 @@ export function RootLayout() {
       {/* Mis viajes, Explorar, Crear… entran animadas. Las de dentro de un
           viaje comparten una sola clave para que AppShell (con su barra de
           abajo) no se vuelva a montar en cada pestaña. */}
-      <div key={dentro ? "viaje" : pathname} className={dentro ? "h-full" : "pantalla-entra h-full"}>
+      <div key={dentro ? "viaje" : pathname} className={dentro ? "h-full" : `${claseDeTransicion(pathname, tipo, state)} h-full`}>
         <Outlet />
       </div>
     </>

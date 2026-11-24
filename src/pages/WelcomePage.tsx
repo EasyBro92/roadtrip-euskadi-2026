@@ -9,7 +9,6 @@ import { formatDateLong, formatEUR } from "../utils/format";
 export function WelcomePage() {
   const navigate = useNavigate();
   const trip = useTripStore((s) => s.trip);
-  const updateTripSettings = useTripStore((s) => s.updateTripSettings);
   const stats = useTripStats();
   const stopsById = useTripStore((s) => s.stopsById);
 
@@ -37,7 +36,7 @@ export function WelcomePage() {
           style={
             heroImage
               ? { backgroundImage: `url("${heroImage}")` }
-              : { background: "linear-gradient(160deg, #1A73E8 0%, #0B4FCC 45%, #16A34A 100%)" }
+              : { background: "linear-gradient(160deg, #006ce4 0%, #003b95 55%, #00224f 100%)" }
           }
           aria-hidden="true"
         />
@@ -47,7 +46,7 @@ export function WelcomePage() {
             callejón sin salida: no habría forma de volver a Mis viajes. */}
         <button
           onClick={() => navigate("/viajes")}
-          aria-label="Volver a mis viajes"
+          aria-label="Volver al inicio"
           className="safe-top absolute left-3 top-3 flex h-10 w-10 touch-manipulation items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm transition-transform active:scale-95"
         >
           <ArrowLeft size={20} aria-hidden="true" />
@@ -124,15 +123,6 @@ export function WelcomePage() {
           <ActionButton icon={Settings} label="Configuración" onClick={() => navigate("/mas/configuracion")} />
         </div>
 
-        <label className="mt-5 flex items-center gap-2.5 text-sm text-(--color-text-muted)">
-          <input
-            type="checkbox"
-            checked={trip.settings.skipWelcomeScreen}
-            onChange={(e) => updateTripSettings({ skipWelcomeScreen: e.target.checked })}
-            className="h-4 w-4"
-          />
-          Ir directo al mapa la próxima vez
-        </label>
       </div>
     </div>
   );

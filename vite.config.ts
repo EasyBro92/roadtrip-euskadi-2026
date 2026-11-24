@@ -31,7 +31,7 @@ export default defineConfig({
         name: "Easy Travel",
         short_name: "Easy Travel",
         description: "Planificador de viajes por carretera: mapa, itinerario, diario, copiloto y gastos, también sin conexión.",
-        theme_color: "#1A73E8",
+        theme_color: "#003B95",
         background_color: "#FAFAF7",
         display: "standalone",
         orientation: "portrait-primary",

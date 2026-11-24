@@ -33,7 +33,16 @@
   --color-text-muted: #5f6368;
   --color-border: #e8eaed;
 
-  --color-navigation: #1a73e8;
+  /*
+   * 2026-11-24: el azul pasa al de las apps de reservas (más vivo que el de
+   * Google) y se añaden dos tonos de marca: el azul marino de la cabecera y
+   * el amarillo que rodea el buscador y marca lo importante. Lo pidió Isidro:
+   * "más parecido a Booking".
+   */
+  --color-navigation: #006ce4;
+  --color-brand: #003b95;
+  --color-brand-strong: #00224f;
+  --color-accent: #ffb700;
   /*
    * El azul cuando es TEXTO, no fondo.
    *
@@ -42,7 +51,7 @@
    * legible, y son los enlaces que se leen de noche en un coche. Como fondo
    * de botón sigue valiendo el original, porque encima lleva texto blanco.
    */
-  --color-link: #1a73e8;
+  --color-link: #006ce4;
   --color-progress: #16a34a;
   --color-nature: #14b8a6;
   --color-gastronomy: #f97316;
@@ -51,7 +60,7 @@
   --color-culture: #7c3aed;
   --color-optional: #9ca3af;
 
-  --color-pending: #1a73e8;
+  --color-pending: #006ce4;
   --color-completed: #16a34a;
   --color-skipped: #eab308;
   --color-cancelled: #ef4444;
@@ -106,6 +115,9 @@
    */
   --color-border: #353a45;
   --color-link: #8ab4f8;
+  /* La cabecera de noche baja a un azul casi negro: el marino de día deslumbra. */
+  --color-brand: #0b1f44;
+  --color-brand-strong: #061330;
 
   /* Sólo profundidad: el filo lo pone el borde. */
   --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.5), 0 12px 28px rgba(0, 0, 0, 0.55);

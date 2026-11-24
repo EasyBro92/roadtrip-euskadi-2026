@@ -50,7 +50,7 @@ const ICONO_TEMA: Record<RouteTag, LucideIcon> = {
 
 /** Un color por tipo de ruta, para distinguirlas de un vistazo en la lista. */
 const PORTADA_TIPO: Record<RouteTipo, string> = {
-  roadtrip: "linear-gradient(135deg,#1a73e8,#0d9488)",
+  roadtrip: "linear-gradient(135deg,#006ce4,#003b95)",
   escapada: "linear-gradient(135deg,#f97316,#db2777)",
   ciudad: "linear-gradient(135deg,#7c3aed,#4338ca)",
 };
