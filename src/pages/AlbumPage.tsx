@@ -1,3 +1,4 @@
+import { Foto } from "../components/Foto";
 import { useLiveQuery } from "dexie-react-hooks";
 import { etiquetaParada } from "../features/itinerary/etiquetaParada";
 import { ArrowLeft, ChevronLeft, ChevronRight, Download, ImageOff, Loader2, X } from "lucide-react";
@@ -108,8 +109,8 @@ export function AlbumPage() {
 
   return (
     <div className="safe-x h-full overflow-y-auto bg-(--color-bg) px-4 pt-4 pb-8">
-      <button onClick={() => navigate(-1)} className="mb-3 flex items-center gap-1 text-sm text-(--color-text-muted)">
-        <ArrowLeft size={15} aria-hidden="true" /> Atrás
+      <button onClick={() => navigate(-1)} className="-ml-2 mb-2 flex h-11 items-center gap-1.5 rounded-full pl-2 pr-4 text-sm font-medium text-(--color-text) active:bg-(--color-surface-muted)">
+        <ArrowLeft size={20} aria-hidden="true" /> Atrás
       </button>
 
       <div className="flex items-start justify-between gap-3">
@@ -159,12 +160,12 @@ export function AlbumPage() {
                     aria-label={`Ver la foto de portada del día ${dia.index + 1} en grande`}
                     className="block w-full"
                   >
-                    <img src={portada} alt="" className="h-40 w-full object-cover" />
+                    <Foto src={portada} alt="" className="h-40 w-full object-cover" />
                   </button>
                 )}
 
                 <div className="p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-(--color-text-muted)">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-(--color-text-muted)">
                     Día {dia.index + 1} · {formatDateLong(dia.date)}
                   </p>
                   <h2 className="mt-0.5 text-lg font-semibold text-(--color-text)">{dia.title || dia.city || `Día ${dia.index + 1}`}</h2>
@@ -200,7 +201,7 @@ export function AlbumPage() {
                   <div className="grid grid-cols-2 gap-0.5">
                     {fotosDelDia.slice(1).map((url) => (
                       <button key={url} onClick={() => setIndiceAbierto(flatFotos.indexOf(url))} aria-label="Ver foto en grande">
-                        <img src={url} alt="" className="h-32 w-full object-cover" />
+                        <Foto src={url} alt="" className="h-32 w-full object-cover" />
                       </button>
                     ))}
                   </div>
@@ -273,7 +274,7 @@ function VisorFotos({
         onClick={(e) => e.stopPropagation()}
         {...swipe}
       >
-        <img src={fotos[indice]} alt="" className="max-h-full max-w-full object-contain" />
+        <Foto src={fotos[indice]} alt="" className="max-h-full max-w-full object-contain" />
 
         {indice > 0 && (
           <button

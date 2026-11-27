@@ -73,12 +73,16 @@ export function DayHeader({ day, totalDays, onEliminado }: { day: TripDay; total
           <ChevronLeft size={16} aria-hidden="true" />
         </button>
 
-        <input
+        {/* Textarea y no input: los títulos largos ("Girona → Castillo de
+            Loarre → Huesca") se cortaban a media palabra. Crece con el texto
+            donde el navegador lo permite y nunca admite saltos de línea. */}
+        <textarea
           value={day.title}
-          onChange={(e) => updateDay(day.id, { title: e.target.value })}
+          rows={1}
+          onChange={(e) => updateDay(day.id, { title: e.target.value.replace(/\n/g, " ") })}
           aria-label="Título del día"
           placeholder={`Día ${posicion + 1}`}
-          className="min-w-0 flex-1 rounded-lg bg-transparent px-2 py-1 text-center text-sm font-medium text-(--color-text)"
+          className="min-w-0 flex-1 resize-none rounded-lg bg-transparent px-2 py-1 text-center text-sm font-medium leading-snug text-(--color-text) [field-sizing:content]"
         />
 
         <button
@@ -118,7 +122,7 @@ export function DayHeader({ day, totalDays, onEliminado }: { day: TripDay; total
           value={day.city ?? ""}
           onChange={(e) => updateDay(day.id, { city: e.target.value })}
           aria-label="Ciudad o localidad del día"
-          placeholder="¿en qué ciudad?"
+          placeholder="Añadir ciudad"
           className="min-w-0 flex-1 rounded-lg bg-transparent py-0.5 text-sm font-semibold text-(--color-text) placeholder:text-xs placeholder:font-normal placeholder:text-(--color-text-muted)"
         />
       </div>

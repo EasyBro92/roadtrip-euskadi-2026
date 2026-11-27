@@ -402,7 +402,7 @@ function PracticaTab({ stop }: { stop: Stop }) {
           OpenStreetMap no tiene datos de este sitio. Puedes escribirlos tú desde el editor de la parada.
         </p>
       )}
-      {datos?.encontrado && <p className="text-[11px] text-(--color-text-muted)">Datos de OpenStreetMap, mantenidos por voluntarios.</p>}
+      {datos?.encontrado && <p className="text-xs text-(--color-text-muted)">Datos de OpenStreetMap, mantenidos por voluntarios.</p>}
     </div>
   );
 }

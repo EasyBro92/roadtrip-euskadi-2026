@@ -78,7 +78,7 @@ export function TarjetaViaje({
       <div className="absolute inset-0 transition-[background] duration-500" style={{ background: velo(tinte) }} aria-hidden="true" />
 
       {viaje.isActive && (
-        <span className="absolute right-3 top-3 rounded-full bg-white/25 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
+        <span className="absolute right-3 top-3 rounded-full bg-white/25 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
           En curso
         </span>
       )}

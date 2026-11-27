@@ -54,7 +54,7 @@ export function BottomNav() {
                   aria-hidden="true"
                 />
               </span>
-              <span className={clsx("text-[11px]", isActive ? "font-medium text-(--color-link)" : "text-(--color-text-muted)")}>{t(label)}</span>
+              <span className={clsx("text-xs", isActive ? "font-medium text-(--color-link)" : "text-(--color-text-muted)")}>{t(label)}</span>
             </>
           )}
         </NavLink>

@@ -16,6 +16,12 @@ export interface RouteTemplateStop {
  * se copia a un viaje nuevo, o de la que se cogen paradas sueltas. La ruta
  * original nunca se modifica.
  */
+/** Qué clase de ruta es: un viaje por carretera, una escapada de un día o una ciudad a pie. */
+export type RouteTipo = "roadtrip" | "escapada" | "ciudad";
+
+/** Temas para filtrar en Explorar. */
+export type RouteTag = "costa" | "montaña" | "pueblos" | "naturaleza" | "cultura" | "gastronomia" | "vino" | "castillos";
+
 export interface RouteTemplate {
   id: ID;
   name: string;
@@ -23,4 +29,8 @@ export interface RouteTemplate {
   summary: string;
   dayCount: number;
   stops: RouteTemplateStop[];
+  /** Opcionales para no romper rutas guardadas o importadas de antes. */
+  tipo?: RouteTipo;
+  tags?: RouteTag[];
+  country?: string;
 }

@@ -18,7 +18,7 @@ export function AvisoSinConexion() {
   return (
     <div
       role="status"
-      className="safe-x flex shrink-0 items-center justify-center gap-1.5 bg-(--color-skipped)/20 py-1 text-[11px] font-medium text-(--color-text)"
+      className="safe-x flex shrink-0 items-center justify-center gap-1.5 bg-(--color-skipped)/20 py-1 text-xs font-medium text-(--color-text)"
     >
       <WifiOff size={12} aria-hidden="true" />
       Sin conexión · tu viaje, notas, gastos y fotos siguen funcionando

@@ -57,7 +57,7 @@ export function LocationBreak({ metros, stopId }: { metros: number; stopId?: str
         onClick={cambiar}
         disabled={!stopId}
         aria-label={stopId ? `${ETIQUETA_MODO[modo]}. Cambiar cómo llegas` : undefined}
-        className="control-en-linea relative flex items-center gap-1.5 rounded-full border bg-(--color-surface) px-2.5 py-0.5 text-[11px] font-medium text-(--color-text-muted)"
+        className="control-en-linea relative flex items-center gap-1.5 rounded-full border bg-(--color-surface) px-2.5 py-0.5 text-xs font-medium text-(--color-text-muted)"
         style={{ borderColor: "var(--color-border)" }}
       >
         <Icono size={12} aria-hidden="true" />

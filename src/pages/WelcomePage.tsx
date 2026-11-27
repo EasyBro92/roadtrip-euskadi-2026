@@ -1,4 +1,4 @@
-import { ArrowLeft, BedDouble, Car, Download, Gauge, MapPinned, Pencil, Settings, Share2, Trophy, Users, Wallet } from "lucide-react";
+import { ArrowLeft, BedDouble, Car, Download, Gauge, MapPinned, Pencil, Settings, Share2, Trophy, Users, Wallet, MapPin } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { StatCard } from "../components/StatCard";
@@ -106,7 +106,13 @@ export function WelcomePage() {
           <StatCard icon={MapPinned} label="Días" value={String(stats.totalDays)} to="/itinerario" />
           <StatCard icon={Gauge} label="Km estimados" value={`${stats.estimatedKm}`} to="/mapa" />
           <StatCard icon={BedDouble} label="Hoteles" value={String(stats.totalHotels)} to="/itinerario?categoria=hotel" />
-          <StatCard icon={Trophy} label="Estadios" value={String(stats.totalStadiums)} to="/itinerario?categoria=estadio" />
+          {/* "Estadios" solo tiene sentido en un viaje con estadios (el de Euskadi);
+              en cualquier otro viaje salía un 0 que no decía nada. */}
+          {stats.totalStadiums > 0 ? (
+            <StatCard icon={Trophy} label="Estadios" value={String(stats.totalStadiums)} to="/itinerario?categoria=estadio" />
+          ) : (
+            <StatCard icon={MapPin} label="Paradas" value={String(stats.totalStops)} to="/itinerario" />
+          )}
           <StatCard icon={Wallet} label="Presupuesto" value={formatEUR(stats.budgetEUR)} to="/gastos" />
           <StatCard icon={Settings} label="Preparado" value={`${stats.checklistPercentage}%`} to="/mas/checklist" />
         </div>

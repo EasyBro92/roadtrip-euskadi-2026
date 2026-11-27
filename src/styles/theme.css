@@ -12,6 +12,18 @@
  * lugares en su vista "Explorar".
  */
 @theme {
+  /*
+   * Tamaños de letra un punto por encima de los de Tailwind. Con 12 px en las
+   * etiquetas y 14 px en el texto normal no se leía en el soporte del coche ni
+   * al sol. Ninguna letra de la app baja ya de 13 px.
+   */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.375rem;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.5rem;
+
   --font-sans: "Roboto", "Google Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --color-bg: #fafaf7;

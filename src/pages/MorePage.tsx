@@ -1,3 +1,4 @@
+import { Foto } from "../components/Foto";
 import { BookImage, Bookmark, Car, ChevronsUpDown, FileText, Globe2, HardDrive, CircleHelp, CloudDownload, Compass, CornerUpLeft, Flag, ListChecks, MapPinned, NotebookPen, Radar, Settings, Share2, Sparkles, Star, Trophy, type LucideIcon } from "lucide-react";
 import { TituloPantalla } from "../components/TituloPantalla";
 import { useNavigate } from "react-router-dom";
@@ -41,7 +42,7 @@ const GROUPS: { title: string; items: MoreItem[] }[] = [
   {
     title: "Preparación",
     items: [
-      { to: "/mas/mi-golf", label: "Mi Golf", description: "Consumo, repostajes y estadísticas", icon: Car },
+      { to: "/mas/coche", label: "Mi coche", description: "Consumo, repostajes y estadísticas", icon: Car },
       { to: "/mas/checklist", label: "Checklist", description: "Documentación, vehículo y equipaje", icon: ListChecks },
       { to: "/mas/preparar", label: "Preparar el viaje", description: "Déjalo todo listo antes de salir, con wifi", icon: CloudDownload },
       { to: "/mas/offline", label: "Contenido offline", description: "Espacio, límites y cobertura del mapa", icon: HardDrive },
@@ -114,7 +115,7 @@ export function MorePage() {
         >
           {portada ? (
             <>
-              <img src={portada} alt="" className="h-28 w-full object-cover" />
+              <Foto src={portada} alt="" className="h-28 w-full object-cover" />
               <span className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-3 pt-10">
                 <Compass size={17} className="shrink-0 text-white" aria-hidden="true" />
                 <span className="min-w-0 flex-1 truncate text-[15px] font-semibold text-white">{trip.name}</span>

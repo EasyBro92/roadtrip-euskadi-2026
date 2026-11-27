@@ -72,3 +72,35 @@ export function duracionDelDia(stops: Stop[]): DuracionDia {
 export function diaNoCabe(stops: Stop[]): boolean {
   return duracionDelDia(stops).nivel === "imposible";
 }
+
+/** Hora a la que se sale por la mañana si no se dice otra cosa: las 9:00. */
+export const SALIDA_POR_DEFECTO_MIN = 9 * 60;
+
+/**
+ * A qué hora llegarías a cada parada, en minutos desde medianoche, saliendo a
+ * `salidaMin` y con el mismo cálculo de tramos que la duración del día.
+ *
+ * Es una estimación para avisar de "llegarías a las 19:30 y cierra a las
+ * 19:00", no un horario: por eso un tramo en tren o avión, que no se puede
+ * estimar, corta el cálculo y las paradas siguientes se quedan sin hora.
+ */
+export function horasDeLlegada(stops: Stop[], salidaMin = SALIDA_POR_DEFECTO_MIN): Record<string, number> {
+  const activas = stops.filter((s) => s.enabled);
+  const llegadas: Record<string, number> = {};
+  let reloj = salidaMin;
+
+  for (let i = 0; i < activas.length; i++) {
+    if (i > 0) {
+      // Sin coordenadas (datos viejos o importados a medias) no hay tramo que estimar.
+      if (!activas[i - 1].coordinates || !activas[i].coordinates) break;
+      const metros = haversineDistanceMeters(activas[i - 1].coordinates, activas[i].coordinates);
+      const modo = activas[i].modoLlegada ?? modoPorDefecto(metros);
+      const tramo = minutosDeTramo(metros, modo);
+      if (tramo == null) break;
+      reloj += tramo;
+    }
+    llegadas[activas[i].id] = reloj;
+    reloj += activas[i].recommendedDurationMinutes || 0;
+  }
+  return llegadas;
+}

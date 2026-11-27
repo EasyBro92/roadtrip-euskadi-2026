@@ -26,8 +26,8 @@ export function ChecklistPage() {
 
   return (
     <div className="safe-x h-full overflow-y-auto bg-(--color-bg) px-4 pt-4 pb-8">
-      <button onClick={() => navigate(-1)} className="mb-3 flex items-center gap-1 text-sm text-(--color-text-muted)">
-        <ArrowLeft size={15} aria-hidden="true" /> Atrás
+      <button onClick={() => navigate(-1)} className="-ml-2 mb-2 flex h-11 items-center gap-1.5 rounded-full pl-2 pr-4 text-sm font-medium text-(--color-text) active:bg-(--color-surface-muted)">
+        <ArrowLeft size={20} aria-hidden="true" /> Atrás
       </button>
       <div className="mb-1 flex items-center justify-between">
         <h1 className="text-xl font-bold">Checklist</h1>

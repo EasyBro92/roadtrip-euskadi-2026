@@ -12,7 +12,12 @@ interface NearbyState {
   /** Resultado que has tocado en la lista, para resaltarlo en el mapa. */
   resaltado: string | null;
 
-  buscar: (centro: Coordinates, categoria: NearbyCategory, reintentar?: boolean) => Promise<void>;
+  /** La última búsqueda fue a lo largo de la ruta del día, no alrededor de un punto. */
+  enRuta: boolean;
+  /**
+   * Con `trayecto`, busca a lo largo de él en vez de alrededor de `centro`.
+   */
+  buscar: (centro: Coordinates, categoria: NearbyCategory, reintentar?: boolean, trayecto?: Coordinates[]) => Promise<void>;
   resaltar: (id: string | null) => void;
   limpiar: () => void;
 }
@@ -41,16 +46,18 @@ export const useNearbyStore = create<NearbyState>()((set) => ({
   cargando: false,
   error: null,
   resaltado: null,
+  enRuta: false,
 
-  buscar: async (centro, categoria, reintentar = false) => {
+  buscar: async (centro, categoria, reintentar = false, trayecto) => {
     // Reintentar tras un fallo tiene que saltarse la caché; si no, el botón
     // devolvería el mismo error sin llegar a preguntar de nuevo.
     if (reintentar) olvidarCercanos();
 
     const mia = ++ultimaPeticion;
-    set({ categoria, cargando: true, error: null, centro, resaltado: null });
+    const enRuta = Boolean(trayecto && trayecto.length >= 2);
+    set({ categoria, cargando: true, error: null, centro, resaltado: null, enRuta });
     try {
-      const resultados = await NearbyService.search(centro, categoria);
+      const resultados = enRuta ? await NearbyService.searchAlongRoute(trayecto!, categoria) : await NearbyService.search(centro, categoria);
       if (mia !== ultimaPeticion) return;
       set({ resultados, cargando: false });
     } catch (error) {

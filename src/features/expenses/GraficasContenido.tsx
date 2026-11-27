@@ -33,7 +33,7 @@ export default function GraficasContenido({ tarta, barras }: { tarta: PorcionCat
         </div>
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
           {tarta.map((d) => (
-            <span key={d.name} className="flex items-center gap-1 text-[11px] text-(--color-text-muted)">
+            <span key={d.name} className="flex items-center gap-1 text-xs text-(--color-text-muted)">
               <span className="h-2 w-2 rounded-full" style={{ background: colorCategoria(d.name) }} aria-hidden="true" />
               {etiquetaCategoria(d.name)}
             </span>

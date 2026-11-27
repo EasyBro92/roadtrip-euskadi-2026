@@ -75,7 +75,7 @@ export function ReturnTripPage() {
     compute();
   }, [compute]);
 
-  /** Combustible y coste según el consumo real configurado del Golf. */
+  /** Combustible y coste según el consumo real configurado del coche. */
   function estimate(distanceMeters: number | null) {
     if (distanceMeters == null) return null;
     const km = distanceMeters / 1000;
@@ -87,8 +87,8 @@ export function ReturnTripPage() {
 
   return (
     <div className="safe-x h-full overflow-y-auto bg-(--color-bg) px-4 pt-4 pb-8">
-      <button onClick={() => navigate(-1)} className="mb-3 flex items-center gap-1 text-sm text-(--color-text-muted)">
-        <ArrowLeft size={15} aria-hidden="true" /> Atrás
+      <button onClick={() => navigate(-1)} className="-ml-2 mb-2 flex h-11 items-center gap-1.5 rounded-full pl-2 pr-4 text-sm font-medium text-(--color-text) active:bg-(--color-surface-muted)">
+        <ArrowLeft size={20} aria-hidden="true" /> Atrás
       </button>
       <h1 className="mb-1 text-xl font-bold">Regreso a Girona</h1>
       <p className="mb-4 text-xs text-(--color-text-muted)">
@@ -143,7 +143,7 @@ export function ReturnTripPage() {
       </div>
 
       <p className="mt-4 text-xs text-(--color-text-muted)">
-        El precio del combustible no se estima aquí porque depende del día: regístralo en Mi Golf al repostar y verás el coste real ({formatEUR(0)} hasta ahora si no has añadido repostajes).
+        El precio del combustible no se estima aquí porque depende del día: regístralo en Mi coche al repostar y verás el coste real ({formatEUR(0)} hasta ahora si no has añadido repostajes).
       </p>
     </div>
   );

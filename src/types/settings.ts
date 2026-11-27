@@ -28,6 +28,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   batterySaverMode: false,
   drivingModeEnabled: false,
   offlineLimitMB: 250,
-  language: "auto",
+  language: "es",
   reducedMotion: false,
 };

@@ -116,7 +116,7 @@ export function ListaGastos({ expenses }: { expenses: Expense[] }) {
                         {/* Lo mismo que hace Splitwise: cada línea dice qué
                             significa para ti, no sólo lo que costó. */}
                         {relativo && (
-                          <span className="block text-[11px]" style={{ color: relativo.color }}>
+                          <span className="block text-xs" style={{ color: relativo.color }}>
                             {relativo.texto}
                           </span>
                         )}

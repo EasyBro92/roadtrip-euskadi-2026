@@ -256,13 +256,13 @@ export function ItineraryPage() {
  * el día, y eso no se lanza sin que lo pidas.
  */
 function AvisoCierres({ stops, fecha }: { stops: Stop[]; fecha: ISODate }) {
-  const { cerradas, sinComprobar, sinHorario, comprobando, progreso, comprobar } = useDayClosures(stops, fecha);
+  const { cerradas, cerradasALaLlegada, sinComprobar, sinHorario, comprobando, progreso, comprobar } = useDayClosures(stops, fecha);
 
-  if (cerradas.length === 0 && sinComprobar === 0 && sinHorario === 0) return null;
+  if (cerradas.length === 0 && cerradasALaLlegada.length === 0 && sinComprobar === 0 && sinHorario === 0) return null;
 
   // Nada cerrado: lo único que queda es la invitación a comprobar horarios, y
   // eso es un botón pequeño, no una tira a lo ancho.
-  if (cerradas.length === 0 && !comprobando && sinComprobar > 0) {
+  if (cerradas.length === 0 && cerradasALaLlegada.length === 0 && !comprobando && sinComprobar > 0) {
     return (
       <ChipAviso icon={Clock} onClick={comprobar}>
         Comprobar {sinComprobar} {sinComprobar === 1 ? "horario" : "horarios"}
@@ -282,7 +282,22 @@ function AvisoCierres({ stops, fecha }: { stops: Stop[]; fecha: ISODate }) {
         </div>
       )}
 
-      <div className={cerradas.length > 0 ? "mt-2" : ""}>
+      {cerradasALaLlegada.length > 0 && (
+        <div className={`flex items-start gap-2 ${cerradas.length > 0 ? "mt-2" : ""}`}>
+          <Clock size={15} className="mt-0.5 shrink-0 text-(--color-skipped)" aria-hidden="true" />
+          <div className="space-y-0.5">
+            {cerradasALaLlegada.map((c) => (
+              <p key={c.id}>
+                <span className="font-medium">{c.nombre}</span>: llegarías hacia las {c.llegada} y estará cerrado
+                {c.abreA ? ` (abre a las ${c.abreA})` : ""}.
+              </p>
+            ))}
+            <p className="text-(--color-text-muted)">Calculado saliendo a las 9:00. Cambia el orden o acorta alguna visita.</p>
+          </div>
+        </div>
+      )}
+
+      <div className={cerradas.length > 0 || cerradasALaLlegada.length > 0 ? "mt-2" : ""}>
         {comprobando ? (
           <p className="text-(--color-text-muted)">
             Comprobando horarios… {progreso ? `${progreso.hechas} de ${progreso.total}` : ""}

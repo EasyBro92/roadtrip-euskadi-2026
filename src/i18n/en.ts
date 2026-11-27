@@ -121,7 +121,7 @@ export const EN: Record<string, string> = {
   "Lo que has puntuado y las reseñas que escribiste": "What you rated and the reviews you wrote",
   "Desbloquea hitos del roadtrip": "Unlock milestones of the road trip",
   "Consumo, repostajes y estadísticas": "Consumption, refuelling and stats",
-  "Mi Golf": "My car",
+  "Mi coche": "My car",
   Checklist: "Checklist",
   "Documentación, vehículo y equipaje": "Papers, vehicle and luggage",
   "Descarga el viaje para la carretera": "Download the trip for the road",

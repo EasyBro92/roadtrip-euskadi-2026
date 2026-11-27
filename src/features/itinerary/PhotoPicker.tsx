@@ -1,3 +1,4 @@
+import { Foto } from "../../components/Foto";
 import { Check, ImageOff, Loader2, Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { PhotoSearchService, type PhotoCandidate } from "../../services/photos/PhotoSearchService";
@@ -68,7 +69,7 @@ export function PhotoPicker({ coordinates, name, value, onChange }: PhotoPickerP
 
       {value && (
         <div className="mb-2 flex items-center gap-2">
-          <img src={value} alt="" className="h-16 w-24 rounded-lg object-cover" />
+          <Foto src={value} alt="" className="h-16 w-24 rounded-lg object-cover" />
           <button onClick={() => onChange(undefined)} className="text-xs font-medium text-(--color-cancelled)">
             Quitar foto
           </button>
@@ -119,7 +120,7 @@ export function PhotoPicker({ coordinates, name, value, onChange }: PhotoPickerP
                   aria-label={`Usar la foto ${foto.title}`}
                   className={`relative aspect-[4/3] overflow-hidden rounded-lg border-2 ${elegida ? "border-(--color-navigation)" : "border-transparent"}`}
                 >
-                  <img src={foto.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  <Foto src={foto.url} alt="" loading="lazy" className="h-full w-full object-cover" />
                   {elegida && (
                     <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-(--color-navigation) text-white">
                       <Check size={12} aria-hidden="true" />
@@ -129,7 +130,7 @@ export function PhotoPicker({ coordinates, name, value, onChange }: PhotoPickerP
               );
             })}
           </div>
-          <p className="mt-1.5 text-[11px] text-(--color-text-muted)">Fotos de Wikimedia Commons, de licencia libre.</p>
+          <p className="mt-1.5 text-xs text-(--color-text-muted)">Fotos de Wikimedia Commons, de licencia libre.</p>
         </>
       )}
     </div>

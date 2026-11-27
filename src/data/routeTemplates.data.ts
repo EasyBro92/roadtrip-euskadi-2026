@@ -1,5 +1,6 @@
 import type { RouteTemplate } from "../types";
 import { CATALOGO_CIUDADES } from "./routeCatalog.data";
+import { ROADTRIPS_CRUDOS } from "./roadtrips.data";
 
 /**
  * Catálogo de rutas prehechas (Explorar).
@@ -14,6 +15,9 @@ export const ROUTE_TEMPLATES: RouteTemplate[] = [
     id: "ruta-costa-brava",
     name: "Costa Brava en 4 días",
     region: "Girona, Cataluña",
+    country: "España",
+    tipo: "roadtrip",
+    tags: ["costa", "pueblos", "naturaleza"],
     summary:
       "De Girona al Cap de Creus bordeando calas, pueblos de pescadores y acantilados. Distancias cortas: se conduce poco y se camina mucho.",
     dayCount: 4,
@@ -72,6 +76,9 @@ export const ROUTE_TEMPLATES: RouteTemplate[] = [
     id: "ruta-picos-europa",
     name: "Picos de Europa en 5 días",
     region: "Asturias y Cantabria",
+    country: "España",
+    tipo: "roadtrip",
+    tags: ["montaña", "naturaleza", "pueblos"],
     summary:
       "Covadonga, sus lagos y el teleférico de Fuente Dé, cruzando de Asturias a Cantabria por el desfiladero. Etapas de montaña: conducción lenta.",
     dayCount: 5,
@@ -128,11 +135,31 @@ export const ROUTE_TEMPLATES: RouteTemplate[] = [
   },
 ];
 
+/** Los road trips y escapadas geocodificados por `scripts/build-roadtrips.mjs`. */
+export const ROADTRIPS: RouteTemplate[] = ROADTRIPS_CRUDOS.map((r) => ({
+  id: r.id,
+  name: r.name,
+  region: r.region,
+  country: r.country,
+  tipo: r.tipo,
+  tags: r.tags,
+  summary: r.summary,
+  dayCount: r.days,
+  stops: r.stops.map(([name, category, latitude, longitude, recommendedDurationMinutes, dayIndex, shortDescription]) => ({
+    name,
+    category,
+    coordinates: { latitude, longitude },
+    shortDescription,
+    recommendedDurationMinutes,
+    dayIndex,
+  })),
+}));
+
 /**
- * Todo lo que ve Explorar: primero las rutas por carretera escritas a mano
- * —que llevan resumen y descripciones— y después las 32 ciudades generadas.
+ * Todo lo que ve Explorar: primero los road trips —escritos a mano los dos
+ * primeros, generados el resto— y después las ciudades.
  */
-export const TODAS_LAS_RUTAS: RouteTemplate[] = [...ROUTE_TEMPLATES, ...CATALOGO_CIUDADES];
+export const TODAS_LAS_RUTAS: RouteTemplate[] = [...ROUTE_TEMPLATES, ...ROADTRIPS, ...CATALOGO_CIUDADES];
 
 export function getRouteTemplate(id: string): RouteTemplate | undefined {
   return TODAS_LAS_RUTAS.find((t) => t.id === id);

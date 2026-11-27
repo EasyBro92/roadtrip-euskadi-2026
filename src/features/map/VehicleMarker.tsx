@@ -3,10 +3,11 @@ import { useEffect, useMemo, useRef } from "react";
 import { Marker } from "react-leaflet";
 import { useSettingsStore } from "../../stores/useSettingsStore";
 import { useVehicleAnimationStore } from "../../stores/useVehicleAnimationStore";
+import { useTripStore } from "../../stores/useTripStore";
 import { buildCarMarkerHtml } from "../../utils/carIcon";
 
 /**
- * Marcador del Golf negro (sección 5 y 13). Solo se renderiza cuando hay una
+ * Marcador del coche (sección 5 y 13). Solo se renderiza cuando hay una
  * posición activa (tras el primer play/salto de parada). El panel inferior
  * nunca debe taparlo: MapPage ajusta el `paddingBottomRight` del mapa según
  * el estado del bottom sheet.
@@ -14,6 +15,7 @@ import { buildCarMarkerHtml } from "../../utils/carIcon";
 export function VehicleMarker() {
   const position = useVehicleAnimationStore((s) => s.position);
   const bearing = useVehicleAnimationStore((s) => s.bearing);
+  const vehiculo = useTripStore((s) => `${s.trip.vehicle.make} ${s.trip.vehicle.model}`.trim());
   const theme = useSettingsStore((s) => s.settings.theme);
   const markerRef = useRef<L.Marker | null>(null);
 
@@ -41,5 +43,5 @@ export function VehicleMarker() {
 
   if (!position) return null;
 
-  return <Marker ref={markerRef} position={[position.latitude, position.longitude]} icon={icon} alt="Vehículo: Volkswagen Golf 1.9 TDI negro" zIndexOffset={1000} />;
+  return <Marker ref={markerRef} position={[position.latitude, position.longitude]} icon={icon} alt={`Vehículo: ${vehiculo || "tu coche"}`} zIndexOffset={1000} />;
 }

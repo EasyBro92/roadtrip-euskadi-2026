@@ -45,8 +45,8 @@ export function NotesPage() {
 
   return (
     <div className="safe-x h-full overflow-y-auto bg-(--color-bg) px-4 pt-4 pb-8">
-      <button onClick={() => navigate(-1)} className="mb-3 flex items-center gap-1 text-sm text-(--color-text-muted)">
-        <ArrowLeft size={15} aria-hidden="true" /> Atrás
+      <button onClick={() => navigate(-1)} className="-ml-2 mb-2 flex h-11 items-center gap-1.5 rounded-full pl-2 pr-4 text-sm font-medium text-(--color-text) active:bg-(--color-surface-muted)">
+        <ArrowLeft size={20} aria-hidden="true" /> Atrás
       </button>
       <h1 className="mb-3 text-xl font-bold">Notas del viaje</h1>
 
@@ -86,7 +86,7 @@ export function NotesPage() {
             <div className="flex items-start justify-between gap-2">
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-xs font-medium text-(--color-link)">{targetName(note.targetType, note.targetId)}</span>
-                <span className="block text-[11px] text-(--color-text-muted)">{new Date(note.date).toLocaleDateString("es-ES", { day: "numeric", month: "long" })}</span>
+                <span className="block text-xs text-(--color-text-muted)">{new Date(note.date).toLocaleDateString("es-ES", { day: "numeric", month: "long" })}</span>
               </span>
               <span className="flex shrink-0 items-center gap-1">
                 <button onClick={() => updateNote(note.id, { favorite: !note.favorite })} aria-label={note.favorite ? "Quitar de favoritas" : "Marcar como favorita"}>

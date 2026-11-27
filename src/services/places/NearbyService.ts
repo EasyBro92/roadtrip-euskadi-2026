@@ -130,7 +130,77 @@ export function olvidarCercanos(): void {
  * sin clave). Si Overpass no responde, devolvemos un error explícito en vez
  * de inventar resultados (sección 50 del encargo).
  */
+/** Deja el trayecto en `maximo` puntos repartidos, conservando el primero y el último. */
+export function simplificarTrayecto(trayecto: Coordinates[], maximo = 60): Coordinates[] {
+  if (trayecto.length <= maximo) return trayecto;
+  const paso = (trayecto.length - 1) / (maximo - 1);
+  return Array.from({ length: maximo }, (_, i) => trayecto[Math.round(i * paso)]);
+}
+
+/** Kilómetros desde el principio del trayecto hasta el punto del trayecto más cercano al sitio. */
+export function kmEnElTrayecto(trayecto: Coordinates[], sitio: Coordinates): number {
+  let acumulado = 0;
+  let mejor = { distancia: Infinity, km: 0 };
+  for (let i = 0; i < trayecto.length; i++) {
+    if (i > 0) acumulado += haversineDistanceMeters(trayecto[i - 1], trayecto[i]);
+    const d = haversineDistanceMeters(trayecto[i], sitio);
+    if (d < mejor.distancia) mejor = { distancia: d, km: acumulado / 1000 };
+  }
+  return mejor.km;
+}
+
 export const NearbyService = {
+  /**
+   * Lo mismo que `search`, pero a lo largo de un trayecto en vez de alrededor
+   * de un punto: "gasolineras en la ruta de hoy". Overpass acepta una línea
+   * en `around`, así que es una sola consulta.
+   *
+   * `distanceMeters` aquí es cuánto llevas recorrido del trayecto cuando
+   * pasas por su lado, que es lo que importa conduciendo: "a 80 km".
+   */
+  async searchAlongRoute(trayecto: Coordinates[], category: NearbyCategory, corredorMetros = 2000): Promise<NearbyPlace[]> {
+    const puntos = simplificarTrayecto(trayecto);
+    if (puntos.length < 2) return [];
+    const clave = `ruta:${puntos.map((p) => `${p.latitude.toFixed(3)},${p.longitude.toFixed(3)}`).join(";")}:${category}:${corredorMetros}`;
+    const guardado = cache.get(clave);
+    if (guardado && Date.now() - guardado.en < CADUCIDAD_MS) return guardado.resultados;
+
+    const linea = puntos.map((p) => `${p.latitude.toFixed(5)},${p.longitude.toFixed(5)}`).join(",");
+    const query = `[out:json][timeout:25];${OVERPASS_FILTER[category]}(around:${corredorMetros},${linea});out body 60;`;
+
+    const response = await fetch(OVERPASS_ENDPOINT, {
+      signal: AbortSignal.timeout(LIMITE_MS * 2),
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `data=${encodeURIComponent(query)}`,
+    });
+    if (!response.ok) throw new Error(`Overpass respondió ${response.status}`);
+
+    const data: { elements?: Array<{ id: number; lat: number; lon: number; tags?: Record<string, string> }> } = await response.json();
+    const resultados = (data.elements ?? [])
+      .filter((el) => el.lat != null && el.lon != null)
+      .map((el) => {
+        const coordinates = { latitude: el.lat, longitude: el.lon };
+        return {
+          id: String(el.id),
+          name: el.tags?.name ?? el.tags?.brand ?? NEARBY_CATEGORY_LABEL[category].replace(/s$/, ""),
+          category,
+          coordinates,
+          distanceMeters: kmEnElTrayecto(trayecto, coordinates) * 1000,
+          isReal: true,
+          cocina: leerCocina(el.tags?.cuisine),
+          precio: el.tags?.["price_range"] ?? el.tags?.["price"],
+          clase: el.tags?.amenity ? CLASES[el.tags.amenity] : undefined,
+        };
+      })
+      .sort((a, b) => a.distanceMeters - b.distanceMeters)
+      .slice(0, 40);
+
+    cache.set(clave, { en: Date.now(), resultados });
+    return resultados;
+  },
+
+
   async search(center: Coordinates, category: NearbyCategory, radiusMeters = 5000): Promise<NearbyPlace[]> {
     const clave = claveDe(center, category, radiusMeters);
     const guardado = cache.get(clave);
