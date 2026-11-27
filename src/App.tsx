@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { RouterProvider } from "react-router-dom";
-import { router } from "./app/router";
+import { precargarPantallas, router } from "./app/router";
+import { precargarModales } from "./components/ModalHost";
 import { useSettingsStore, resolveAndApplyTheme } from "./stores/useSettingsStore";
 
 export default function App() {
@@ -27,6 +28,18 @@ export default function App() {
     updateReducedMotion();
     mediaQuery.addEventListener("change", updateReducedMotion);
     return () => mediaQuery.removeEventListener("change", updateReducedMotion);
+  }, []);
+
+  /*
+   * Lo que no hace falta para pintar se trae después, con la app ya en
+   * pantalla. Si el móvil pide ahorrar datos no se adelanta nada: cada
+   * pantalla se descargará cuando se abra, como antes.
+   */
+  useEffect(() => {
+    const conexion = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    if (conexion?.saveData) return;
+    const espera = window.setTimeout(() => precargarPantallas(precargarModales), 1500);
+    return () => window.clearTimeout(espera);
   }, []);
 
   return <RouterProvider router={router} />;

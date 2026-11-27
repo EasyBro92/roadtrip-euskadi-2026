@@ -458,9 +458,39 @@ export const useTripStore = create<TripStoreState>()(
         }),
       setCurrentStop: (id) => set((state) => ({ trip: { ...state.trip, currentStopId: id } })),
 
+      /*
+       * Sólo el itinerario, y sólo el del viaje que trae la app.
+       *
+       * Antes volvía a poner el estado inicial entero. Eso se llevaba por
+       * delante los gastos, el bote, las notas y el diario, y —lo peor— todos
+       * los demás viajes guardados, que también forman parte de ese estado. Y
+       * en un viaje creado por ti lo convertía en el de Euskadi.
+       *
+       * Un viaje propio no tiene "original" al que volver: ahí no hace nada.
+       * Las fechas se respetan: si moviste el viaje a otra semana, la ruta
+       * vuelve a su orden pero en tus fechas.
+       */
       restoreOriginalRoute: () => {
-        get().pushSnapshot("Antes de restaurar la ruta original");
-        set(() => ({ ...initialState() }));
+        const state = get();
+        if (state.trip.id !== SEED_TRIP.id) return;
+        state.pushSnapshot("Antes de restaurar la ruta original");
+
+        const delta = daysBetween(SEED_TRIP.startDate, state.trip.startDate);
+        const days = SEED_TRIP.days.map((d) => ({ ...d, date: shiftISODate(d.date, delta) }));
+        const stopsById = stopsToRecord(SEED_STOPS.map((p) => ({ ...p, date: shiftISODate(p.date, delta) })));
+
+        set((s) => ({
+          stopsById,
+          places: SEED_OPTIONAL_PLACES,
+          trip: {
+            ...s.trip,
+            days,
+            endDate: days[days.length - 1].date,
+            currentDayId: days[0].id,
+            currentStopId: null,
+            updatedAt: new Date().toISOString(),
+          },
+        }));
       },
 
       /*
@@ -482,6 +512,10 @@ export const useTripStore = create<TripStoreState>()(
         set((state) => {
           const day = state.trip.days.find((d) => d.id === dayId);
           if (!day) return state;
+          // Un viaje sin días deja el itinerario y el diario sin nada que
+          // enseñar, y ambas pantallas se caían. El botón ya no se ofrece en
+          // el último día; esto es por si se llega por otro camino.
+          if (state.trip.days.length <= 1) return state;
           const stopsById = { ...state.stopsById };
           day.stopIds.forEach((id) => delete stopsById[id]);
           const days = state.trip.days.filter((d) => d.id !== dayId).map((d, index) => ({ ...d, index }));
@@ -666,7 +700,25 @@ export const useTripStore = create<TripStoreState>()(
       canRedo: () => get().history.future.length > 0,
 
       importTripData: (data) =>
-        set(() => ({
+        set((state) => {
+          /*
+           * Importar una copia de OTRO viaje no puede costar el que tienes
+           * abierto. Antes lo sustituía sin más: restaurabas la copia del
+           * viaje de verano con el de otoño abierto y el de otoño desaparecía.
+           * Ahora el abierto se archiva, y si ya había guardada una versión
+           * del que llega, la copia la reemplaza en vez de duplicarla.
+           */
+          const savedTrips = { ...state.savedTrips };
+          const esOtroViaje = data.trip.id !== state.trip.id;
+          if (esOtroViaje) savedTrips[state.trip.id] = packWorkspace(state);
+          delete savedTrips[data.trip.id];
+
+          return {
+          savedTrips,
+          // Los lugares opcionales son de cada viaje: los del anterior no
+          // pintan nada en el que llega.
+          places: esOtroViaje ? [] : state.places,
+          history: { past: [], future: [] },
           trip: data.trip,
           stopsById: stopsToRecord(data.stops),
           expenses: data.expenses,
@@ -682,7 +734,8 @@ export const useTripStore = create<TripStoreState>()(
            * anterior mezclado con los gastos del nuevo.
            */
           aportaciones: data.aportaciones ?? [],
-        })),
+          };
+        }),
 
       resetAllData: () => set(() => ({ ...initialState(), history: { past: [], future: [] }, newlyUnlockedAchievementIds: [] })),
 
@@ -725,6 +778,9 @@ export const useTripStore = create<TripStoreState>()(
           stopsById: {},
           places: [],
           expenses: [],
+          // Faltaba: el dinero puesto en el bote del viaje anterior aparecía
+          // en el nuevo, y sus cuentas salían con saldo desde el primer día.
+          aportaciones: [],
           refuels: [],
           favorites: [],
           notes: [],

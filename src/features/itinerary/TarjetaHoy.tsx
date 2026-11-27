@@ -59,7 +59,7 @@ export function TarjetaHoy({ onIrAlDia }: { onIrAlDia: (dayId: string) => void }
             className="flex w-full items-center gap-3 text-left"
             aria-label={`Siguiente parada: ${siguiente.name}`}
           >
-            <CategoryThumb category={siguiente.category} heroImage={siguiente.heroImage} className="h-12 w-12 rounded-xl" />
+            <CategoryThumb category={siguiente.category} heroImage={siguiente.heroImage} lugar={{ nombre: siguiente.name, coordinates: siguiente.coordinates }} className="h-12 w-12 rounded-xl" />
             <span className="min-w-0 flex-1">
               <span className="block text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">Siguiente parada</span>
               <span className="block truncate text-sm font-semibold text-(--color-text)">{siguiente.name}</span>

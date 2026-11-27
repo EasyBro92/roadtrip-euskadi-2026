@@ -77,7 +77,7 @@ export function SortableStopCard({ stop }: { stop: Stop }) {
           className="flex w-full items-center gap-2.5 text-left"
           aria-label={`Abrir ${stop.name}`}
         >
-          <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-16 w-16 rounded-2xl" iconSize={26} />
+          <CategoryThumb category={stop.category} heroImage={stop.heroImage} lugar={{ nombre: stop.name, coordinates: stop.coordinates }} className="h-16 w-16 rounded-2xl" iconSize={26} />
 
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-1">

@@ -226,7 +226,7 @@ function DayEntry({ dayId }: { dayId: string }) {
               style={{ borderColor: "var(--color-border)" }}
             >
               <span className="flex gap-2.5">
-                <CategoryThumb category={stop.category} heroImage={stop.heroImage} className="h-16 w-16 rounded-xl" iconSize={26} />
+                <CategoryThumb category={stop.category} heroImage={stop.heroImage} lugar={{ nombre: stop.name, coordinates: stop.coordinates }} className="h-16 w-16 rounded-xl" iconSize={26} />
                 <span className="min-w-0 flex-1">
                   <span className={`block truncate text-[15px] font-semibold ${stop.visited ? "text-(--color-text)" : "text-(--color-text-muted)"}`}>{stop.name}</span>
                   <span className="block truncate text-xs text-(--color-text-muted)">

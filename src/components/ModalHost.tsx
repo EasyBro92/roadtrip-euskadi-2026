@@ -1,15 +1,45 @@
-import { useRef } from "react";
+import { lazy, Suspense, useRef } from "react";
 import { useModalAccesible } from "../hooks/useModalAccesible";
-import { FichaParadaModal } from "../features/itinerary/FichaParadaModal";
-import { PlaceLibraryModal } from "../features/itinerary/PlaceLibraryModal";
-import { StopEditorModal } from "../features/itinerary/StopEditorModal";
-import { EditarGastoModal } from "../features/expenses/EditarGastoModal";
-import { ReviewModal } from "../features/reviews/ReviewModal";
 import { useUIStore } from "../stores/useUIStore";
 import { ChoiceModal } from "./ChoiceModal";
-import { DayPickerModal } from "./DayPickerModal";
 import { PromptModal } from "./PromptModal";
-import { TripSwitcherModal } from "./TripSwitcherModal";
+
+/*
+ * Los modales grandes se descargan al abrirlos, no al arrancar.
+ *
+ * Este componente envuelve todas las pantallas, así que lo que importe aquí
+ * se carga antes de pintar nada. Con los siete modales dentro, abrir la app
+ * suponía leer la ficha de parada, el editor de gastos, las reseñas y —por
+ * las fotos y los horarios en caché— la base de datos entera, unos 150 kB,
+ * para enseñar una lista de viajes que no usa nada de eso.
+ *
+ * Se quedan dentro los tres diálogos pequeños (confirmar, preguntar, elegir):
+ * pesan poco y son los que salen sin avisar, donde un instante de espera se
+ * nota. `precargarModales` trae los demás en cuanto la app está quieta, así
+ * que al tocar una parada ya están ahí.
+ */
+const cargas = {
+  ficha: () => import("../features/itinerary/FichaParadaModal"),
+  lugares: () => import("../features/itinerary/PlaceLibraryModal"),
+  editor: () => import("../features/itinerary/StopEditorModal"),
+  gasto: () => import("../features/expenses/EditarGastoModal"),
+  resena: () => import("../features/reviews/ReviewModal"),
+  dia: () => import("./DayPickerModal"),
+  viajes: () => import("./TripSwitcherModal"),
+};
+
+const FichaParadaModal = lazy(() => cargas.ficha().then((m) => ({ default: m.FichaParadaModal })));
+const PlaceLibraryModal = lazy(() => cargas.lugares().then((m) => ({ default: m.PlaceLibraryModal })));
+const StopEditorModal = lazy(() => cargas.editor().then((m) => ({ default: m.StopEditorModal })));
+const EditarGastoModal = lazy(() => cargas.gasto().then((m) => ({ default: m.EditarGastoModal })));
+const ReviewModal = lazy(() => cargas.resena().then((m) => ({ default: m.ReviewModal })));
+const DayPickerModal = lazy(() => cargas.dia().then((m) => ({ default: m.DayPickerModal })));
+const TripSwitcherModal = lazy(() => cargas.viajes().then((m) => ({ default: m.TripSwitcherModal })));
+
+/** Trae los modales en segundo plano. Sin conexión falla en silencio: ya se intentará al abrirlos. */
+export function precargarModales(): void {
+  for (const cargar of Object.values(cargas)) void cargar().catch(() => undefined);
+}
 
 /**
  * Punto único de renderizado de modales (sección 17/25), controlado por
@@ -33,7 +63,9 @@ export function ModalHost() {
     // El div no estorba: los modales de dentro son `position: fixed`, que se
     // colocan contra la ventana y no contra este contenedor.
     <div ref={caja} role="dialog" aria-modal="true" tabIndex={-1}>
-      {contenido()}
+      {/* Sin nada mientras llega: son décimas, y un indicador de carga
+          parpadeando a pantalla completa molesta más que la espera. */}
+      <Suspense fallback={null}>{contenido()}</Suspense>
     </div>
   );
 

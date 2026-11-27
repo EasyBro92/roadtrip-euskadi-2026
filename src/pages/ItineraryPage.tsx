@@ -22,6 +22,7 @@ import { useStopsOfDay } from "../hooks/useStopsOfDay";
 import { useTripStore } from "../stores/useTripStore";
 import type { ISODate, Stop, StopCategory } from "../types";
 import { useUIStore } from "../stores/useUIStore";
+import { SEED_TRIP } from "../data/trip.data";
 import { haversineDistanceMeters } from "../utils/geo";
 
 /**
@@ -46,13 +47,19 @@ export function ItineraryPage() {
    * Fuera de las fechas del viaje no hay día de hoy, y entonces sí manda el
    * primero.
    */
-  const [activeDayId, setActiveDayId] = useState(() => {
+  const [diaElegido, setActiveDayId] = useState(() => {
     const hoy = toISODate(new Date());
     return (days.find((d) => d.date === hoy) ?? days[0]).id;
   });
+  // El día marcado puede dejar de existir sin pasar por aquí: al deshacer, o
+  // al restaurar la ruta estando en un día añadido a mano. Antes eso tiraba
+  // la pantalla entera; ahora se cae al primero.
+  const activeDay = days.find((d) => d.id === diaElegido) ?? days[0];
+  const activeDayId = activeDay.id;
   const stops = useStopsOfDay(activeDayId);
   const reorderStopsInDay = useTripStore((s) => s.reorderStopsInDay);
   const restoreOriginalRoute = useTripStore((s) => s.restoreOriginalRoute);
+  const esViajeDeFabrica = useTripStore((s) => s.trip.id === SEED_TRIP.id);
   const undo = useTripStore((s) => s.undo);
   const canUndo = useTripStore((s) => s.canUndo());
   const pushSnapshot = useTripStore((s) => s.pushSnapshot);
@@ -65,7 +72,6 @@ export function ItineraryPage() {
   // concretas, que están repartidas por todo el viaje.
   const categoria = params.get("categoria");
 
-  const activeDay = days.find((d) => d.id === activeDayId)!;
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   // La dirección del último cambio decide por qué lado entra el día nuevo.
@@ -114,13 +120,17 @@ export function ItineraryPage() {
               <RotateCcw size={13} aria-hidden="true" /> Deshacer
             </button>
           )}
-          <button
-            onClick={() => openModal({ type: "confirm", title: "Restaurar ruta original", message: "Se perderán los cambios manuales del itinerario. ¿Continuar?", onConfirm: restoreOriginalRoute })}
-            className="rounded-full border px-3 py-1.5 text-xs font-medium"
-            style={{ borderColor: "var(--color-border)" }}
-          >
-            Restaurar original
-          </button>
+          {/* Sólo el viaje que trae la app tiene una ruta original a la que
+              volver. En uno creado por ti el botón no tenía nada que restaurar. */}
+          {esViajeDeFabrica && (
+            <button
+              onClick={() => openModal({ type: "confirm", title: "Restaurar ruta original", message: "Se perderán los cambios manuales del itinerario. Tus gastos, notas y fotos no se tocan. ¿Continuar?", onConfirm: restoreOriginalRoute })}
+              className="rounded-full border px-3 py-1.5 text-xs font-medium"
+              style={{ borderColor: "var(--color-border)" }}
+            >
+              Restaurar original
+            </button>
+          )}
         </div>
       </div>
 

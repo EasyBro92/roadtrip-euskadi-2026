@@ -78,6 +78,31 @@ export default defineConfig({
             },
           },
           {
+            /*
+             * Las fotos de los sitios (Wikimedia Commons).
+             *
+             * No se guardaban: cada vez que se abría el itinerario se volvían
+             * a pedir las mismas cuarenta imágenes, y sin cobertura todas las
+             * tarjetas se quedaban con el icono de la categoría. Una foto de
+             * un sitio no cambia, así que se sirve la guardada sin preguntar.
+             *
+             * Se piden con CORS aunque la <img> no lo pida. Wikimedia lo
+             * permite, y así la copia guardada vale tanto para pintar la foto
+             * como para leer sus píxeles (el tinte de la portada, que sí la
+             * pide con CORS y no aceptaría una respuesta opaca). De paso el
+             * navegador cuenta su tamaño real y no los megas que le supone a
+             * cada respuesta opaca.
+             */
+            urlPattern: /^https:\/\/upload\.wikimedia\.org\/.*/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "fotos-lugares",
+              fetchOptions: { mode: "cors", credentials: "omit" },
+              expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 60, purgeOnQuotaError: true },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
             urlPattern: /^https:\/\/router\.project-osrm\.org\/.*/,
             handler: "NetworkFirst",
             options: { cacheName: "routing-cache", expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 } },

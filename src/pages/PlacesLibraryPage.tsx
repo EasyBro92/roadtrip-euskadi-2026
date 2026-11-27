@@ -95,7 +95,7 @@ export function PlacesLibraryPage() {
       <div className="space-y-3">
         {filtered.map((place) => (
           <div key={place.id} className="overflow-hidden rounded-(--radius-card) border bg-(--color-surface) shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
-            <CategoryThumb category={place.category} heroImage={place.heroImage} className="h-28 w-full" iconSize={40} />
+            <CategoryThumb category={place.category} heroImage={place.heroImage} lugar={{ nombre: place.name, coordinates: place.coordinates }} className="h-28 w-full" iconSize={40} />
             <div className="p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">

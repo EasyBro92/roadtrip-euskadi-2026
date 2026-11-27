@@ -76,9 +76,17 @@ export function SettingsPage() {
     resetAllData();
     useSettingsStore.getState().resetSettings();
     StorageService.clearAll();
-    await db.photos.clear();
-    await db.historySnapshots.clear();
-    pushToast("Todos los datos se han borrado.", "success");
+    // Las cuatro tablas, no dos: las reservas guardadas y los horarios en
+    // caché sobrevivían a "borrar todos los datos".
+    await Promise.all([db.photos.clear(), db.historySnapshots.clear(), db.documents.clear(), db.placeDetails.clear()]);
+    /*
+     * Se recarga la app. Los demás almacenes (puntuaciones, sitios guardados,
+     * coche aparcado) siguen en memoria con lo de antes y lo volverían a
+     * escribir al primer cambio: lo borrado reaparecía. Recargando arrancan
+     * todos de lo que hay guardado, que ya es nada.
+     */
+    StorageService.clearAll();
+    window.location.assign(import.meta.env.BASE_URL);
   }
 
   return (
