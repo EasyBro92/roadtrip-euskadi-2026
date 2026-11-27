@@ -5,7 +5,7 @@ import type { TripSummary } from "../../stores/useTripStore";
 import { formatEUR } from "../../utils/format";
 
 /** Sin foto todavía: el degradado de la app, mejor que un hueco gris. */
-const SIN_FOTO = "linear-gradient(160deg, #1A73E8 0%, #0B4FCC 45%, #16A34A 100%)";
+const SIN_FOTO = "linear-gradient(160deg, #006ce4 0%, #003b95 55%, #00224f 100%)";
 
 /**
  * El velo que va sobre la foto, teñido del color de esa misma foto.

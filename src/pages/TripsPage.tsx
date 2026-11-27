@@ -1,13 +1,16 @@
-import { Compass, Plus, Search, Wand2 } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { BedDouble, Compass, Sparkles, Download, Map as MapIcon, Plane, Plus, Route, Search, Wallet, Wand2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { SwipeToDelete } from "../components/SwipeToDelete";
-import { WorldMapBackdrop } from "../components/WorldMapBackdrop";
+import { TODAS_LAS_RUTAS } from "../data/routeTemplates.data";
+import { TarjetaIdea } from "../features/inicio/TarjetaIdea";
+import { crearViajeDeEjemplo, NOMBRE_VIAJE_DE_EJEMPLO } from "../features/inicio/viajeDeEjemplo";
 import { PilaDeViajes } from "../features/trips/PilaDeViajes";
 import { repartirViajes } from "../features/trips/repartirViajes";
 import { TarjetaViaje } from "../features/trips/TarjetaViaje";
 import { useTripStore } from "../stores/useTripStore";
 import { useUIStore } from "../stores/useUIStore";
+import type { RouteTemplate } from "../types";
 import { toISODate } from "../utils/dates";
 
 /** Formulario mínimo para arrancar un viaje: lo demás se edita ya dentro. */
@@ -83,10 +86,50 @@ function NuevoViaje({ onCerrar }: { onCerrar: () => void }) {
   );
 }
 
+function demoYaCargada(): boolean {
+  try {
+    if (localStorage.getItem("demo-cargada")) return true;
+    localStorage.setItem("demo-cargada", "1");
+  } catch {
+    // Sin almacenamiento, se carga cada vez: mejor eso que no enseñarlo.
+  }
+  return false;
+}
+
+/** Unas pocas rutas para inspirarse, siempre las mismas en el mismo día para que no bailen al volver. */
+function ideasDelDia(): RouteTemplate[] {
+  const roadtrips = TODAS_LAS_RUTAS.filter((r) => (r.tipo ?? "roadtrip") === "roadtrip" && r.stops.length > 0);
+  const dia = Math.floor(Date.now() / 86_400_000);
+  const desde = roadtrips.length ? dia % roadtrips.length : 0;
+  return [...roadtrips.slice(desde), ...roadtrips.slice(0, desde)].slice(0, 8);
+}
+
+function Seccion({ titulo, accion, children }: { titulo: string; accion?: { etiqueta: string; alPulsar: () => void }; children: React.ReactNode }) {
+  return (
+    <section className="mt-7">
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <h2 className="text-lg font-bold text-(--color-text)">{titulo}</h2>
+        {accion && (
+          <button onClick={accion.alPulsar} className="control-en-linea text-sm font-semibold text-(--color-link)">
+            {accion.etiqueta}
+          </button>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
 /**
- * Nivel superior de la app (sección nueva): Easy Travel guarda varios viajes
- * y esta es su lista. Al entrar en uno se activa y se navega a su Resumen,
- * desde donde ya funcionan el mapa, el itinerario y el resto.
+ * La pantalla de inicio de la app, al estilo de la portada de Booking.
+ *
+ * Una cabecera azul con el buscador rodeado de amarillo —lo primero que ves
+ * y lo que más se usa—, accesos rápidos debajo, y luego tus viajes por
+ * secciones: el que tienes en marcha con atajos a sus pantallas, los
+ * próximos, ideas de rutas para el siguiente y los que ya hiciste.
+ *
+ * Es también la pantalla a la que se vuelve desde dentro de cualquier
+ * viaje, con el botón de inicio de la barra de arriba.
  */
 export function TripsPage() {
   const listTrips = useTripStore((s) => s.listTrips);
@@ -97,13 +140,37 @@ export function TripsPage() {
   const navigate = useNavigate();
 
   const [creando, setCreando] = useState(false);
+  const [ideas] = useState(ideasDelDia);
+  const [cargandoEjemplo, setCargandoEjemplo] = useState(false);
+  const [params] = useSearchParams();
   const trips = listTrips();
+  const hayEjemplo = trips.some((t) => t.name === NOMBRE_VIAJE_DE_EJEMPLO);
   const { activo, proximos, terminados } = repartirViajes(trips, toISODate(new Date()));
 
-  function abrir(id: string, activo: boolean) {
+  function abrir(id: string, activo: boolean, destino = "/viaje") {
     if (!activo) switchTrip(id);
-    navigate("/viaje");
+    navigate(destino);
   }
+
+  async function verEjemplo() {
+    setCargandoEjemplo(true);
+    try {
+      await crearViajeDeEjemplo();
+      pushToast("Viaje de ejemplo listo: Costa Brava, con el primer día hecho.", "success");
+      navigate("/viaje");
+    } finally {
+      setCargandoEjemplo(false);
+    }
+  }
+
+  // Un enlace con ?ejemplo=1 abre directamente el viaje de ejemplo: sirve para enseñar la app.
+  const pideEjemplo = params.get("ejemplo") === "1";
+  useEffect(() => {
+    // La versión de prueba (VITE_DEMO=1) lo carga sola la primera vez que se abre.
+    const demo = import.meta.env.VITE_DEMO === "1" && !hayEjemplo && !demoYaCargada();
+    if (!pideEjemplo && !demo) return;
+    void crearViajeDeEjemplo().then(() => navigate("/viaje", { replace: true }));
+  }, [pideEjemplo, hayEjemplo, navigate]);
 
   function borrar(id: string, nombre: string) {
     if (trips.length === 1) {
@@ -122,76 +189,147 @@ export function TripsPage() {
     });
   }
 
+  const accesos = [
+    { etiqueta: "Crear con IA", icono: Wand2, alPulsar: () => navigate("/crear") },
+    { etiqueta: "Explorar rutas", icono: Compass, alPulsar: () => navigate("/explorar") },
+    { etiqueta: "Viaje vacío", icono: Plus, alPulsar: () => setCreando(true) },
+    { etiqueta: "Importar", icono: Download, alPulsar: () => navigate("/importar") },
+  ];
+
   return (
-    <div className="safe-x relative isolate min-h-dvh bg-(--color-bg) pb-10 pt-[calc(env(safe-area-inset-top)+20px)]">
-      <WorldMapBackdrop />
-      <header className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-(--color-text)">Mis viajes</h1>
-          <p className="text-sm text-(--color-text-muted)">{trips.length === 1 ? "1 viaje" : `${trips.length} viajes`}</p>
+    <div className="h-full overflow-y-auto bg-(--color-bg) pb-12">
+      <header className="cabecera-marca safe-x relative overflow-hidden rounded-b-[28px] bg-(--color-brand) pb-6 pt-[calc(env(safe-area-inset-top)+14px)] text-white">
+        {/* Dos círculos de luz que se mueven despacio: dan vida a la cabecera sin distraer. */}
+        <span className="luz-cabecera luz-1" aria-hidden="true" />
+        <span className="luz-cabecera luz-2" aria-hidden="true" />
+
+        <div className="relative flex items-center justify-between">
+          <p className="flex items-center gap-2 text-xl font-extrabold tracking-tight">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15">
+              <Plane size={17} aria-hidden="true" />
+            </span>
+            Easy Travel
+          </p>
+          <span className="text-sm text-white/75">{trips.length === 1 ? "1 viaje" : `${trips.length} viajes`}</span>
         </div>
+
+        <h1 className="aparece-arriba relative mt-5 text-[1.75rem] font-extrabold leading-tight">¿A dónde vamos ahora?</h1>
+        <p className="aparece-arriba relative mt-1 text-sm text-white/80" style={{ animationDelay: "60ms" }}>
+          Tus viajes, rutas e ideas, todo en un sitio.
+        </p>
+
+        {/* El buscador con el borde amarillo grueso: es lo que más se ve
+            de la portada y lo que más se usa. */}
         <button
-          onClick={() => navigate("/explorar")}
-          className="flex items-center gap-1.5 rounded-full border bg-(--color-surface) px-3.5 py-2 text-sm font-medium text-(--color-text)"
-          style={{ borderColor: "var(--color-border)" }}
+          onClick={() => navigate("/crear")}
+          className="aparece-arriba relative mt-4 flex w-full items-center gap-3 rounded-2xl border-[3px] border-(--color-accent) bg-white px-4 py-3.5 text-left text-[#1a1a1a] shadow-lg"
+          style={{ animationDelay: "120ms" }}
         >
-          <Compass size={16} aria-hidden="true" /> Explorar
+          <Search size={20} className="shrink-0" aria-hidden="true" />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-base font-semibold">¿A dónde quieres ir?</span>
+            <span className="block truncate text-xs text-[#595959]">Dime un destino y te monto la ruta día a día</span>
+          </span>
+          <Wand2 size={18} className="shrink-0 text-(--color-navigation)" aria-hidden="true" />
         </button>
+
+        <div className="scrollbar-none relative -mx-5 mt-4 flex gap-2 overflow-x-auto px-5">
+          {accesos.map((a, i) => (
+            <button
+              key={a.etiqueta}
+              onClick={a.alPulsar}
+              className="aparece-arriba flex shrink-0 items-center gap-1.5 rounded-full border border-white/35 bg-white/10 px-3.5 py-2 text-sm font-medium text-white"
+              style={{ animationDelay: `${180 + i * 50}ms` }}
+            >
+              <a.icono size={15} aria-hidden="true" /> {a.etiqueta}
+            </button>
+          ))}
+        </div>
       </header>
 
-      {creando ? (
-        <NuevoViaje onCerrar={() => setCreando(false)} />
-      ) : (
-        <div className="mb-4 flex gap-2">
-          {/* Con forma de buscador y no de botón: lo que se espera aquí es
-              escribir un destino, y un campo lo invita mejor que una píldora.
-              Al tocarlo se abre la pantalla del generador con el foco puesto. */}
+      <div className="safe-x cascada">
+        {!hayEjemplo && (
           <button
-            onClick={() => navigate("/crear")}
-            className="flex flex-1 items-center gap-2.5 rounded-full border bg-(--color-surface) px-4 py-3.5 text-left shadow-(--shadow-card) transition-transform active:scale-[0.99]"
-            style={{ borderColor: "var(--color-border)" }}
+            onClick={() => void verEjemplo()}
+            disabled={cargandoEjemplo}
+            className="tarjeta-elevable mt-5 flex w-full items-center gap-3 rounded-2xl border-2 border-dashed p-4 text-left"
+            style={{ borderColor: "color-mix(in srgb, var(--color-navigation) 45%, transparent)", background: "color-mix(in srgb, var(--color-navigation) 6%, var(--color-surface))" }}
           >
-            <Search size={18} className="shrink-0 text-(--color-text-muted)" aria-hidden="true" />
-            <span className="min-w-0 flex-1 truncate text-sm text-(--color-text-muted)">¿A dónde quieres ir?</span>
-            <Wand2 size={16} className="shrink-0 text-(--color-link)" aria-hidden="true" />
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-(--color-accent) text-[#1a1a1a]">
+              <Sparkles size={20} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold text-(--color-text)">{cargandoEjemplo ? "Preparando el viaje…" : "Ver un viaje de ejemplo"}</span>
+              <span className="block text-xs text-(--color-text-muted)">Costa Brava en 4 días, con gastos, diario, reservas y el primer día hecho.</span>
+            </span>
           </button>
-          <button
-            onClick={() => setCreando(true)}
-            aria-label="Crear un viaje vacío"
-            className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full border bg-(--color-surface) text-(--color-text)"
-            style={{ borderColor: "var(--color-border)" }}
-          >
-            <Plus size={20} aria-hidden="true" />
-          </button>
-        </div>
-      )}
+        )}
 
-      {/* El que está en marcha, grande y solo: es el que se abre el 95% de
-          las veces que se entra aquí. */}
-      {activo && (
-        <div className="mt-4">
-          <SwipeToDelete deleteLabel={`Borrar el viaje ${activo.name}`} onDelete={() => borrar(activo.id, activo.name)} radio="rounded-(--radius-card)">
-            <TarjetaViaje viaje={activo} alAbrir={() => abrir(activo.id, activo.isActive)} />
-          </SwipeToDelete>
-        </div>
-      )}
+        {creando && (
+          <div className="mt-5">
+            <NuevoViaje onCerrar={() => setCreando(false)} />
+          </div>
+        )}
 
-      {proximos.length > 0 && (
-        <ul className="mt-3 flex flex-col gap-3">
-          {proximos.map((t) => (
-            <li key={t.id}>
-              {/* Se borra deslizando, igual que los gastos. Antes cada tarjeta
-                  llevaba su botón de Borrar en rojo: mucho ruido para una acción
-                  que casi nunca se usa, y en la portada de la app. */}
-              <SwipeToDelete deleteLabel={`Borrar el viaje ${t.name}`} onDelete={() => borrar(t.id, t.name)} radio="rounded-(--radius-card)">
-                <TarjetaViaje viaje={t} alAbrir={() => abrir(t.id, t.isActive)} />
-              </SwipeToDelete>
-            </li>
-          ))}
-        </ul>
-      )}
+        {/* El que está en marcha, grande y con atajos: es el que se abre el
+            95% de las veces que se entra aquí. */}
+        {activo && (
+          <Seccion titulo="Continúa tu viaje">
+            <SwipeToDelete deleteLabel={`Borrar el viaje ${activo.name}`} onDelete={() => borrar(activo.id, activo.name)} radio="rounded-(--radius-card)">
+              <TarjetaViaje viaje={activo} alAbrir={() => abrir(activo.id, activo.isActive)} alto="h-52" />
+            </SwipeToDelete>
+            <div className="mt-3 grid grid-cols-4 gap-2">
+              {[
+                { etiqueta: "Mapa", icono: MapIcon, destino: "/mapa" },
+                { etiqueta: "Días", icono: Route, destino: "/itinerario" },
+                { etiqueta: "Dormir", icono: BedDouble, destino: "/mas/dormir" },
+                { etiqueta: "Gastos", icono: Wallet, destino: "/gastos" },
+              ].map((a) => (
+                <button
+                  key={a.destino}
+                  onClick={() => abrir(activo.id, activo.isActive, a.destino)}
+                  className="tarjeta-elevable flex flex-col items-center gap-1 rounded-2xl border bg-(--color-surface) py-2.5 text-xs font-semibold text-(--color-text) shadow-(--shadow-card)"
+                  style={{ borderColor: "var(--color-border)" }}
+                >
+                  <a.icono size={20} className="text-(--color-link)" aria-hidden="true" />
+                  {a.etiqueta}
+                </button>
+              ))}
+            </div>
+          </Seccion>
+        )}
 
-      <PilaDeViajes viajes={terminados} alAbrir={abrir} alBorrar={borrar} />
+        {proximos.length > 0 && (
+          <Seccion titulo="Próximos viajes">
+            <ul className="flex flex-col gap-3">
+              {proximos.map((t) => (
+                <li key={t.id}>
+                  {/* Se borra deslizando, igual que los gastos. */}
+                  <SwipeToDelete deleteLabel={`Borrar el viaje ${t.name}`} onDelete={() => borrar(t.id, t.name)} radio="rounded-(--radius-card)">
+                    <TarjetaViaje viaje={t} alAbrir={() => abrir(t.id, t.isActive)} />
+                  </SwipeToDelete>
+                </li>
+              ))}
+            </ul>
+          </Seccion>
+        )}
+
+        {ideas.length > 0 && (
+          <Seccion titulo="Ideas para tu próximo viaje" accion={{ etiqueta: "Ver todas", alPulsar: () => navigate("/explorar") }}>
+            <div className="scrollbar-none -mx-5 flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto px-5 pb-2">
+              {ideas.map((r) => (
+                <TarjetaIdea key={r.id} ruta={r} alAbrir={() => navigate(`/explorar?q=${encodeURIComponent(r.name)}`)} />
+              ))}
+            </div>
+          </Seccion>
+        )}
+
+        {terminados.length > 0 && (
+          <Seccion titulo="Viajes que ya hiciste">
+            <PilaDeViajes viajes={terminados} alAbrir={abrir} alBorrar={borrar} />
+          </Seccion>
+        )}
+      </div>
     </div>
   );
 }

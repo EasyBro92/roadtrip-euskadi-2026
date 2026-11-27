@@ -90,8 +90,10 @@ describe("createTripFromTemplate", () => {
     useTripStore.getState().createTripFromTemplate(ruta, "2027-05-10");
     const { trip, stopsById } = useTripStore.getState();
 
-    for (const dia of trip.days) {
-      const esperadas = ruta.stops.filter((s) => s.dayIndex === dia.index).map((s) => s.name);
+    for (const [posicion, dia] of trip.days.entries()) {
+      // Los días se numeran desde 0, como el viaje de la semilla; la plantilla, desde 1.
+      expect(dia.index).toBe(posicion);
+      const esperadas = ruta.stops.filter((s) => s.dayIndex === posicion + 1).map((s) => s.name);
       const reales = dia.stopIds.map((id) => stopsById[id].name);
       expect(reales).toEqual(esperadas);
     }

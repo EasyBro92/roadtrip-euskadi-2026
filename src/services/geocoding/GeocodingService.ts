@@ -93,6 +93,29 @@ export const GeocodingService = {
     return results;
   },
 
+  /**
+   * Qué hay en un punto: para el pin que pones manteniendo pulsado el mapa.
+   *
+   * Comparte el turno de una petición por segundo con el resto. Devuelve
+   * `null` si no hay nada con nombre o si Nominatim no responde: la ficha se
+   * queda entonces con las coordenadas, que también sirven.
+   */
+  async reverse(coords: Coordinates, signal?: AbortSignal): Promise<GeocodingResult | null> {
+    await throttle();
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${coords.latitude}&lon=${coords.longitude}&format=jsonv2&zoom=18`;
+    try {
+      const response = await fetch(url, { signal });
+      if (!response.ok) return null;
+      const item: { display_name?: string; name?: string; type?: string } = await response.json();
+      if (!item.display_name) return null;
+      // Si tiene nombre propio y la dirección no empieza por él, va delante.
+      const conNombre = item.name && !item.display_name.startsWith(item.name) ? `${item.name}, ${item.display_name}` : item.display_name;
+      return { displayName: conNombre, coordinates: coords, type: item.type ?? "" };
+    } catch {
+      return null;
+    }
+  },
+
   clearCache(): void {
     cache.clear();
     StorageService.remove(CACHE_KEY);

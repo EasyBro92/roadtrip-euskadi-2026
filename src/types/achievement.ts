@@ -33,6 +33,12 @@ export interface AchievementDefinition {
   targetValue?: number;
   getProgress: (ctx: AchievementEvalContext) => number;
   isUnlocked: (ctx: AchievementEvalContext) => boolean;
+  /**
+   * Si el logro tiene sentido en este viaje. Los que piden paradas concretas
+   * (Getaria, San Mamés...) sólo salen en el viaje que las tiene; sin esto,
+   * cualquier otro viaje enseñaba logros imposibles de conseguir.
+   */
+  aplica?: (stops: Stop[]) => boolean;
 }
 
 export interface AchievementState {

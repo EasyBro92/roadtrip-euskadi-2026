@@ -1,5 +1,5 @@
 import type L from "leaflet";
-import { Car, Crosshair, Landmark, Layers, LocateFixed, Navigation2, Radar } from "lucide-react";
+import { Car, Crosshair, Layers, LocateFixed, Navigation2, Radar } from "lucide-react";
 import { useRef, useState } from "react";
 import { useStopsOfDay } from "../../hooks/useStopsOfDay";
 import { useTap } from "../../hooks/useTap";
@@ -8,7 +8,7 @@ import { useCocheStore } from "../../stores/useCocheStore";
 import { useLocationStore } from "../../stores/useLocationStore";
 import { useSettingsStore } from "../../stores/useSettingsStore";
 import { useUIStore } from "../../stores/useUIStore";
-import type { StopCategory } from "../../types";
+import { CAPAS_POR_DEFECTO, type StopCategory } from "../../types";
 import { usePoiStore } from "../../stores/usePoiStore";
 import { PanelCerca } from "./PanelCerca";
 import { PanelCoche } from "./PanelCoche";
@@ -90,7 +90,6 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
   const coche = useCocheStore((s) => s.coche);
   const aparcar = useCocheStore((s) => s.aparcar);
   const capaPois = usePoiStore((s) => s.activa);
-  const alternarPois = usePoiStore((s) => s.alternar);
   const poisCargando = usePoiStore((s) => s.cargando);
   const poisError = usePoiStore((s) => s.error);
   const buscarPois = usePoiStore((s) => s.buscar);
@@ -201,15 +200,15 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
 
   return (
     <div className="pointer-events-none absolute inset-0 z-[560]">
-      {/* top-[124px]: por debajo de la tira de días (68px + su altura). A la
-          misma altura que ella, la columna tapaba los últimos chips. */}
-      <div className="pointer-events-auto absolute right-3 top-[124px] flex flex-col gap-3">
+      {/* top-[160px]: por debajo de la tira de días y de la de categorías. A
+          la misma altura que ellas, la columna tapaba los últimos chips. Los
+          sitios de interés ya no tienen botón aquí: son el chip "Qué ver". */}
+      <div className="pointer-events-auto absolute right-3 top-[160px] flex flex-col gap-3">
         <ControlGroup>
           {/* Tipo de mapa, categorías y leyenda en un solo panel: eran tres
               iconos seguidos que no se distinguían sin pulsarlos. */}
           <ControlButton grouped icon={Layers} label="Capas: tipo de mapa, categorías y leyenda" active={panel === "capas"} onClick={() => setPanel(panel === "capas" ? "none" : "capas")} />
           <ControlButton grouped icon={Radar} label="Qué hay cerca" active={panel === "cerca"} onClick={() => setPanel(panel === "cerca" ? "none" : "cerca")} />
-          <ControlButton grouped icon={Landmark} label={capaPois ? "Ocultar sitios de interés" : "Ver sitios de interés"} active={capaPois} onClick={alternarPois} />
         </ControlGroup>
         <ControlGroup>
           <ControlButton grouped icon={Crosshair} label="Ver ruta completa del día" onClick={fitToDay} />
@@ -230,7 +229,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
       {/* Con la capa encendida, un botón para volver a buscar donde estés
           mirando. Recargar en cada arrastre sería una consulta por gesto. */}
       {capaPois && (
-        <div className="pointer-events-auto absolute inset-x-0 top-[124px] flex justify-center px-3">
+        <div className="pointer-events-auto absolute inset-x-0 top-[160px] flex justify-center px-3">
           <button
             onClick={() => {
               const b = map.getBounds();
@@ -246,7 +245,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
       )}
 
       {poisError && capaPois && (
-        <div className="pointer-events-none absolute inset-x-0 top-[168px] flex justify-center px-6">
+        <div className="pointer-events-none absolute inset-x-0 top-[204px] flex justify-center px-6">
           <p className="rounded-full bg-(--color-surface) px-3 py-1.5 text-center text-xs text-(--color-text-muted) shadow-(--shadow-card)">{poisError}</p>
         </div>
       )}
@@ -255,7 +254,7 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
         // Alineado con la columna de controles, que ya está por debajo de la
         // tira de días.
         <div
-          className="pointer-events-auto absolute right-16 top-[124px] max-h-[60vh] w-60 overflow-y-auto rounded-2xl border bg-(--color-surface) py-2 shadow-(--shadow-card)"
+          className="pointer-events-auto absolute right-16 top-[160px] max-h-[60vh] w-60 overflow-y-auto rounded-2xl border bg-(--color-surface) py-2 shadow-(--shadow-card)"
           style={{ borderColor: "var(--color-border)" }}
         >
           <p className="px-4 pb-1 pt-1 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">Tipo de mapa</p>
@@ -268,6 +267,30 @@ export function MapControls({ dayId, map }: { dayId: string; map: L.Map }) {
               {layer.label}
             </button>
           ))}
+
+          <div className="mt-2 border-t px-4 pt-3" style={{ borderColor: "var(--color-border)" }}>
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-(--color-text-muted)">En el mapa</p>
+            {(
+              [
+                ["fotos", "Tus fotos"],
+                ["gastos", "Lo gastado en cada sitio"],
+                ["guardados", "Sitios guardados"],
+              ] as const
+            ).map(([clave, etiqueta]) => {
+              const capas = settings.capasMapa ?? CAPAS_POR_DEFECTO;
+              return (
+                <label key={clave} className="flex items-center gap-2 py-1.5 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={capas[clave]}
+                    onChange={() => updateSettings({ capasMapa: { ...capas, [clave]: !capas[clave] } })}
+                    className="h-4 w-4"
+                  />
+                  {etiqueta}
+                </label>
+              );
+            })}
+          </div>
 
           {usedCategories.length > 0 && (
             <div className="mt-2 border-t px-4 pt-3" style={{ borderColor: "var(--color-border)" }}>

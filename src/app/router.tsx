@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, createHashRouter, Navigate } from "react-router-dom";
 import { AppShell } from "./layout/AppShell";
 import { EntryRedirect } from "./EntryRedirect";
 import { RootLayout } from "./layout/RootLayout";
@@ -39,6 +39,7 @@ const PlacesLibraryPage = pagina(() => import("../pages/PlacesLibraryPage"), "Pl
 const SharePage = pagina(() => import("../pages/SharePage"), "SharePage");
 const OfflinePage = pagina(() => import("../pages/OfflinePage"), "OfflinePage");
 const SettingsPage = pagina(() => import("../pages/SettingsPage"), "SettingsPage");
+const DormirPage = pagina(() => import("../pages/DormirPage"), "DormirPage");
 const HelpPage = pagina(() => import("../pages/HelpPage"), "HelpPage");
 const SummaryPage = pagina(() => import("../pages/SummaryPage"), "SummaryPage");
 const CopilotPage = pagina(() => import("../pages/CopilotPage"), "CopilotPage");
@@ -133,7 +134,16 @@ function withSuspense(node: ReactNode) {
   return <Suspense fallback={<PageSkeleton />}>{node}</Suspense>;
 }
 
-export const router = createBrowserRouter([
+/*
+ * Una versión de prueba servida desde una dirección que no controlamos (una
+ * página compartida) no puede usar rutas de verdad: recargar pediría
+ * /itinerario a un servidor que no la tiene. Con VITE_HASH_ROUTER=1 las rutas
+ * van tras la almohadilla (#/itinerario) y funcionan en cualquier sitio.
+ */
+const conAlmohadilla = import.meta.env.VITE_HASH_ROUTER === "1";
+const crearRouter = conAlmohadilla ? createHashRouter : createBrowserRouter;
+
+export const router = crearRouter([
   {
     // RootLayout envuelve los dos niveles: es quien dibuja modales y avisos,
     // que antes solo existían dentro de un viaje.
@@ -166,6 +176,7 @@ export const router = createBrowserRouter([
       { path: "/mas/compartir", element: withSuspense(<SharePage />) },
       { path: "/mas/offline", element: withSuspense(<OfflinePage />) },
       { path: "/mas/configuracion", element: withSuspense(<SettingsPage />) },
+      { path: "/mas/dormir", element: withSuspense(<DormirPage />) },
       { path: "/mas/ayuda", element: withSuspense(<HelpPage />) },
       { path: "/mas/copiloto", element: withSuspense(<CopilotPage />) },
       { path: "/mas/cerca", element: withSuspense(<NearbyPage />) },
@@ -187,5 +198,5 @@ export const router = createBrowserRouter([
   // En GitHub Pages la app se sirve desde /<repo>/, no desde la raíz. Sin esto
   // el router no reconoce esa ruta, cae en el comodín y redirige a /mapa en la
   // raíz del dominio: la app parece funcionar, pero recargar da 404.
-  basename: import.meta.env.BASE_URL,
+  basename: conAlmohadilla ? undefined : import.meta.env.BASE_URL,
 });

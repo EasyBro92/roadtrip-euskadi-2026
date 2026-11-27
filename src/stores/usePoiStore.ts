@@ -9,12 +9,9 @@ interface PoiState {
   error: string | null;
   /** Recuadro de la última búsqueda, para saber si te has movido lejos. */
   ultimoRecuadro: Recuadro | null;
-  /** Sitio tocado, para enseñar su ficha pequeña. */
-  elegido: Poi | null;
 
   alternar: () => void;
   buscar: (recuadro: Recuadro) => Promise<void>;
-  elegir: (poi: Poi | null) => void;
 }
 
 let ultimaPeticion = 0;
@@ -32,13 +29,12 @@ export const usePoiStore = create<PoiState>()((set, get) => ({
   cargando: false,
   error: null,
   ultimoRecuadro: null,
-  elegido: null,
 
   alternar: () => {
     const activa = !get().activa;
     // Al apagarla se tira lo cargado: dejarlo en memoria haría que al volver
     // a encenderla vieras sitios de donde estabas hace media hora.
-    set(activa ? { activa } : { activa, pois: [], elegido: null, error: null, ultimoRecuadro: null });
+    set(activa ? { activa } : { activa, pois: [], error: null, ultimoRecuadro: null });
   },
 
   buscar: async (recuadro) => {
@@ -68,6 +64,4 @@ export const usePoiStore = create<PoiState>()((set, get) => ({
       });
     }
   },
-
-  elegir: (poi) => set({ elegido: poi }),
 }));

@@ -184,6 +184,333 @@ a,
   animation: entra-desde-izquierda 0.22s ease-out;
 }
 
+/*
+ * Animaciones de la Fase 1. Todas cortas (150–450 ms) y con un propósito:
+ * decir de dónde sale algo o qué acaba de pasar. Ninguna se repite sola.
+ */
+
+/*
+ * Navegar con dirección, como una app nativa: lo que abres entra desde la
+ * derecha y al volver atrás la pantalla anterior llega desde la izquierda.
+ * Así se entiende siempre si vas hacia dentro o hacia fuera.
+ */
+@keyframes pantalla-avanza {
+  from {
+    opacity: 0;
+    transform: translateX(36px);
+  }
+}
+
+@keyframes pantalla-vuelve {
+  from {
+    opacity: 0;
+    transform: translateX(-36px);
+  }
+}
+
+.pantalla-avanza {
+  animation: pantalla-avanza 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.pantalla-vuelve {
+  animation: pantalla-vuelve 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Textos y botones de la cabecera del inicio, que bajan uno detrás de otro. */
+@keyframes aparece-arriba {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.aparece-arriba {
+  animation: aparece-arriba 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Luces de la cabecera azul: dos manchas suaves que derivan muy despacio. */
+@keyframes luz-deriva {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(30px, 18px) scale(1.15);
+  }
+}
+
+.luz-cabecera {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  pointer-events: none;
+  animation: luz-deriva 9s ease-in-out infinite;
+}
+
+.luz-1 {
+  width: 220px;
+  height: 220px;
+  right: -60px;
+  top: -70px;
+  background: color-mix(in srgb, var(--color-navigation) 70%, transparent);
+}
+
+.luz-2 {
+  width: 160px;
+  height: 160px;
+  left: -50px;
+  bottom: -60px;
+  background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  animation-delay: -4s;
+}
+
+/* Tarjetas que se levantan al pasar el ratón y se hunden al tocarlas. */
+.tarjeta-elevable {
+  transition:
+    transform 0.2s ease-out,
+    box-shadow 0.2s ease-out;
+}
+
+@media (hover: hover) {
+  .tarjeta-elevable:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0, 34, 79, 0.18);
+  }
+  .tarjeta-elevable:hover .foto-zoom {
+    transform: scale(1.06);
+  }
+}
+
+.foto-zoom {
+  transition: transform 0.5s ease-out;
+}
+
+/* Una pantalla nueva entra subiendo un poco y apareciendo, en vez de saltar. */
+@keyframes pantalla-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.pantalla-entra {
+  animation: pantalla-entra 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Fichas y hojas que salen de abajo, con un pequeño rebote al llegar. */
+@keyframes sube-desde-abajo {
+  from {
+    opacity: 0.4;
+    transform: translateY(110%);
+  }
+}
+
+.sube-desde-abajo {
+  animation: sube-desde-abajo 0.34s cubic-bezier(0.32, 1.25, 0.5, 1);
+}
+
+/* Desplegables: aparecen creciendo desde arriba, como los de Google. */
+@keyframes aparece {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+
+.aparece {
+  animation: aparece 0.18s ease-out;
+  transform-origin: top center;
+}
+
+/*
+ * Pines que caen al mapa y rebotan. Se anima el contenido del marcador, no
+ * el marcador: a ese Leaflet le pone su propio `transform` para colocarlo, y
+ * animarlo lo mandaría a la esquina del mapa durante la animación.
+ */
+@keyframes pin-cae {
+  0% {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(2px);
+  }
+  80% {
+    transform: translateY(-3px);
+  }
+}
+
+.pin-cae {
+  animation: pin-cae 0.45s cubic-bezier(0.3, 0.7, 0.4, 1) both;
+  transform-origin: bottom center;
+}
+
+/* El pin elegido da un saltito para que se vea cuál es. */
+@keyframes pin-rebota {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  35% {
+    transform: translateY(-10px);
+  }
+  65% {
+    transform: translateY(0) scaleY(0.92);
+  }
+}
+
+.pin-rebota {
+  animation: pin-rebota 0.5s ease-out;
+  transform-origin: bottom center;
+}
+
+/* El nombre bajo el pin, con un halo blanco para leerse sobre cualquier mapa. */
+.etiqueta-pin {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 1px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 600 11px/1.2 var(--font-sans);
+  text-shadow:
+    0 0 2px var(--color-surface),
+    0 0 2px var(--color-surface),
+    0 0 3px var(--color-surface);
+  pointer-events: none;
+}
+
+.mostrar-nombres .etiqueta-pin {
+  display: block;
+}
+
+/* Guardar hace latir el corazón. */
+@keyframes latido {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.25);
+  }
+  60% {
+    transform: scale(0.95);
+  }
+}
+
+.latido {
+  animation: latido 0.45s ease-out;
+}
+
+/* Siluetas de carga con un brillo que las recorre, en vez de una rueda. */
+@keyframes brillo {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.esqueleto {
+  background: linear-gradient(90deg, var(--color-surface-muted) 25%, var(--color-border) 50%, var(--color-surface-muted) 75%);
+  background-size: 200% 100%;
+  animation: brillo 1.4s linear infinite;
+}
+
+/* Un guardado que se confirma solo, sin pedir nada. */
+@keyframes guardado-aparece {
+  0% {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  15%,
+  80% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.guardado-aparece {
+  animation: guardado-aparece 1.6s ease-out forwards;
+}
+
+/* La línea de la ruta se traza de principio a fin al aparecer. */
+@keyframes ruta-dibuja {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.ruta-dibuja {
+  stroke-dasharray: 1;
+  animation: ruta-dibuja 0.9s ease-out both;
+}
+
+/*
+ * Listas que entran en cascada: cada tarjeta aparece un poco después que la
+ * anterior, como en la lista de reservas de Booking. A partir de la octava
+ * ya no se espera más, para que una lista larga no tarde en llenarse.
+ */
+@keyframes cascada-entra {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.cascada > * {
+  animation: cascada-entra 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.cascada > :nth-child(2) { animation-delay: 40ms; }
+.cascada > :nth-child(3) { animation-delay: 80ms; }
+.cascada > :nth-child(4) { animation-delay: 120ms; }
+.cascada > :nth-child(5) { animation-delay: 160ms; }
+.cascada > :nth-child(6) { animation-delay: 200ms; }
+.cascada > :nth-child(7) { animation-delay: 240ms; }
+.cascada > :nth-child(n + 8) { animation-delay: 280ms; }
+
+/*
+ * Con el botón + flotando abajo a la derecha, las listas necesitan aire al
+ * final: si no, el último botón de la pantalla ("Buscar lugar") queda tapado
+ * y no hay forma de tocarlo.
+ */
+.con-boton-crear .overflow-y-auto {
+  padding-bottom: 6rem;
+}
+
+/* Confeti al completar un día o ganar un logro. */
+@keyframes confeti-cae {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--dx, 0px), 70vh, 0) rotate(var(--giro, 540deg));
+  }
+}
+
+.confeti-pieza {
+  position: absolute;
+  top: -12px;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  animation: confeti-cae 1.6s cubic-bezier(0.25, 0.6, 0.4, 1) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

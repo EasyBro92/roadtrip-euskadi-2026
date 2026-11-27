@@ -1,3 +1,4 @@
+import { NumeroQueCuenta } from "../components/NumeroQueCuenta";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BookImage, PartyPopper } from "lucide-react";
 import { useMemo } from "react";
@@ -95,7 +96,9 @@ export function SummaryPage() {
 function SummaryStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-(--radius-card) border bg-(--color-surface) p-3 shadow-(--shadow-card)" style={{ borderColor: "var(--color-border)" }}>
-      <p className="text-lg font-bold">{value}</p>
+      <p className="text-lg font-bold">
+        <NumeroQueCuenta texto={value} />
+      </p>
       <p className="text-xs text-(--color-text-muted)">{label}</p>
     </div>
   );

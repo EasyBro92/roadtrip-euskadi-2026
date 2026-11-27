@@ -1,5 +1,6 @@
 import { BookOpen, Map, MoreHorizontal, Route, Wallet } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
+import { indicePestana } from "./direccion";
 import clsx from "clsx";
 import { useT } from "../../hooks/useT";
 
@@ -18,6 +19,8 @@ const ITEMS = [
  */
 export function BottomNav() {
   const { t } = useT();
+  // La pestaña de la que sales viaja con la navegación: así la nueva sabe si entrar por la derecha o por la izquierda.
+  const desde = indicePestana(useLocation().pathname);
 
   return (
     <nav
@@ -28,7 +31,7 @@ export function BottomNav() {
       style={{ borderColor: "var(--color-border)", "--safe-x-min": "0px" } as React.CSSProperties}
     >
       {ITEMS.map(({ to, label, icon: Icon }) => (
-        <NavLink key={to} to={to} className="flex flex-1 flex-col items-center justify-center gap-1 py-2">
+        <NavLink key={to} to={to} state={{ tabDesde: desde }} className="flex flex-1 flex-col items-center justify-center gap-1 py-2">
           {({ isActive }) => (
             <>
               <span

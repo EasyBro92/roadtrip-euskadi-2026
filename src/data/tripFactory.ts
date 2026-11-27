@@ -28,7 +28,7 @@ function createDefaultVehicle(): Vehicle {
 function createDays(startDate: ISODate, dayCount: number): TripDay[] {
   return Array.from({ length: dayCount }, (_, index) => ({
     id: generateId("day"),
-    index: index + 1,
+    index,
     date: shiftISODate(startDate, index),
     title: `Día ${index + 1}`,
     stopIds: [],

@@ -31,10 +31,20 @@ export function ReturnTripPage() {
   // Punto de partida del regreso: última parada habilitada del viaje.
   const lastDay = trip.days[trip.days.length - 1];
   const lastStop = lastDay?.stopIds.map((id) => stopsById[id]).filter((s) => s?.enabled).pop();
+  /*
+   * Casa es donde empezó el viaje: la primera parada del primer día. Estaba
+   * fija en Girona, así que en cualquier otro viaje la vuelta calculaba el
+   * camino a Girona.
+   */
+  const primera = trip.days[0]?.stopIds.map((id) => stopsById[id]).find((s) => s?.enabled);
+  const casaLat = primera?.coordinates.latitude ?? GIRONA.latitude;
+  const casaLon = primera?.coordinates.longitude ?? GIRONA.longitude;
+  const nombreCasa = primera?.name ?? "Girona";
 
   const compute = useCallback(async () => {
     if (!lastStop) return;
     setLoading(true);
+    const CASA: Coordinates = { latitude: casaLat, longitude: casaLon };
 
     const options: { id: WaypointId; label: string; via: Coordinates | null }[] = [
       { id: "no-stop", label: "Directo, sin parada", via: null },
@@ -43,7 +53,7 @@ export function ReturnTripPage() {
 
     const computed = await Promise.all(
       options.map(async (option) => {
-        const legs = option.via ? [[lastStop.coordinates, option.via], [option.via, GIRONA]] : [[lastStop.coordinates, GIRONA]];
+        const legs = option.via ? [[lastStop.coordinates, option.via], [option.via, CASA]] : [[lastStop.coordinates, CASA]];
 
         let distance = 0;
         let duration = 0;
@@ -69,7 +79,7 @@ export function ReturnTripPage() {
 
     setAlternatives(computed.sort((a, b) => (a.distanceMeters ?? 0) - (b.distanceMeters ?? 0)));
     setLoading(false);
-  }, [lastStop]);
+  }, [lastStop, casaLat, casaLon]);
 
   useEffect(() => {
     compute();
@@ -90,7 +100,7 @@ export function ReturnTripPage() {
       <button onClick={() => navigate(-1)} className="-ml-2 mb-2 flex h-11 items-center gap-1.5 rounded-full pl-2 pr-4 text-sm font-medium text-(--color-text) active:bg-(--color-surface-muted)">
         <ArrowLeft size={20} aria-hidden="true" /> Atrás
       </button>
-      <h1 className="mb-1 text-xl font-bold">Regreso a Girona</h1>
+      <h1 className="mb-1 text-xl font-bold">Vuelta a {nombreCasa}</h1>
       <p className="mb-4 text-xs text-(--color-text-muted)">
         Desde {lastStop?.name ?? "la última parada"}. Distancias y tiempos calculados por carretera; el combustible usa tu consumo configurado ({trip.vehicle.averageConsumptionL100km} L/100 km).
       </p>

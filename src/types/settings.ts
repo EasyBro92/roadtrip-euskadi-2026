@@ -14,7 +14,24 @@ export interface AppSettings {
   /** "auto" sigue al idioma del móvil. Ver src/i18n. */
   language: "auto" | "es" | "en";
   reducedMotion: boolean;
+  /**
+   * Capas extra del mapa. Opcionales a propósito: los ajustes ya guardados no
+   * las traen, y al leerlas se usa `?? CAPAS_POR_DEFECTO` en vez de migrar.
+   */
+  capasMapa?: CapasMapa;
+  /** Pedir rutas sin peajes cuando el proveedor lo permite. */
+  evitarPeajes?: boolean;
+  /** Ya se ha enseñado la pista de "mantén pulsado el mapa". */
+  pistaMapaVista?: boolean;
 }
+
+export interface CapasMapa {
+  fotos: boolean;
+  gastos: boolean;
+  guardados: boolean;
+}
+
+export const CAPAS_POR_DEFECTO: CapasMapa = { fotos: true, gastos: false, guardados: true };
 
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: "light",

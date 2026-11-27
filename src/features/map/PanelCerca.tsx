@@ -110,7 +110,7 @@ export function PanelCerca({ map, onCerrar, paradasDelDia = [] }: { map: L.Map; 
 
   return (
     <div
-      className="pointer-events-auto absolute inset-x-3 bottom-3 top-[124px] flex flex-col overflow-hidden rounded-2xl border bg-(--color-surface) shadow-(--shadow-card) sm:inset-x-auto sm:right-16 sm:w-80"
+      className="pointer-events-auto absolute inset-x-3 bottom-3 top-[160px] flex flex-col overflow-hidden rounded-2xl border bg-(--color-surface) shadow-(--shadow-card) sm:inset-x-auto sm:right-16 sm:w-80"
       style={{ borderColor: "var(--color-border)" }}
     >
       <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2" style={{ borderColor: "var(--color-border)" }}>

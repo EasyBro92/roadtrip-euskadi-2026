@@ -81,6 +81,12 @@ export interface TripSummary {
 
 const MAX_HISTORY = 20;
 
+/** `index` de cada día = su posición, desde 0, que es como lo pinta toda la app. */
+function conIndicesDeDia(trip: Trip): Trip {
+  if (trip.days.every((d, i) => d.index === i)) return trip;
+  return { ...trip, days: trip.days.map((d, i) => (d.index === i ? d : { ...d, index: i })) };
+}
+
 function stopsToRecord(stops: Stop[]): Record<ID, Stop> {
   return Object.fromEntries(stops.map((s) => [s.id, s]));
 }
@@ -147,6 +153,8 @@ interface TripStoreState {
     },
   ) => ID;
   deleteStop: (id: ID) => void;
+  /** Vuelve a poner una parada recién borrada en su día y su sitio (el "Deshacer"). */
+  restaurarParada: (stop: Stop, indice: number) => void;
   duplicateStop: (id: ID) => void;
   reorderStopsInDay: (dayId: ID, orderedStopIds: ID[]) => void;
   moveStopToDay: (stopId: ID, targetDayId: ID, targetIndex: number) => void;
@@ -182,6 +190,8 @@ interface TripStoreState {
   deleteAportacion: (id: ID) => void;
   updateExpense: (id: ID, patch: Partial<Expense>) => void;
   deleteExpense: (id: ID) => void;
+  /** Devuelve un gasto recién borrado tal cual estaba. */
+  restaurarGasto: (expense: Expense) => void;
 
   // --- Checklist ---
   toggleChecklistItem: (id: ID) => void;
@@ -375,6 +385,21 @@ export const useTripStore = create<TripStoreState>()(
             currentStopId: state.trip.currentStopId === id ? null : state.trip.currentStopId,
           });
           return { stopsById: rest, trip };
+        }),
+
+      restaurarParada: (stop, indice) =>
+        set((state) => {
+          if (state.stopsById[stop.id] || !state.trip.days.some((d) => d.id === stop.dayId)) return state;
+          const trip = recomputeOverloaded({
+            ...state.trip,
+            days: state.trip.days.map((d) => {
+              if (d.id !== stop.dayId) return d;
+              const stopIds = [...d.stopIds];
+              stopIds.splice(Math.min(indice, stopIds.length), 0, stop.id);
+              return { ...d, stopIds };
+            }),
+          });
+          return { stopsById: { ...state.stopsById, [stop.id]: stop }, trip };
         }),
 
       duplicateStop: (id) =>
@@ -640,6 +665,8 @@ export const useTripStore = create<TripStoreState>()(
         }),
       updateExpense: (id, patch) => set((state) => ({ expenses: state.expenses.map((e) => (e.id === id ? { ...e, ...patch, updatedAt: new Date().toISOString() } : e)) })),
       deleteExpense: (id) => set((state) => ({ expenses: state.expenses.filter((e) => e.id !== id) })),
+      restaurarGasto: (expense) =>
+        set((state) => (state.expenses.some((e) => e.id === expense.id) ? state : { expenses: [...state.expenses, expense] })),
 
       toggleChecklistItem: (id) => set((state) => ({ checklist: state.checklist.map((c) => (c.id === id ? { ...c, checked: !c.checked } : c)) })),
       addChecklistItem: (category, label) => set((state) => ({ checklist: [...state.checklist, { id: generateId("checklist"), category, label, checked: false, isCustom: true }] })),
@@ -763,6 +790,7 @@ export const useTripStore = create<TripStoreState>()(
 
           return {
             ...destino,
+            trip: conIndicesDeDia(destino.trip),
             savedTrips,
             // El historial de deshacer es del viaje que dejamos atrás.
             history: { past: [], future: [] },
@@ -802,8 +830,9 @@ export const useTripStore = create<TripStoreState>()(
         const paradas: Stop[] = [];
         const porDia = new Map<ID, ID[]>();
 
-        for (const dia of dias) {
-          const delDia = template.stops.filter((s) => s.dayIndex === dia.index);
+        for (const [posicion, dia] of dias.entries()) {
+          // `dayIndex` de la plantilla cuenta desde 1; la posición del día, desde 0.
+          const delDia = template.stops.filter((s) => s.dayIndex === posicion + 1);
           const ids: ID[] = [];
           delDia.forEach((plantilla, orden) => {
             const parada = createStop({
@@ -870,7 +899,7 @@ export const useTripStore = create<TripStoreState>()(
        * `heroImage`) no aparecería nunca para quien ya tuviera el viaje
        * guardado en localStorage, que es justo lo que pasaba.
        */
-      version: 6,
+      version: 7,
       migrate: (persisted, fromVersion) => {
         const state = persisted as Partial<TripStoreState> | undefined;
         if (!state) return persisted as TripStoreState;
@@ -957,7 +986,18 @@ export const useTripStore = create<TripStoreState>()(
          * mueve ni un dato: el viaje, los gastos, el diario y las fotos
          * siguen exactamente donde estaban.
          */
-        if (fromVersion >= 2) return reorganizarPorCiudades(conCategorias({ ...state, savedTrips: state.savedTrips ?? {} })) as TripStoreState;
+        /*
+         * v6 → v7: los viajes creados en la app numeraban sus días desde 1 y
+         * la app los pinta desde 0, así que salían "Día 2, 3, 4, 5" en un
+         * viaje de cuatro días. Se renumeran por su posición.
+         */
+        const conDiasBienNumerados = (s: Partial<TripStoreState>): Partial<TripStoreState> => ({
+          ...s,
+          trip: s.trip ? conIndicesDeDia(s.trip) : s.trip,
+          savedTrips: Object.fromEntries(Object.entries(s.savedTrips ?? {}).map(([id, w]) => [id, { ...w, trip: conIndicesDeDia(w.trip) }])),
+        });
+
+        if (fromVersion >= 2) return conDiasBienNumerados(reorganizarPorCiudades(conCategorias({ ...state, savedTrips: state.savedTrips ?? {} }))) as TripStoreState;
 
         // v1 → v2: incorporar `heroImage` (y nuevos lugares opcionales) sin
         // tocar nada de lo que el usuario haya editado.
@@ -979,7 +1019,7 @@ export const useTripStore = create<TripStoreState>()(
         for (const p of existingPlaces) if (!places.some((sp) => sp.id === p.id)) places.push(p);
 
         // Quien venga de v1 llega también a v3: un solo viaje, archivo vacío.
-        return reorganizarPorCiudades(conCategorias({ ...state, stopsById, places, savedTrips: state.savedTrips ?? {} })) as TripStoreState;
+        return conDiasBienNumerados(reorganizarPorCiudades(conCategorias({ ...state, stopsById, places, savedTrips: state.savedTrips ?? {} }))) as TripStoreState;
       },
       partialize: (state) => ({
         trip: state.trip,

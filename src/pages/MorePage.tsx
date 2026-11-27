@@ -1,5 +1,5 @@
 import { Foto } from "../components/Foto";
-import { BookImage, Bookmark, Car, ChevronsUpDown, FileText, Globe2, HardDrive, CircleHelp, CloudDownload, Compass, CornerUpLeft, Flag, ListChecks, MapPinned, NotebookPen, Radar, Settings, Share2, Sparkles, Star, Trophy, type LucideIcon } from "lucide-react";
+import { BedDouble, BookImage, Bookmark, Car, ChevronsUpDown, FileText, Globe2, HardDrive, CircleHelp, CloudDownload, Compass, CornerUpLeft, Flag, ListChecks, MapPinned, NotebookPen, Radar, Settings, Share2, Sparkles, Star, Trophy, type LucideIcon } from "lucide-react";
 import { TituloPantalla } from "../components/TituloPantalla";
 import { useNavigate } from "react-router-dom";
 import { useT } from "../hooks/useT";
@@ -21,6 +21,7 @@ const GROUPS: { title: string; items: MoreItem[] }[] = [
     items: [
       { to: "/mas/copiloto", label: "Copiloto", description: "Recomendaciones según hora, día y presupuesto", icon: Sparkles },
       { to: "/mas/cerca", label: "Cerca de mí", description: "Gasolineras, talleres, farmacias y más", icon: Radar },
+      { to: "/mas/dormir", label: "Dónde dormir", description: "Cada noche del viaje, con Booking a un toque", icon: BedDouble },
       { to: "/mas/documentos", label: "Reservas y documentos", description: "PDFs y localizadores, disponibles sin cobertura", icon: FileText },
       { to: "/mas/notas", label: "Notas del viaje", description: "Todo lo que has escrito, con búsqueda", icon: NotebookPen },
     ],
@@ -31,12 +32,19 @@ const GROUPS: { title: string; items: MoreItem[] }[] = [
       { to: "/mas/album", label: "Álbum del viaje", description: "El viaje entero seguido, para enseñarlo o guardarlo", icon: BookImage },
       { to: "/resumen", label: "Resumen del viaje", description: "Estadísticas y celebración final", icon: Flag },
       { to: "/mas/lugares", label: "Lugares opcionales", description: "Añade paradas a cualquier día", icon: MapPinned },
-      { to: "/mas/regreso", label: "Regreso a Girona", description: "Compara rutas de vuelta y su coste", icon: CornerUpLeft },
+      { to: "/mas/regreso", label: "Vuelta a casa", description: "Compara rutas de vuelta y su coste", icon: CornerUpLeft },
+      { to: "/mas/logros", label: "Logros", description: "Desbloquea hitos del roadtrip", icon: Trophy },
+    ],
+  },
+  {
+    // Antes estaban mezclados con el álbum y los logros: cuatro listas de
+    // sitios sueltas entre otras cosas. Juntas se entiende qué es cada una.
+    title: "Mis sitios",
+    items: [
       { to: "/mas/guardados", label: "Quiero ir", description: "Sitios guardados en tus propias listas", icon: Bookmark },
       { to: "/mas/favoritos", label: "Favoritos", description: "Paradas que has marcado en este viaje", icon: Star },
       { to: "/mas/visitados", label: "Dónde has estado", description: "El mapa de todo lo que has visitado", icon: Globe2 },
       { to: "/mas/valoraciones", label: "Mis valoraciones", description: "Lo que has puntuado y las reseñas que escribiste", icon: Star },
-      { to: "/mas/logros", label: "Logros", description: "Desbloquea hitos del roadtrip", icon: Trophy },
     ],
   },
   {
@@ -73,30 +81,6 @@ export function MorePage() {
   return (
     <div className="safe-x h-full overflow-y-auto bg-(--color-bg) px-4 pt-4 pb-8">
       <TituloPantalla className="mb-3">Más</TituloPantalla>
-
-      {/*
-       * Salir del viaje, arriba del todo.
-       *
-       * Esto vivía dentro de "Ajustes y datos", debajo de exportar, y no lo
-       * encontraba nadie: volver al nivel superior de la app no es un ajuste,
-       * es lo contrario de entrar. Con la app configurada para abrirse en el
-       * mapa, la única forma de llegar a Mis viajes era saber que estaba
-       * escondida ahí.
-       *
-       * Aquí arriba basta con "Más" y un toque, y no gasta un sitio de la
-       * barra de abajo.
-       */}
-      <button
-        onClick={() => navigate("/viajes")}
-        className="mb-5 flex w-full items-center gap-2.5 rounded-(--radius-card) border bg-(--color-surface) px-4 py-3 text-left shadow-(--shadow-card) transition-transform active:scale-[0.99]"
-        style={{ borderColor: "var(--color-border)" }}
-      >
-        <CornerUpLeft size={17} className="shrink-0 text-(--color-text-muted)" aria-hidden="true" />
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-medium text-(--color-text)">Mis viajes</span>
-          <span className="block truncate text-xs text-(--color-text-muted)">Salir de este viaje y ver todos</span>
-        </span>
-      </button>
 
       {/*
        * La tarjeta del viaje, con su foto de portada.

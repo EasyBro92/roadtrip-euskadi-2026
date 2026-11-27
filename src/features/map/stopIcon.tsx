@@ -48,7 +48,30 @@ const PIN_HEIGHT = 40;
  * El ancla apunta a la punta inferior de la gota, no al centro, para que
  * marque la coordenada exacta sobre el mapa.
  */
-export function buildStopMarkerIcon(category: StopCategory, opts: { visited?: boolean; isCurrent?: boolean } = {}): L.DivIcon {
+/**
+ * Iconos ya construidos, por su aspecto.
+ *
+ * Cada pin entra al mapa cayendo y rebotando. Si el icono se fabricase de
+ * nuevo en cada render, Leaflet lo sustituiría y **todos** los pines volverían
+ * a caer cada vez que tocas uno. Reutilizando el mismo objeto, sólo se anima
+ * el que de verdad cambia.
+ */
+const cache = new Map<string, L.DivIcon>();
+
+function escaparHtml(texto: string): string {
+  return texto.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+}
+
+export function buildStopMarkerIcon(category: StopCategory, opts: { visited?: boolean; isCurrent?: boolean; nombre?: string } = {}): L.DivIcon {
+  const clave = `${category}|${opts.visited ? 1 : 0}|${opts.isCurrent ? 1 : 0}|${opts.nombre ?? ""}`;
+  const hecho = cache.get(clave);
+  if (hecho) return hecho;
+  const icono = construir(category, opts);
+  cache.set(clave, icono);
+  return icono;
+}
+
+function construir(category: StopCategory, opts: { visited?: boolean; isCurrent?: boolean; nombre?: string }): L.DivIcon {
   const Icon = CATEGORY_ICON[category] ?? Landmark;
   const color = CATEGORY_HEX[category] ?? "#1a73e8";
   const scale = opts.isCurrent ? 1.28 : 1;
@@ -57,8 +80,18 @@ export function buildStopMarkerIcon(category: StopCategory, opts: { visited?: bo
 
   const iconSvg = renderToStaticMarkup(<Icon size={13} color="white" strokeWidth={2.5} aria-hidden="true" />);
 
+  /*
+   * El nombre bajo el pin, como en Google Maps. Sólo se ve con el mapa
+   * acercado (lo decide la clase `mostrar-nombres` del contenedor): alejado,
+   * treinta nombres encima unos de otros no se leen.
+   */
+  const etiqueta = opts.nombre
+    ? `<span class="etiqueta-pin" style="color:${color}">${escaparHtml(opts.nombre)}</span>`
+    : "";
+
   const html = `
-    <div style="position:relative;width:${width}px;height:${height}px;filter:drop-shadow(0 2px 3px rgba(32,33,36,0.35));">
+    <div class="${opts.isCurrent ? "pin-rebota" : "pin-cae"}" style="position:relative;width:${width}px;height:${height}px;">
+      <div style="width:${width}px;height:${height}px;filter:drop-shadow(0 2px 3px rgba(32,33,36,0.35));">
       <svg width="${width}" height="${height}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
         <path d="M15 0C6.7 0 0 6.7 0 15c0 10.5 15 25 15 25s15-14.5 15-25C30 6.7 23.3 0 15 0z"
               fill="${color}" stroke="white" stroke-width="1.5" />
@@ -72,6 +105,8 @@ export function buildStopMarkerIcon(category: StopCategory, opts: { visited?: bo
           : ""
       }
       ${opts.isCurrent ? `<div style="position:absolute;top:2px;left:2px;width:${width - 4}px;height:${width - 4}px;border-radius:50%;border:2.5px solid white;box-sizing:border-box;"></div>` : ""}
+      </div>
+      ${etiqueta}
     </div>
   `;
 

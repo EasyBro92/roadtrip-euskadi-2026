@@ -1,7 +1,9 @@
 import L from "leaflet";
 import { useMemo } from "react";
 import { Marker } from "react-leaflet";
+import { useLugarStore } from "../../stores/useLugarStore";
 import { useNearbyStore } from "../../stores/useNearbyStore";
+import { lugarDeCercano } from "./categoriaDeLugar";
 
 /**
  * Marcador de "qué hay cerca": un punto pequeño y neutro, a propósito
@@ -15,7 +17,7 @@ function icono(resaltado: boolean): L.DivIcon {
   const tamano = resaltado ? 18 : 13;
   return L.divIcon({
     className: "",
-    html: `<span style="
+    html: `<span class="pin-cae" style="
       display:block;width:${tamano}px;height:${tamano}px;border-radius:9999px;
       background:var(--color-navigation);
       border:2.5px solid var(--color-surface);
@@ -30,6 +32,7 @@ export function NearbyMarkers() {
   const resultados = useNearbyStore((s) => s.resultados);
   const resaltado = useNearbyStore((s) => s.resaltado);
   const resaltar = useNearbyStore((s) => s.resaltar);
+  const elegirLugar = useLugarStore((s) => s.elegir);
 
   const normal = useMemo(() => icono(false), []);
   const grande = useMemo(() => icono(true), []);
@@ -43,7 +46,12 @@ export function NearbyMarkers() {
           icon={lugar.id === resaltado ? grande : normal}
           alt={lugar.name}
           title={lugar.name}
-          eventHandlers={{ click: () => resaltar(lugar.id) }}
+          eventHandlers={{
+            click: () => {
+              resaltar(lugar.id);
+              elegirLugar(lugarDeCercano(lugar));
+            },
+          }}
         />
       ))}
     </>
